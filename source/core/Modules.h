@@ -2,25 +2,32 @@
 #define DEF_MODULES_H
 
 /*
-*   Function for register class member callback function
+*   	Function for register class member callback function
 */
 private int mod_Process_Callback(jack_nframes_t nframes, void *u);
 
 /*
-*	  Basic class for all modules
+*	Basic class for all modules
 */
-class Mod_Module{
+class Module{
 	
 	public:
+		//see mod_register_ports for additional params
+		Module(const char *server, const char *name, int port_count, const char **port_names, const char **port_types, unsigned long **port_flags);
+		
+		virtual int process(jack_nframes_t nframes, void *arg){}; // Client's callback functio
 	
-		Mod_Module(const char *server, const char *name);
-		
-		virtual int process(jack_nframes_t nframes, void *arg){}; // Client's callback function
-		
 	protected:
 	
 		jack_client_t *client;	//JACK Client
 		char* name;		//Client unique name
+	
+	private:
+		/*
+		*	Create and register ports for this Module
+		*	Takes number of ports and arrays of port names, port types, port flags
+		*/
+		void mod_Register_Port(int port_count, const char **port_names, const char **port_types, unsigned long **port_flags);
 };
 
 #endif
