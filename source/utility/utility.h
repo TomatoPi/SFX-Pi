@@ -11,25 +11,6 @@
 //Simplification de l'ecriture du type jack_default_audio_sample_t
 typedef jack_default_audio_sample_t sample_t;
 
-int fx_Process_Callback(jack_nframes_t nframes, void *u);
-
-/*
-*	Classe de base de tout les modules audio du programme
-*/
-class Fx_Client{
-	
-	public:
-	
-		Fx_Client(const char *server, const char *name);
-		
-		virtual int process(jack_nframes_t nframes, void *arg){}; // Fonction callback du client
-		
-	protected:
-	
-		jack_client_t *client;	//JACK Client
-		char* name;		//Client unique name
-};
-
 /*
 *	Fonction qui contraint un sample "in" dans un interval donné [min, max] ( HardClipping equivalent )
 */
