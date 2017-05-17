@@ -73,4 +73,21 @@ typedef struct
 
 } f_tripole;
 
+/*
+*	Initialisating 3Bands EQ
+*	f : EQ
+*	fl : low freq
+* 	fh : high freq
+*	sr : current samplerate
+*	gl : low band gain
+*	gm : mid band gain
+*	gh : high band gain
+*/
+void sfx_init_tripole(sfx_tripole *f, int fl, int fh, int sr, float gl, float gm, float gh);
+
+/*
+*	Compute 3Bands EQ for given sample
+*/
+sample_t sfx_do_tripole(sfx_tripole* f, sample_t sample);
+
 #endif
