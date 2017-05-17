@@ -1,6 +1,14 @@
 #ifndef DEF_MODULES_H
 #define DEF_MODULES_H
 
+#include <stdio.h>
+#include <errno.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include <jack/jack.h>
+
 /*
 *   	Function for register class member callback function
 */
