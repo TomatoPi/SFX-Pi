@@ -1,30 +1,7 @@
 #ifndef DEF_UTILITY
 #define DEF_UTILITY
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 
-#include <math.h>
-#include <jack/jack.h>
-
-//Simplification de l'ecriture du type jack_default_audio_sample_t
-typedef jack_default_audio_sample_t sample_t;
-
-/*
-*	Fonction qui contraint un sample "in" dans un interval donné [min, max] ( HardClipping equivalent )
-*/
-sample_t sfx_clip(sample_t in, float min, float max);
-
-/*
-*	Fonction qui contraint un sample "in" dans un interval donné, avec adoucissement du coude ( SoftClipping equivalent )
-*/
-sample_t sfx_soft(sample_t in, float max, float soft, float shape);
-
-sample_t sfx_abs(sample_t in); // Fonction valeur absolue
-
-float sfx_dbtorms(float d); //conversion db vers un gain
-float sfx_rmstodb(float g); //conversion d'un gain en db
 
 static float vsa = (1.0 / 4294967295.0); //Très petite valeur
 
