@@ -30,13 +30,13 @@ class LFO : public Module{
 		
 		int process(jack_nframes_t nframes, void *arg);
     
-    friend void lfo_set_type(LFO *lfo, LFO_Wave type);
+    		friend void lfo_set_type(LFO *lfo, LFO_Wave type);
 		
 	protected:
 		
 		jack_port_t *out; 	//Output port
     
-    sample_t (*waveform)(float, float, float, float); // waveform generator function
+	    	sample_t (*waveform)(float, float, float, float); // waveform generator function
 		LFO_Wave type;
 		
 		float f; 		//LFO frequency
