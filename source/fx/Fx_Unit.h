@@ -12,7 +12,7 @@
 #include "../utility/utility.h"
 
 /*
-*	Classe de base pour tout les effets
+*	Basic class for all effects
 */
 class Fx_Unit : public Fx_Client{
 	
@@ -23,13 +23,14 @@ class Fx_Unit : public Fx_Client{
 		virtual int process(jack_nframes_t nframes, void *arg){};
 		
 	protected:
-		jack_port_t **a_port; //io du client
+		jack_port_t **a_port; // Client's IO port
 };
 
 /*
-* 	FX de drive, Soft Clip, Hard clip
-*	Filtrage trois bande avant le clip
-*	Possibilité de clipping asymetrique
+*
+* 	Drive, Soft & Hard Clipping effects
+*	EQ pre-drive
+*	Possibility of asymmetrical clipping
 */
 class Drive : public Fx_Unit{
 	
@@ -41,14 +42,14 @@ class Drive : public Fx_Unit{
 	
 	protected :
 		
-		float gp, gn; //Gain appliqué au signal, positif - negatif
-		float sp, sn; // Softness du soft clip, positif - negatif
-		float shp, shn; //Shape -----------------------------
-		sfx_tripole *filter; // Filtre trois bandes ( bass, mid, high )
+		float gp, gn; //Gain applied to the signal, positive or negative
+		float sp, sn; //Soft-Clipping Softness, positive or negative
+		float shp, shn; //Soft-Clipping Shape, positive or negative
+		sfx_tripole *filter; // EQ ( bass, mid, high )
 		
-		int is_abs; //Si redressage double alternace du signal
-		int is_asm; //Si clipping asymetrique : paramètres _p utilisés pour les alternaces positives, _n pour les alternaces negatives
-		int is_soft_clip_p, is_soft_clip_n; //si le clipping est soft ou hard
+		int is_abs; //for full wave rectification
+		int is_asm; //for asymmetrical clipping : _p parameter for positives half-cycles and _n for negatives half-cycles
+		int is_soft_clip_p, is_soft_clip_n; //for Soft or Hard-clipping
 };
 
 /*class Fx_Mod : public Fx_Client{
