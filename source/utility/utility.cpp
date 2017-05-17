@@ -8,6 +8,9 @@ int fx_Process_Callback(jack_nframes_t nframes, void *u){
 	return static_cast<Fx_Client*>(u)->process(nframes, u);
 }
 
+/*
+*	Constructeur de base des clients audio
+*/
 Fx_Client::Fx_Client(const char *server, const char *name){
 
 	jack_options_t options = JackNullOption;
@@ -15,7 +18,7 @@ Fx_Client::Fx_Client(const char *server, const char *name){
 	
 	jack_client_t *client;
 	
-	fprintf (stderr,"Creation du client jack\n");
+	//Creation du client JACK, "name" dans le serveur "server"
 	client = jack_client_open (name, options, &status, server);
 	if (client == NULL) {
 		fprintf (stderr, "jack_client_open() failed, "
@@ -25,14 +28,13 @@ Fx_Client::Fx_Client(const char *server, const char *name){
 		}
 		exit (1);
 	}
-	fprintf (stderr, "Client jack cree\n");
 	//si un client porte deja ce nom, mise a jour du nom
 	if (status & JackNameNotUnique) {
 		name = jack_get_client_name(client);
 		fprintf (stderr, "unique name `%s' assigned\n", name);
 	}
 	
-	//enregistrement de al fonction callback
+	//enregistrement de la fonction callback
 	jack_set_process_callback(client, fx_Process_Callback, this);
 	
 	this->client = client;
@@ -66,12 +68,15 @@ float sfx_rmstodb(float g){
 
 void sfx_init_tripole(sfx_tripole *f, int fl, int fh, int sr, float gl, float gm, float gh){
 	
+	//initialisation de toutes les valuers a 0
 	memset(f,0,sizeof(sfx_tripole));
-
+	
+	//initialisation des gains
 	f->gl = gl;
 	f->gm = gm;
 	f->gh = gh;
 
+	//Scalling filters frequencies with samplerate
 	f->fl = 2 * sin(M_PI * ((float)fl / (float)sr)); 
 	f->fh = 2 * sin(M_PI * ((float)fh / (float)sr));
 }
