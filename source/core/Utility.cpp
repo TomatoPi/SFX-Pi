@@ -1,31 +1,31 @@
 #include "Utility.h"
 
-sample_t f_clip(sample_t in, float min, float max){
+sample_t spi_clip(sample_t in, float min, float max){
 	
 	return (in > max)? max : ((in < min)?min : in);
 }
 
-sample_t f_soft(sample_t in, float max, float soft, float shape){
+sample_t spi_soft(sample_t in, float max, float soft, float shape){
 	
 	return max * ((1 - shape)*tanh(in) + shape * tanh(in/soft));
 }
 
-sample_t f_abs(sample_t in){
+sample_t spi_abs(sample_t in){
 	
 	return (in < 0)?-in:in;
 }
 
-float f_dbtorms(float d){
+float spi_dbtorms(float d){
 	
 	return pow(10, d/20.0);
 }
 
-float f_rmstodb(float g){
+float spi_rmstodb(float g){
 	
 	return 20 * log10(g);
 }
 
-void f_init_tripole(sfx_tripole *f, int fl, int fh, int sr, float gl, float gm, float gh){
+void spi_init_tripole(spi_tripole *f, int fl, int fh, int sr, float gl, float gm, float gh){
 	
 	//initialisating values to 0
 	memset(f,0,sizeof(sfx_tripole));
@@ -40,7 +40,7 @@ void f_init_tripole(sfx_tripole *f, int fl, int fh, int sr, float gl, float gm, 
 	f->fh = 2 * sin(M_PI * ((float)fh / (float)sr));
 }
 
-sample_t f_do_tripole(sfx_tripole* f, sample_t sample){
+sample_t spi_do_tripole(spi_tripole* f, sample_t sample){
 	
 	sample_t l,m,h; // Low / Mid / High
 
