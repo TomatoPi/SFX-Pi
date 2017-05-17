@@ -1,18 +1,18 @@
 #include "Fx_Unit.h"
 
 /**
-* 	Constructeur de base pour les effets
-*	Enregistrement des ports
+* 	Basic constructor for all effects
+*	Ports Registration
 */
 Fx_Unit::Fx_Unit(const char *server, const char *unit_name) : Fx_Client(server, unit_name){
 	
 	jack_port_t *in_l, *in_r, *out_l, *out_r;
 	
-	//Enregistrement des deux ports d'entree
+	//Input Ports Registration
 	in_l = jack_port_register (this->client, "in_l", JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
 	in_r= jack_port_register (this->client, "in_r", JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
 	
-	//Enregistrement des ports de sortie
+	//Output Ports Registration
 	out_l = jack_port_register (this->client, "out_l", JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
 	out_r = jack_port_register (this->client, "out_r", JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
 	
@@ -35,8 +35,8 @@ Fx_Unit::Fx_Unit(const char *server, const char *unit_name) : Fx_Client(server, 
 }
 
 /**
-*	Constructeur du fx de distortion
-*	Creation du EQ trois bandes
+*	Distortion effect constructor
+*	EQ creation
 */
 Drive::Drive(const char *server, const char *name): Fx_Unit(server, name), gp(70), gn(30), sp(10), sn(5), shp(0.29), shn(0.8), is_abs(0), is_asm(1), is_soft_clip_p(1), is_soft_clip_n(0){
 	
@@ -50,40 +50,41 @@ Drive::Drive(const char *server, const char *name): Fx_Unit(server, name), gp(70
 }
 
 /*
-*	Callback du Fx Drive
+*	Drive effect's Callback
 */
 int Drive::process(jack_nframes_t nframes, void *arg){
 	
 	sample_t *s_in_l, *s_out_l;	
-	s_in_l = (sample_t*)jack_port_get_buffer(this->a_port[0], nframes);	//recuperation du buffer d'entrée gauche
-	s_out_l = (sample_t*)jack_port_get_buffer(this->a_port[2], nframes);	//-----------------------de sortie gauche
+	s_in_l = (sample_t*)jack_port_get_buffer(this->a_port[0], nframes);	//collecting Left input buffer
+	s_out_l = (sample_t*)jack_port_get_buffer(this->a_port[2], nframes);	//collecting Right input buffer
 	
 	sample_t *s_in_r, *s_out_r;	
 	s_in_r = (sample_t*)jack_port_get_buffer(this->a_port[1], nframes);
 	s_out_r = (sample_t*)jack_port_get_buffer(this->a_port[3], nframes);
 	
-	float g1 = this->gp, g2 = this->gn; //recuperation des gains positifs et negatifs
+	float g1 = this->gp, g2 = this->gn; //collecting positive & negative gains
 	
-	for(jack_nframes_t i = 0; i < nframes; i++){						//Pour chaque sample
+	for(jack_nframes_t i = 0; i < nframes; i++){						//For each sample
 		
-		sample_t l = sfx_do_tripole(this->filter, s_in_l[i]);				//sample actuel gauche
-		sample_t r = sfx_do_tripole(this->filter, s_in_r[i]);				//--------------droite
+		sample_t l = sfx_do_tripole(this->filter, s_in_l[i]);				//Current Left sample
+		sample_t r = sfx_do_tripole(this->filter, s_in_r[i]);				//Current Right sample
 		
-		if(this->is_asm){ 									//si le clipping est asymetrique
-			if(l>0){ 										//si positif
-				if(this->is_soft_clip_p){								//softclip ou hardclip
-					s_out_l[i] = sfx_soft(l*g1, 0.5, this->sp, this->shp);					//softclip
-				}else{											//sinon
-					s_out_l[i] = sfx_clip(l*g1, -0.5, 0.5);							//hardclip
+		if(this->is_asm){ 									//if asymmetrical clipping
+														//Left Channel
+			if(l>0){ 										//if positive
+				if(this->is_soft_clip_p){								//soft-clipping or hard-clipping
+					s_out_l[i] = sfx_soft(l*g1, 0.5, this->sp, this->shp);					//soft-clipping
+				}else{											//else
+					s_out_l[i] = sfx_clip(l*g1, -0.5, 0.5);							//hard-clipping
 				}																
-			}else{											//si negatif	
-				if(this->is_soft_clip_n){                                      				//softclip ou hardclip
-					s_out_l[i] = sfx_soft(l*g2, 0.5, this->sn, this->shn);          			//softclip
-				}else{                                                              			//sinon
-					s_out_l[i] = sfx_clip(l*g2, -0.5, 0.5);                         			//hardclip
+			}else{											//if negative	
+				if(this->is_soft_clip_n){                                      				//soft-clipping or hard-clipping
+					s_out_l[i] = sfx_soft(l*g2, 0.5, this->sn, this->shn);          			//soft-clipping
+				}else{                                                              			//else
+					s_out_l[i] = sfx_clip(l*g2, -0.5, 0.5);                         			//hard-clipping
 				}
 			}
-			if(r>0){										//Pareil pour la voie droite
+			if(r>0){										//Same for Right Channel
 				if(this->is_soft_clip_p){
 					s_out_r[i] = sfx_soft(r*g1, 0.5, this->sp, this->shp);
 				}else{
@@ -96,20 +97,20 @@ int Drive::process(jack_nframes_t nframes, void *arg){
 					s_out_r[i] = sfx_clip(r*g2, -0.5, 0.5);
 				}
 			}
-		}else{											//si le clipping est symetrique
-			if(this->is_soft_clip_p){								//softclip ou hardclip
-					s_out_l[i] = sfx_soft(l*g1, 0.5, this->sp, this->shp);				//softclip
-				}else{										//sinon
-					s_out_l[i] = sfx_clip(l*g1, -0.5, 0.5);						//hardclip
+		}else{											//if symmetrical clipping
+			if(this->is_soft_clip_p){								//soft-clipping or hard-clipping
+					s_out_l[i] = sfx_soft(l*g1, 0.5, this->sp, this->shp);				//soft-clipping
+				}else{										//else
+					s_out_l[i] = sfx_clip(l*g1, -0.5, 0.5);						//hard-clipping
 				}
-			if(this->is_soft_clip_p){							//pareil pour la droite
+			if(this->is_soft_clip_p){							//Same for Right Channel
 					s_out_r[i] = sfx_soft(r*g1, 0.5, this->sp, this->shp);
 				}else{
 					s_out_r[i] = sfx_clip(r*g1, -0.5, 0.5);
 				}
 				
 		}
-		if(this->is_abs){									//si le mode valeur absolue est activé, redressage du signal
+		if(this->is_abs){									//if absolute value mode is true, full-wave rectification
 			s_out_l[i] = sfx_abs(s_out_l[i]);
 			s_out_r[i] = sfx_abs(s_out_r[i]);
 		}
