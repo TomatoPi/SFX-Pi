@@ -8,15 +8,16 @@ int mod_Process_Callback(jack_nframes_t nframes, void *u){
 /*
 *	Basic module constructor
 *	basic setup of jack client and server
+*	Port registration
 */
-Module::Module(const char *server, const char *name){
+Module::Module(const char *server, const char *name, int port_count, const char **port_names, const char **port_types, unsigned long **port_flags){
 
 	jack_options_t options = JackNullOption;
 	jack_status_t status;
 	
 	jack_client_t *client;
 	
-	//Creation du client JACK, "name" dans le serveur "server"
+	//Creating jack client with name "name", in server "server"
 	client = jack_client_open (name, options, &status, server);
 	if (client == NULL) {
 		fprintf (stderr, "jack_client_open() failed, "
@@ -26,13 +27,29 @@ Module::Module(const char *server, const char *name){
 		}
 		exit (1);
 	}
-	//si un client porte deja ce nom, mise a jour du nom
+	
+	//upgrade name if given name is not unique
 	if (status & JackNameNotUnique) {
 		name = jack_get_client_name(client);
-		fprintf (stderr, "unique name `%s' assigned\n", name);
+		fprintf (stderr, "Unique name `%s' assigned\n", name);
 	}
 	
-	//enregistrement de la fonction callback
+	//register module ports
+	this->a_port = (jack_port_t**)malloc(port_count * sizeof(jack_port_t*));
+	if(this->a_port == NULL){
+		fprintf(stderr, "Failed creating ports array\n");
+		exit(1);
+	}
+	for(int i = 0; i < port_count; i++){
+		jack_port_t *port = jack_port_register( this->client, port_names[i], port_types[i], port_flags[i], 0);
+		if(port == NULL){
+			fprintf(stderr	, "No more port aviable\n");
+			exit(1);
+		}
+		this->a_port[i] = port;
+	}
+	
+	//register callback function
 	jack_set_process_callback(client, mod_Process_Callback, this);
 	
 	this->client = client;
