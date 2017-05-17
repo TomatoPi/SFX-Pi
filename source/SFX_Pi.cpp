@@ -6,8 +6,8 @@
 
 #include <jack/jack.h>
 
-#include "./fx/Fx_Unit.h"
-#include "./mod/LFO.h"
+#include "./modules/Drive.h"
+#include "./modules/LFO.h"
 
 const char *SERVER_NAME = "Space_FX";
 
