@@ -1,17 +1,12 @@
 #include "LFO.h"
 
-LFO::LFO(const char *server, const char *name): Fx_Client(server, name), type(WAVE_NPH), f(440), ramp(0.0), phase(0.0), sign(1.0), p1(20), p2(3){
+LFO::LFO(const char *server, const char *name): Module(server, name, 1	, {"out"}
+						      			, {JACK_DEFAULT_AUDIO_TYPE}
+						      			, {JackPortIsOutput}
+						      			)
+						, type(WAVE_NPH), f(440), ramp(0.0), phase(0.0), sign(1.0), p1(20), p2(3){
 	
 	lfo_set_type(this, this->type);
-	
-	jack_port_t *out;
-	out = jack_port_register (this->client, "out", JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
-	if(out == NULL){
-		fprintf(stderr, "Aucun port Jack Disponible");
-		exit(1);
-	}
-	
-	this->out = out;
 	
 	if (jack_activate (this->client)) {
 		fprintf (stderr, "Echec de l'activation du client\n");
