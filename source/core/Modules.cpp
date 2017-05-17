@@ -1,17 +1,15 @@
 #include "Modules.h"
 
-/**
-*	Fonction utile pour enregistrer la fonction callback des effets.
-*/
-int fx_Process_Callback(jack_nframes_t nframes, void *u){
+int mod_Process_Callback(jack_nframes_t nframes, void *u){
 	
-	return static_cast<Fx_Client*>(u)->process(nframes, u);
+	return static_cast<Module*>(u)->process(nframes, u);
 }
 
 /*
-*	Constructeur de base des clients audio
+*	Basic module constructor
+*	basic setup of jack client and server
 */
-Fx_Client::Fx_Client(const char *server, const char *name){
+Module::Module(const char *server, const char *name){
 
 	jack_options_t options = JackNullOption;
 	jack_status_t status;
@@ -35,7 +33,7 @@ Fx_Client::Fx_Client(const char *server, const char *name){
 	}
 	
 	//enregistrement de la fonction callback
-	jack_set_process_callback(client, fx_Process_Callback, this);
+	jack_set_process_callback(client, mod_Process_Callback, this);
 	
 	this->client = client;
 	this->name = (char*)name;
