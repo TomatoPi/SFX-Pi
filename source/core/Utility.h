@@ -19,27 +19,27 @@ typedef jack_default_audio_sample_t sample_t;
 /*
 *	Constrain given sample between min and max, ( Hard-Clipping )
 */
-sample_t f_clip(sample_t in, float min, float max);
+sample_t spi_clip(sample_t in, float min, float max);
 
 /*
 *	Compute dual tanh soft clipping, see wiki for more information
 */
-sample_t f_soft(sample_t in, float max, float soft, float shape);
+sample_t spi_soft(sample_t in, float max, float soft, float shape);
 
 /*
 * Compute absolute value of given sample
 */
-sample_t f_abs(sample_t in);
+sample_t spi_abs(sample_t in);
 
 /*
 * Convert db to gain ( ex : +20dB ==> *100 )
 */
-float f_dbtorms(float d);
+float spi_dbtorms(float d);
 
 /*
 * Convert gain to db ( ex : *0.5 ==> -3dB )
 */
-float f_rmstodb(float g); 
+float spi_rmstodb(float g); 
 
 /*
 *	3 Bands EQ ( low, mid, high )
@@ -71,7 +71,7 @@ typedef struct
 	float gm; // mid
 	float gh; // high
 
-} f_tripole;
+} spi_tripole;
 
 /*
 *	Initialisating 3Bands EQ
@@ -83,11 +83,11 @@ typedef struct
 *	gm : mid band gain
 *	gh : high band gain
 */
-void sfx_init_tripole(sfx_tripole *f, int fl, int fh, int sr, float gl, float gm, float gh);
+void sfx_init_tripole(spi_tripole *f, int fl, int fh, int sr, float gl, float gm, float gh);
 
 /*
 *	Compute 3Bands EQ for given sample
 */
-sample_t sfx_do_tripole(sfx_tripole* f, sample_t sample);
+sample_t sfx_do_tripole(spi_tripole* f, sample_t sample);
 
 #endif
