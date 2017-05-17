@@ -66,7 +66,7 @@ typedef struct
 	float sm2; // - 2
 	float sm3; // - 3
 
-  //Band gain
+  	//Band gain
 	float gl; // low
 	float gm; // mid
 	float gh; // high
