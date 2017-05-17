@@ -29,12 +29,12 @@ sample_t sfx_soft(sample_t in, float max, float soft, float shape);
 sample_t sfx_abs(sample_t in);
 
 /*
-*convert db to gain ( ex : +20dB ==> *100 )
+* Convert db to gain ( ex : +20dB ==> *100 )
 */
 float sfx_dbtorms(float d);
 
 /*
-*convert gain to db ( ex : *0.5 ==> -3dB )
+* Convert gain to db ( ex : *0.5 ==> -3dB )
 */
 float sfx_rmstodb(float g); 
 
