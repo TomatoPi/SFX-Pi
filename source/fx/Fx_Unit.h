@@ -47,7 +47,7 @@ class Drive : public Fx_Unit{
 		float shp, shn; //Soft-Clipping Shape, positive or negative
 		sfx_tripole *filter; // EQ ( bass, mid, high )
 		
-		int is_abs; //for full wave rectification
+		int is_abs; //for full-wave rectification
 		int is_asm; //for asymmetrical clipping : _p parameter for positives half-cycles and _n for negatives half-cycles
 		int is_soft_clip_p, is_soft_clip_n; //for Soft or Hard-clipping
 };
