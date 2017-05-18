@@ -34,9 +34,7 @@ class LFO : public Module{
     		friend void lfo_set_type(LFO *lfo, LFO_Wave type);
 		
 	protected:
-		
-		jack_port_t *out; 	//Output port
-    
+	
 	    	sample_t (*waveform)(float, float, float, float); // waveform generator function
 		LFO_Wave type;
 		
