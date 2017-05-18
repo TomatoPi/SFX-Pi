@@ -10,7 +10,7 @@ int mod_Process_Callback(jack_nframes_t nframes, void *u){
 *	basic setup of jack client and server
 *	Port registration
 */
-Module::Module(const char *server, const char *name, int port_count, const char **port_names, const char **port_types, unsigned long *port_flags){
+Module::Module(const char *server, const char *name, int ai, int ao, int mi, int mo, ...){
 
 	jack_options_t options = JackNullOption;
 	jack_status_t status;
@@ -35,19 +35,46 @@ Module::Module(const char *server, const char *name, int port_count, const char 
 	}
 	
 	//register module ports
+	va_list arg;
+	int port_count = ai + ao + mi + mo;
 	this->port = (jack_port_t**)malloc(port_count * sizeof(jack_port_t*));
 	if(this->port == NULL){
 		fprintf(stderr, "Failed creating ports array\n");
 		exit(1);
 	}
+	va_start(arg, mo);
 	for(int i = 0; i < port_count; i++){
-		jack_port_t *port = jack_port_register( this->client, port_names[i], port_types[i], port_flags[i], 0);
+		int c = 0;
+		if(i < (ai+ao+mi+mo))c = 3;
+		if(i < (ai+ao+mi))c = 2;
+		if(i < (ai+ao))c = 1;
+		if(i < ai)c = 0;
+		
+		jack_port_t *port;
+		const char *n = va_next(arg, const char *);
+		
+		switch(c){
+			case 0:
+				port = jack_port_register( this->client, n, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
+				break;
+			case 1:
+				port = jack_port_register( this->client, n, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
+				break;
+			case 2:
+				port = jack_port_register( this->client, n, JACK_DEFAULT_MIDI_TYPE, JackPortIsInput, 0);
+				break;
+			case 3:
+				port = jack_port_register( this->client, n, JACK_DEFAULT_MIDI_TYPE, JackPortIsOutput, 0);
+				break;
+		}
+		
 		if(port == NULL){
 			fprintf(stderr	, "No more port aviable\n");
 			exit(1);
 		}
 		this->port[i] = port;
 	}
+	va_end(arg);
 	
 	//register callback function
 	jack_set_process_callback(client, mod_Process_Callback, this);
