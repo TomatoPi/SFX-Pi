@@ -41,6 +41,8 @@ class Module{
 		char* name;		//Client unique name
 	
 		jack_port_t **port;
+	
+		float *params;
 };
 
 #endif
