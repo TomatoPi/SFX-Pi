@@ -20,10 +20,19 @@ int mod_Process_Callback(jack_nframes_t nframes, void *u);
 class Module{
 	
 	public:
-		//see mod_register_ports for additional params
-		Module(const char *server, const char *name, int port_count, const char **port_names, const char **port_types, unsigned long *port_flags);
+		/*
+		*	Constructor for all modules, setup jack client and io ports
+		* 	server : server name
+		*	name : module unique name
+		* 	ai : number of audio input
+		*	ao : number of midi input
+		*	mi : number of audio output
+		*	mo : number of midi output
+		*	... : list of port names in order ai -> ao -> mi -> mo
+		*/
+		Module(const char *server, const char *name, int ai, int ao, int mi, int mo, ...);
 		
-		virtual int process(jack_nframes_t nframes, void *arg){}; // Client's callback functio
+		virtual int process(jack_nframes_t nframes, void *arg){}; // Client's callback function
 	
 	protected:
 	
