@@ -42,6 +42,7 @@ class Module{
 	
 		jack_port_t **port;
 	
+		int params_count;
 		float *params;
 };
 
