@@ -12,7 +12,7 @@
 /*
 *   	Function for register class member callback function
 */
-private int mod_Process_Callback(jack_nframes_t nframes, void *u);
+int mod_Process_Callback(jack_nframes_t nframes, void *u);
 
 /*
 *	Basic class for all modules
