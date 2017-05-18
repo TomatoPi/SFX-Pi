@@ -9,8 +9,6 @@
 #include "./modules/Drive.h"
 #include "./modules/LFO.h"
 
-const char *SERVER_NAME = "Space_FX";
-
 int SAMPLERATE = 48000;
 
 int main(int argc, char *argv[]){
