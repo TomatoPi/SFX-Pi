@@ -4,9 +4,9 @@
 *	Distortion effect constructor
 *	EQ creation
 */
-Drive::Drive(const char *server, const char *name): Module(server, name, 4, {"in_L", "in_R", "out_L", "out_R"}
-                                                                          , {JACK_DEFAULT_AUDIO_TYPE, JACK_DEFAULT_AUDIO_TYPE, JACK_DEFAULT_AUDIO_TYPE, JACK_DEFAULT_AUDIO_TYPE}
-                                                                          , {JackPortIsInput, JackPortIsInput, JackPortIsOutput, JackPortIsOutput}
+Drive::Drive(const char *server, const char *name): Module(server, name, 4, const char **p = {"in_L", "in_R", "out_L", "out_R"}
+                                                                          , const char **d = {JACK_DEFAULT_AUDIO_TYPE, JACK_DEFAULT_AUDIO_TYPE, JACK_DEFAULT_AUDIO_TYPE, JACK_DEFAULT_AUDIO_TYPE}
+                                                                          , unsigned long *t = {JackPortIsInput, JackPortIsInput, JackPortIsOutput, JackPortIsOutput}
                                                                           )
                                                     , gp(70), gn(30), sp(10), sn(5), shp(0.29), shn(0.8), is_abs(0), is_asm(1), is_soft_clip_p(1), is_soft_clip_n(0){
 	
