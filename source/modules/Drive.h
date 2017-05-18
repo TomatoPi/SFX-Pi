@@ -39,6 +39,7 @@ class Drive : public Module{
 			
 		spi_tripole *filter; // EQ ( bass, mid, high )
 	
+		/*
 		float gp, gn; //Gain applied to the signal
 		float sp, sn; //Soft-Clipping Softness
 		float shp, shn; //Soft-Clipping Shape
@@ -46,6 +47,7 @@ class Drive : public Module{
 		
 		int is_abs; //for full-wave rectification
 		int is_asm; //for asymmetrical clipping : _p parameter for positives half-cycles and _n for negatives half-cycles
+		*/
 };
 
 #endif
