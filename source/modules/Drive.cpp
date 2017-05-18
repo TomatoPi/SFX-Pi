@@ -25,12 +25,12 @@ Drive::Drive(const char *server, const char *name): Module(server, name, 4, cons
 int Drive::process(jack_nframes_t nframes, void *arg){
 	
 	sample_t *s_in_l, *s_out_l;	
-	s_in_l = (sample_t*)jack_port_get_buffer(this->a_port[0], nframes);	//collecting Left input buffer
-	s_out_l = (sample_t*)jack_port_get_buffer(this->a_port[2], nframes);	//collecting Right input buffer
+	s_in_l = (sample_t*)jack_port_get_buffer(this->port[0], nframes);	//collecting Left input buffer
+	s_out_l = (sample_t*)jack_port_get_buffer(this->port[2], nframes);	//collecting Right input buffer
 	
 	sample_t *s_in_r, *s_out_r;	
-	s_in_r = (sample_t*)jack_port_get_buffer(this->a_port[1], nframes);
-	s_out_r = (sample_t*)jack_port_get_buffer(this->a_port[3], nframes);
+	s_in_r = (sample_t*)jack_port_get_buffer(this->port[1], nframes);
+	s_out_r = (sample_t*)jack_port_get_buffer(this->port[3], nframes);
 	
 	float g1 = this->gp, g2 = this->gn; //collecting positive & negative gains
 	
