@@ -34,6 +34,7 @@ class Module{
 		Module(const char *server, const char *name, int ai, int ao, int mi, int mo, ...);
 		
 		virtual int process(jack_nframes_t nframes, void *arg){}; // Client's callback function
+		int set_param(int param, float var);
 	
 	protected:
 	
