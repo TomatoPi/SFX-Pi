@@ -4,6 +4,7 @@
 #include <jack/jack.h>
 
 #include "../core/Utility.h"
+#include "../core/Modules.h"
 
 /*
 *	List of possible LFO waveshape
