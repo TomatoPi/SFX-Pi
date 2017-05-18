@@ -35,19 +35,6 @@ class Drive : public Module{
 		
 		int process(jack_nframes_t nframes, void *arg);
 	
-		/*
-		* set given param , for gain, soft, shape and type : b true for positive param, false for negative
-		*/
-		void setParams_gain(float p, int b);
-		void setParams_soft(float p, int b);
-		void setParams_shap(float p, int b);
-		void setParams_type(int p, int b);
-		void setParams_filt(spi_tripole *f);
-		void setParams_abs(int b);
-		void setParams_asm(int b);
-	
-		spi_tripole *get_filter();
-	
 	protected :
 			
 		spi_tripole *filter; // EQ ( bass, mid, high )
