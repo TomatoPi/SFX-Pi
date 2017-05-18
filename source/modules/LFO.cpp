@@ -1,8 +1,8 @@
 #include "LFO.h"
 
-LFO::LFO(const char *server, const char *name): Module(server, name, 1	, const char **p = {"out"}
-						      			, const char **d = {JACK_DEFAULT_AUDIO_TYPE}
-						      			, unsigned long *t = {JackPortIsOutput}
+LFO::LFO(const char *server, const char *name): Module(server, name, 1	, (const char **){"out"}
+						      			, (const char **){JACK_DEFAULT_AUDIO_TYPE}
+						      			, (unsigned long *){JackPortIsOutput}
 						      			)
 						, type(WAVE_NPH), f(440), ramp(0.0), phase(0.0), sign(1.0), p1(20), p2(3){
 	
