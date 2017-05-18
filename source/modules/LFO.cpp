@@ -1,9 +1,6 @@
 #include "LFO.h"
 
-LFO::LFO(const char *server, const char *name): Module(server, name, 1	, (const char **){"out"}
-						      			, (const char **){JACK_DEFAULT_AUDIO_TYPE}
-						      			, (unsigned long *){JackPortIsOutput}
-						      			)
+LFO::LFO(const char *server, const char *name): Module(server, name, 0, 1, 0, 0, "out")
 						, type(WAVE_NPH), f(440), ramp(0.0), phase(0.0), sign(1.0), p1(20), p2(3){
 	
 	lfo_set_type(this, this->type);
@@ -18,7 +15,7 @@ LFO::LFO(const char *server, const char *name): Module(server, name, 1	, (const 
 
 int LFO::process(jack_nframes_t nframes, void *arg){
 	
-	sample_t *out = (sample_t*)jack_port_get_buffer(this->out, nframes);
+	sample_t *out = (sample_t*)jack_port_get_buffer(this->port[0], nframes);
 	float ramp = this->ramp;
 	int s = (this->sign < 0)? -1: 1;
 	
