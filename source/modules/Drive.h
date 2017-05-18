@@ -40,13 +40,15 @@ class Drive : public Module{
 		spi_tripole *filter; // EQ ( bass, mid, high )
 	
 		/*
-		float gp, gn; //Gain applied to the signal
-		float sp, sn; //Soft-Clipping Softness
-		float shp, shn; //Soft-Clipping Shape
-		int is_soft_clip_p, is_soft_clip_n; //for Soft or Hard-clipping
-		
-		int is_abs; //for full-wave rectification
-		int is_asm; //for asymmetrical clipping : _p parameter for positives half-cycles and _n for negatives half-cycles
+		* Specific parameters for drive module are, in order :	
+		*
+		*	int is_abs; //for full-wave rectification
+		*	int is_asm; //for asymmetrical clipping : _p parameter for positives half-cycles and _n for negatives half-cycles
+		*
+		*	float gp, gn; //Gain applied to the signal
+		*	float sp, sn; //Soft-Clipping Softness
+		*	float shp, shn; //Soft-Clipping Shape
+		*	int is_soft_clip_p, is_soft_clip_n; //for Soft or Hard-clipping
 		*/
 };
 
