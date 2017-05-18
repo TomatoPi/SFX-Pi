@@ -1,5 +1,7 @@
 #include "Modules.h"
 
+const char *SERVER_NAME = "Space_FX";
+
 int mod_Process_Callback(jack_nframes_t nframes, void *u){
 	
 	return static_cast<Module*>(u)->process(nframes, u);
