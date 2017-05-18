@@ -18,9 +18,9 @@
 #define D_GAIN 50.0
 #define D_SOFT 2.0
 #define D_SHAPE 0.5
-#define D_TYPE 1
-#define D_ABS 0
-#define D_ASM 0
+#define D_TYPE 1.0
+#define D_ABS 0.0
+#define D_ASM 0.0
 
 /*
 * 	Drive, Soft & Hard Clipping effects
