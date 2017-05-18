@@ -10,7 +10,7 @@ int mod_Process_Callback(jack_nframes_t nframes, void *u){
 *	basic setup of jack client and server
 *	Port registration
 */
-Module::Module(const char *server, const char *name, int port_count, const char **port_names, const char **port_types, unsigned long **port_flags){
+Module::Module(const char *server, const char *name, int port_count, const char **port_names, const char **port_types, unsigned long *port_flags){
 
 	jack_options_t options = JackNullOption;
 	jack_status_t status;
@@ -35,8 +35,8 @@ Module::Module(const char *server, const char *name, int port_count, const char 
 	}
 	
 	//register module ports
-	this->a_port = (jack_port_t**)malloc(port_count * sizeof(jack_port_t*));
-	if(this->a_port == NULL){
+	this->port = (jack_port_t**)malloc(port_count * sizeof(jack_port_t*));
+	if(this->port == NULL){
 		fprintf(stderr, "Failed creating ports array\n");
 		exit(1);
 	}
@@ -46,7 +46,7 @@ Module::Module(const char *server, const char *name, int port_count, const char 
 			fprintf(stderr	, "No more port aviable\n");
 			exit(1);
 		}
-		this->a_port[i] = port;
+		this->port[i] = port;
 	}
 	
 	//register callback function
