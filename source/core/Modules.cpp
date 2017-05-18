@@ -51,7 +51,7 @@ Module::Module(const char *server, const char *name, int ai, int ao, int mi, int
 		if(i < ai)c = 0;
 		
 		jack_port_t *port;
-		const char *n = va_next(arg, const char *);
+		const char *n = va_next(arg, char *);
 		
 		switch(c){
 			case 0:
