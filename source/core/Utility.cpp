@@ -28,7 +28,7 @@ float spi_rmstodb(float g){
 void spi_init_tripole(spi_tripole *f, int fl, int fh, int sr, float gl, float gm, float gh){
 	
 	//initialisating values to 0
-	memset(f,0,sizeof(sfx_tripole));
+	memset(f,0,sizeof(spi_tripole));
 	
 	//set gains
 	f->gl = gl;
