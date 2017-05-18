@@ -1,8 +1,8 @@
 #include "LFO.h"
 
-LFO::LFO(const char *server, const char *name): Module(server, name, 1	, {"out"}
-						      			, {JACK_DEFAULT_AUDIO_TYPE}
-						      			, {JackPortIsOutput}
+LFO::LFO(const char *server, const char *name): Module(server, name, 1	, const char **p = {"out"}
+						      			, const char **d = {JACK_DEFAULT_AUDIO_TYPE}
+						      			, unsigned long *t = {JackPortIsOutput}
 						      			)
 						, type(WAVE_NPH), f(440), ramp(0.0), phase(0.0), sign(1.0), p1(20), p2(3){
 	
@@ -73,7 +73,7 @@ sample_t w_sqr(float in, float sign, float p1, float p2){
 
 sample_t w_tri(float in, float sign, float p1, float p2){
 	
-	return (sample_t) (sign * 0.5 * ( 2.0*sfx_abs(2.0*in -1.0) - 1.0));
+	return (sample_t) (sign * 0.5 * ( 2.0*spi_abs(2.0*in -1.0) - 1.0));
 }
 
 sample_t w_saw(float in, float sign, float p1, float p2){
