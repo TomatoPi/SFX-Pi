@@ -21,7 +21,7 @@ class Module{
 	
 	public:
 		//see mod_register_ports for additional params
-		Module(const char *server, const char *name, int port_count, const char **port_names, const char **port_types, unsigned long **port_flags);
+		Module(const char *server, const char *name, int port_count, const char **port_names, const char **port_types, unsigned long *port_flags);
 		
 		virtual int process(jack_nframes_t nframes, void *arg){}; // Client's callback functio
 	
