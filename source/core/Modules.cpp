@@ -34,6 +34,9 @@ Module::Module(const char *server, const char *name, int ai, int ao, int mi, int
 		fprintf (stderr, "Unique name `%s' assigned\n", name);
 	}
 	
+	this->client = client;
+	this->name = (char*)name;
+	
 	//register module ports
 	va_list arg;
 	int port_count = ai + ao + mi + mo;
@@ -51,7 +54,7 @@ Module::Module(const char *server, const char *name, int ai, int ao, int mi, int
 		if(i < ai)c = 0;
 		
 		jack_port_t *port;
-		const char *n = va_next(arg, *char);
+		const char *n = va_arg(arg, char*);
 		
 		switch(c){
 			case 0:
@@ -78,7 +81,4 @@ Module::Module(const char *server, const char *name, int ai, int ao, int mi, int
 	
 	//register callback function
 	jack_set_process_callback(client, mod_Process_Callback, this);
-	
-	this->client = client;
-	this->name = (char*)name;
 }
