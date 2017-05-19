@@ -47,7 +47,7 @@ int LFO::process(jack_nframes_t nframes, void *arg){
 
 void lfo_set_type(LFO *lfo, LFO_Wave type){
 	
-	switch(lfo->params[0] = type){
+	switch((int)lfo->params[0] = (int)type){
 		case WAVE_SIN:
 			lfo->waveform = w_sin;
 			break;
