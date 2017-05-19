@@ -27,12 +27,12 @@
 *	N-Phase
 */
 typedef enum {
-	WAVE_SIN,
-	WAVE_SQR,
-	WAVE_TRI,
-	WAVE_SAW,
-	WAVE_VAR,
-	WAVE_NPH
+	WAVE_SIN=0,
+	WAVE_SQR=1,
+	WAVE_TRI=2,
+	WAVE_SAW=3,
+	WAVE_VAR=4,
+	WAVE_NPH=5
 }LFO_Wave;
 
 /*
