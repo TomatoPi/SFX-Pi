@@ -26,23 +26,14 @@
 *	Varislope
 *	N-Phase
 */
-class LFO_Wave{
-	
-	public:
-		LFO_Wave(int v){this->val = v;}
-	
-		static const LFO_Wave WAVE_SIN = LFO_Wave(0);
-		static const LFO_Wave WAVE_SQR = LFO_Wave(1);
-		static const LFO_Wave WAVE_TRI = LFO_Wave(2);
-		static const LFO_Wave WAVE_SAW = LFO_Wave(3);
-		static const LFO_Wave WAVE_VAR = LFO_Wave(4);
-		static const LFO_Wave WAVE_NPH = LFO_Wave(5);
-		
-		operator float() const {return (float)this->val;}
-		operator int() const {return (int)this->val;}
-	private:
-		int val;
-};
+typedef enum {
+	WAVE_SIN,
+	WAVE_SQR,
+	WAVE_TRI,
+	WAVE_SAW,
+	WAVE_VAR,
+	WAVE_NPH
+}LFO_Wave;
 
 /*
 *	LFO Module
