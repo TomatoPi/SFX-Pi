@@ -29,6 +29,8 @@
 class LFO_Wave{
 	
 	public:
+		LFO_Wave(int v){this->val = v;}
+	
 		static const LFO_Wave WAVE_SIN = LFO_Wave(0);
 		static const LFO_Wave WAVE_SQR = LFO_Wave(1);
 		static const LFO_Wave WAVE_TRI = LFO_Wave(2);
@@ -39,7 +41,6 @@ class LFO_Wave{
 		operator float() const {return (float)this->val;}
 		operator int() const {return (int)this->val;}
 	private:
-		LFO_Wave(int v){this->val = v;}
 		int val;
 };
 
