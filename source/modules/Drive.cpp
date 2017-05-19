@@ -24,14 +24,14 @@ Drive::Drive(const char *server, const char *name): Module(server, name, 2, 2, 0
 	this->params[1] = D_ASM;
 	
 	this->params[2] = D_GAIN;
-	this->params[3] = D_SOFT;
-	this->params[4] = D_SHAPE;
-	this->params[5] = D_TYPE;
+	this->params[3] = D_TYPE;
+	this->params[4] = D_SOFT;
+	this->params[5] = D_SHAPE;
 	
 	this->params[6] = D_GAIN;
-	this->params[7] = D_SOFT;
-	this->params[8] = D_SHAPE;
-	this->params[9] = D_TYPE;
+	this->params[7] = D_TYPE;
+	this->params[8] = D_SOFT;
+	this->params[9] = D_SHAPE;
 }
 
 /*
@@ -53,14 +53,14 @@ int Drive::process(jack_nframes_t nframes, void *arg){
 	int n = (this->params[1] == 0.0)?0:4;
 	
 	gp = this->params[2];
-	sp = this->params[3];
-	shp = this->params[4];
-	isp = (int)this->params[5];
+	isp = (int)this->params[3];
+	sp = this->params[4];
+	shp = this->params[5];
 	
 	gn = this->params[2+n];
-	sn = this->params[3+n];
-	shn = this->params[4+n];
-	isn = (int)this->params[5+n];
+	isn = (int)this->params[3+n];
+	sn = this->params[4+n];
+	shn = this->params[5+n];
 	
 	for(jack_nframes_t i = 0; i < nframes; i++){						//For each sample
 		
