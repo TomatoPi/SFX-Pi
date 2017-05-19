@@ -40,7 +40,7 @@ class Drive : public Module{
 		spi_tripole *filter; // EQ ( bass, mid, high )
 	
 		/*
-		* Specific parameters for drive module are, in order :	
+		* Specific parameters for drive module are, in order :	unique parameters -> positives parameters -> negatives parameters
 		*
 		*	int is_abs; //for full-wave rectification
 		*	int is_asm; //for asymmetrical clipping : _p parameter for positives half-cycles and _n for negatives half-cycles
