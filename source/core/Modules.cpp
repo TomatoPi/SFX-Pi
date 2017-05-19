@@ -12,7 +12,7 @@ int mod_Process_Callback(jack_nframes_t nframes, void *u){
 *	basic setup of jack client and server
 *	Port registration
 */
-Module::Module(const char *server, const char *name,int pc, int ai, int ao, int mi, int mo, ...), params_count(pc){
+Module::Module(const char *server, const char *name,int pc, int ai, int ao, int mi, int mo, ...): params_count(pc){
 
 	jack_options_t options = JackNullOption;
 	jack_status_t status;
