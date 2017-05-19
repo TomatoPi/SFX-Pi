@@ -15,10 +15,22 @@
 *	Varislope
 *	N-Phase
 */
-typedef enum{
+class LFO_Wave{
 	
-	WAVE_SIN, WAVE_SQR, WAVE_TRI, WAVE_SAW, WAVE_VAR, WAVE_NPH
-}LFO_Wave;
+	public:
+		static const LFO_Wave WAVE_SIN = LFO_Wave(0);
+		static const LFO_Wave WAVE_SQR = LFO_Wave(1);
+		static const LFO_Wave WAVE_TRI = LFO_Wave(2);
+		static const LFO_Wave WAVE_SAW = LFO_Wave(3);
+		static const LFO_Wave WAVE_VAR = LFO_Wave(4);
+		static const LFO_Wave WAVE_NPH = LFO_Wave(5);
+		
+		operator float() const {return (float)this->val;}
+		operator int() const {return (int)this->val;}
+	private:
+		LFO_Wave(int v){this->val = v;}
+		int val;
+};
 
 /*
 *	LFO Module
@@ -35,9 +47,9 @@ class LFO : public Module{
 		
 	protected:
 	
-	    	sample_t (*waveform)(float, float, float, float); // waveform generator function
+	    	sample_t (*waveform)(float, float, float, float); // waveform generator function		
+	/*
 		LFO_Wave type;
-		
 		float f; 		//LFO frequency
 		int sr;			//Client Samplerate
 		
@@ -47,6 +59,7 @@ class LFO : public Module{
 		
 		float p1;		//waveshape param 1
 		float p2;		//waveshape param 2
+	*/
 };
 
 /*
