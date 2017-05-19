@@ -4,22 +4,11 @@
 *	Distortion effect constructor
 *	EQ creation
 */
-Drive::Drive(const char *server, const char *name): Module(server, name, 2, 2, 0, 0, "in_L", "in_R", "out_L", "out_R"), params_count(10){
+Drive::Drive(const char *server, const char *name): Module(server, name, 10, 2, 2, 0, 0, "in_L", "in_R", "out_L", "out_R"){
 	
 	this->filter = (spi_tripole*)malloc(sizeof(spi_tripole));
 	spi_init_tripole(this->filter, 200, 1000, (int)jack_get_sample_rate(this->client), 0.75, 3.0, 7.0);
-	
-	if (jack_activate (this->client)) {
-		fprintf (stderr, "Failed activating Client\n");
-		exit (1);
-	}
-	
-	this->params = (float*)malloc(this->params_count * sizeof(flaot));
-	if(this->params == NULL){
-		fprintf(stderr, "Failed Create Params list\n");
-		exit(1);
-	}
-	
+
 	this->params[0] = D_ABS;
 	this->params[1] = D_ASM;
 	
@@ -32,6 +21,11 @@ Drive::Drive(const char *server, const char *name): Module(server, name, 2, 2, 0
 	this->params[7] = D_TYPE;
 	this->params[8] = D_SOFT;
 	this->params[9] = D_SHAPE;
+	
+	if (jack_activate (this->client)) {
+		fprintf (stderr, "Failed activating Client\n");
+		exit (1);
+	}
 }
 
 /*
