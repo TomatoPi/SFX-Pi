@@ -12,7 +12,7 @@ int mod_Process_Callback(jack_nframes_t nframes, void *u){
 *	basic setup of jack client and server
 *	Port registration
 */
-Module::Module(const char *server, const char *name, int ai, int ao, int mi, int mo, ...), params_count(0){
+Module::Module(const char *server, const char *name,int pc, int ai, int ao, int mi, int mo, ...), params_count(pc){
 
 	jack_options_t options = JackNullOption;
 	jack_status_t status;
@@ -83,6 +83,15 @@ Module::Module(const char *server, const char *name, int ai, int ao, int mi, int
 	
 	//register callback function
 	jack_set_process_callback(client, mod_Process_Callback, this);
+	
+	/*
+	*	Setup params list
+	*/
+	this->params = (float*)malloc(this->params_count * sizeof(flaot));
+	if(this->params == NULL){
+		fprintf(stderr, "Failed Create Params list\n");
+		exit(1);
+	}
 }
 
 int Module::set_param(int param, float var){
