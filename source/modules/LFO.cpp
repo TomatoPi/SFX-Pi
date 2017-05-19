@@ -38,7 +38,7 @@ int LFO::process(jack_nframes_t nframes, void *arg){
 		ramp += f/sr;
 		ramp = fmod(ramp, 1.0);	
 		
-		out[i] = (*(this->waveform))(ramp, sign, p1, p2);
+		out[i] = (*(this->waveform))(ramp, s, p1, p2);
 	}
 	
 	this->params[3] = ramp;
