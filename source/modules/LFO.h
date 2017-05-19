@@ -6,6 +6,17 @@
 #include "../core/Utility.h"
 #include "../core/Modules.h"
 
+#define L_TYPE WAVE_SIN
+#define L_FREQ 1.0
+#define L_SPLR 48000
+
+#define L_RAMP 0.0
+#define L_PHASE 0.0
+#define L_SIGN 1.0
+
+#define L_PAR1 1.0
+#define L_PAR2 1.0
+
 /*
 *	List of possible LFO waveshape
 *	Sinus
@@ -54,7 +65,7 @@ class LFO : public Module{
 		int sr;			//Client Samplerate
 		
 		float ramp;		//Current LFO value
-		float phase;	//LFO Phase
+		float phase;		//LFO Phase
 		float sign;		//LFO sign
 		
 		float p1;		//waveshape param 1
