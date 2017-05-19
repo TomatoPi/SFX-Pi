@@ -87,7 +87,7 @@ Module::Module(const char *server, const char *name,int pc, int ai, int ao, int 
 	/*
 	*	Setup params list
 	*/
-	this->params = (float*)malloc(this->params_count * sizeof(flaot));
+	this->params = (float*)malloc(this->params_count * sizeof(float));
 	if(this->params == NULL){
 		fprintf(stderr, "Failed Create Params list\n");
 		exit(1);
