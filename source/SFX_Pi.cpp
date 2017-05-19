@@ -10,6 +10,7 @@
 #include "./modules/LFO.h"
 
 int SAMPLERATE = 48000;
+cont char *SERVER_NAME = "Space_Fx";
 
 int main(int argc, char *argv[]){
 	
