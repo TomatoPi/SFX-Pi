@@ -1,39 +1,53 @@
 #include "LFO.h"
 
-LFO::LFO(const char *server, const char *name): Module(server, name, 0, 1, 0, 0, "out")
-						, type(WAVE_NPH), f(440), ramp(0.0), phase(0.0), sign(1.0), p1(20), p2(3){
+LFO::LFO(const char *server, const char *name): Module(server, name, 8, 0, 1, 0, 0, "out"){
+		
+	lfo_set_type(this, L_TYPE);
+	this->params[1] = L_FREQ;
+	this->params[2] = jack_get_sample_rate(this->client);
 	
-	lfo_set_type(this, this->type);
+	this->params[3] = L_RAMP;
+	this->params[4] = L_PHASE;
+	this->params[5] = L_SIGN;
+	
+	this->params[6] = L_PAR1;
+	this->params[7] = L_PAR2;
 	
 	if (jack_activate (this->client)) {
 		fprintf (stderr, "Echec de l'activation du client\n");
 		exit (1);
 	}
-	
-	this->sr = jack_get_sample_rate(this->client);
 }
 
 int LFO::process(jack_nframes_t nframes, void *arg){
 	
 	sample_t *out = (sample_t*)jack_port_get_buffer(this->port[0], nframes);
-	float ramp = this->ramp;
-	int s = (this->sign < 0)? -1: 1;
+	
+	float f = this->params[1]; 		//LFO frequency
+	float sr = this->params[2];		//Client Samplerate
+		
+	float ramp = this->params[3];		//Current LFO value
+	float phase = this->params[4];		//LFO Phase
+	int s = (this->params[5] < 0)? -1: 1;	//LFO sign
+		
+	float p1 = this->params[6];		//waveshape param 1
+	float p2 = this->params[7];		//waveshape param 2
 	
 	for(jack_nframes_t i = 0; i < nframes; i++){
 		
-		ramp += f/(float)this->sr;
+		ramp += f/sr;
 		ramp = fmod(ramp, 1.0);	
 		
-		out[i] = (*(this->waveform))(ramp, this->sign, this->p1, this->p2);
+		out[i] = (*(this->waveform))(ramp, sign, p1, p2);
 	}
 	
-	this->ramp = ramp;
+	this->params[3] = ramp;
 	return 0;
 }
 
 void lfo_set_type(LFO *lfo, LFO_Wave type){
 	
-	switch(lfo->type = type){
+	switch(lfo->params[0] = type){
 		case WAVE_SIN:
 			lfo->waveform = w_sin;
 			break;
