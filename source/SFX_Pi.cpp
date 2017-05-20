@@ -8,6 +8,7 @@
 
 #include "./modules/Drive.h"
 #include "./modules/LFO.h"
+#include "./modules/Ringmod.h"
 
 int SAMPLERATE = 48000;
 const char *SERVER_NAME = "Space_Fx";
