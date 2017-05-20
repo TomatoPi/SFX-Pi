@@ -1,6 +1,6 @@
 #include "Ringmod.h"
 
-Ringmod::Ringmod(const char *server, const char *name): Module(server, name, 1, 3, 2, "in_L", "in_R", "in_M", "out_L", "out_R"){
+Ringmod::Ringmod(const char *server, const char *name): Module(server, name, 1, 3, 2, 0, 0, "in_L", "in_R", "in_M", "out_L", "out_R"){
 
 	this->params[0] = R_DEPTH;
 	
@@ -10,7 +10,7 @@ Ringmod::Ringmod(const char *server, const char *name): Module(server, name, 1, 
 	}
 }
 
-Ringmod::process(jack_nframes_t nframes, void *arg){
+int Ringmod::process(jack_nframes_t nframes, void *arg){
 
 	sample_t *in_L, *in_R, *out_L, *out_R, *in_Mod;
 	
@@ -29,9 +29,10 @@ Ringmod::process(jack_nframes_t nframes, void *arg){
 		out_L[i] = (in_L[i] * (1 - depth)) + (in_L[i] * in_Mod[i] * depth);
 		out_R[i] = (in_R[i] * (1 - depth)) + (in_R[i] * in_Mod[i] * depth);
 	}
+	return 0;
 }
 
-Ringmod::bypass(jack_nframes_t nframes, void *arg){
+int Ringmod::bypass(jack_nframes_t nframes, void *arg){
 
 	return mod_GenericStereoBypass_Callback(nframes, this->port, 3);
 }
