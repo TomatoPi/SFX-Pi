@@ -95,7 +95,7 @@ int Drive::process(jack_nframes_t nframes, void *arg){
 	return 0;
 }
 
-int Module::bypass(jack_nframes_t nframes, void *arg){
+int Drive::bypass(jack_nframes_t nframes, void *arg){
 	
 	sample_t *s_in_l, *s_out_l;	
 	s_in_l = (sample_t*)jack_port_get_buffer(this->port[0], nframes);	//collecting Left input buffer
