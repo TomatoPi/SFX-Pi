@@ -94,9 +94,17 @@ Module::Module(const char *server, const char *name,int pc, int ai, int ao, int 
 
 int Module::set_param(int param, float var){
 	
-	if(param < this->params_count){
+	if(param >= this->params_count){
 		return 1;
 	}
 	this->params[param] = var;
 	return 0;
+}
+
+float Module::get_param(int param){
+	
+	if(param < this->params_count){
+		return this->params[param];
+	}
+	return 0.0;
 }
