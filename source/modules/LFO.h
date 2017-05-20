@@ -45,6 +45,7 @@ class LFO : public Module{
 		LFO(const char *server, const char *name);
 		
 		int process(jack_nframes_t nframes, void *arg);
+		int bypass(jack_nframes_t nframes, void *arg);
     
     		friend void lfo_set_type(LFO *lfo, LFO_Wave type);
 		
