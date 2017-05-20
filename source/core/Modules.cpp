@@ -5,12 +5,17 @@ int mod_Process_Callback(jack_nframes_t nframes, void *u){
 	return static_cast<Module*>(u)->process(nframes, u);
 }
 
+int mod_Bypass_Callback(jack_nframes_t nframes, void *u){
+	
+	return static_cast<Module*>(u)->bypass(nframes, u);
+}
+
 /*
 *	Basic module constructor
 *	basic setup of jack client and server
 *	Port registration
 */
-Module::Module(const char *server, const char *name,int pc, int ai, int ao, int mi, int mo, ...): params_count(pc){
+Module::Module(const char *server, const char *name,int pc, int ai, int ao, int mi, int mo, ...): params_count(pc), is_bypassed(0){
 
 	jack_options_t options = JackNullOption;
 	jack_status_t status;
@@ -90,6 +95,20 @@ Module::Module(const char *server, const char *name,int pc, int ai, int ao, int 
 		fprintf(stderr, "Failed Create Params list\n");
 		exit(1);
 	}
+}
+
+void Module::set_bypass(int state){
+	
+	this->is_bypassed = state;
+	if(state){
+		jack_set_process_callback(client, mod_Bypass_Callback, this);
+	}else{
+		jack_set_process_callback(client, mod_Process_Callback, this);
+	}
+}
+
+int Module::get_bypass(){
+	return this->is_bypassed;
 }
 
 int Module::set_param(int param, float var){
