@@ -14,6 +14,7 @@
 *   	Function for register class member callback function
 */
 int mod_Process_Callback(jack_nframes_t nframes, void *u);
+int mod_Bypass_Callback(jack_nframes_t nframes, void *u);
 
 /*
 *	Basic class for all modules
@@ -35,6 +36,10 @@ class Module{
 		Module(const char *server, const char *name,int pc, int ai, int ao, int mi, int mo, ...);
 		
 		virtual int process(jack_nframes_t nframes, void *arg){}; // Client's callback function
+		virtual int bypass(jack_nframes_t nframes, void *arg){} // Client's callback function when client is bypassed
+	
+		void set_bypass(int state);
+		int get_bypass();
 	
 		int set_param(int param, float var);
 		float get_param(int param);
@@ -45,7 +50,8 @@ class Module{
 		char* name;		//Client unique name
 	
 		jack_port_t **port;
-	
+		
+		int is_bypassed;
 		int params_count;
 		float *params;
 };
