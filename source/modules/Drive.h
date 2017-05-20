@@ -29,7 +29,7 @@
 */
 class Drive : public Module{
 	
-	public:
+	public:	
 		
 		Drive(const char *server, const char *name);
 		
