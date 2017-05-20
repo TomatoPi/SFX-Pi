@@ -17,5 +17,6 @@ int main(int argc, char *argv[]){
 	fprintf (stderr, "\nBienvenu dans le fantastique et magnifique software Space-FX\n\n------------------\n");
 	Drive test = Drive(SERVER_NAME, (char*)"HC");
 	LFO test2 = LFO(SERVER_NAME, (char*)"LFO");
+	Ringmod test3 = Ringmod(SERVER_NAME, (char*)"RG");
 	sleep(-1);
 }
