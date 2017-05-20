@@ -19,8 +19,9 @@ int mod_Bypass_Callback(jack_nframes_t nframes, void *u);
 /*
 *	Basic callback that copy stereo input to output
 *	*ports order : in_l, in_r, out_l, out_r
+*	foi is the first output's port
 */
-int mod_GenericStereoBypass_Callback(jack_nframes_t nframes, jack_port_t **ports);
+int mod_GenericStereoBypass_Callback(jack_nframes_t nframes, jack_port_t **ports, int foi);
 
 /*
 *	Basic class for all modules
