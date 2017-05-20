@@ -10,6 +10,16 @@ int mod_Bypass_Callback(jack_nframes_t nframes, void *u){
 	return static_cast<Module*>(u)->bypass(nframes, u);
 }
 
+int mod_GenericStereoBypass_Callback(jack_nframes_t nframes, jack_port_t **ports){
+	
+	for(int i = 0; i < 2; i++){
+		sample_t *in = (sample_t*)jack_port_get_buffer(ports[i], nframes);
+		sample_t *out = (sample_t*) jack_port_get_buffer(ports[i+2], nframes);
+		memcpy(out, in, sizeof(sample_t) * nframes);
+	}
+	return 0;
+}
+
 /*
 *	Basic module constructor
 *	basic setup of jack client and server
