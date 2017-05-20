@@ -45,7 +45,7 @@ int LFO::process(jack_nframes_t nframes, void *arg){
 	return 0;
 }
 
-int Module::bypass(jack_nframes_t nframes, void *arg){
+int LFO::bypass(jack_nframes_t nframes, void *arg){
 	
 	sample_t *out = (sample_t*)jack_port_get_buffer(this->port[0], nframes);
 	memset(out, 0.0, sizeof(sample_t) * nframes);
