@@ -97,5 +97,5 @@ int Drive::process(jack_nframes_t nframes, void *arg){
 
 int Drive::bypass(jack_nframes_t nframes, void *arg){
 	
-	return mod_GenericStereoBypass_Callback(nframes, this->port);
+	return mod_GenericStereoBypass_Callback(nframes, this->port, 2);
 }
