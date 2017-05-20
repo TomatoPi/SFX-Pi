@@ -3,6 +3,7 @@
 
 #include <jack/jack.h>
 #include "../core/Modules.h"
+#include "../core/Utility.h"
 
 #define R_DEPTH 1.0
 
