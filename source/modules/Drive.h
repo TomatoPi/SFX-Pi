@@ -34,6 +34,7 @@ class Drive : public Module{
 		Drive(const char *server, const char *name);
 		
 		int process(jack_nframes_t nframes, void *arg);
+		int bypass(jack_nframes_t nframes, void *arg);
 	
 	protected :
 			
