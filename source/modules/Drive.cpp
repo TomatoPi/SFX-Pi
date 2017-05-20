@@ -94,3 +94,19 @@ int Drive::process(jack_nframes_t nframes, void *arg){
 	}
 	return 0;
 }
+
+int Module::bypass(jack_nframes_t nframes, void *arg){
+	
+	sample_t *s_in_l, *s_out_l;	
+	s_in_l = (sample_t*)jack_port_get_buffer(this->port[0], nframes);	//collecting Left input buffer
+	s_out_l = (sample_t*)jack_port_get_buffer(this->port[2], nframes);	//collecting Right input buffer
+	
+	sample_t *s_in_r, *s_out_r;	
+	s_in_r = (sample_t*)jack_port_get_buffer(this->port[1], nframes);
+	s_out_r = (sample_t*)jack_port_get_buffer(this->port[3], nframes);
+	
+	memcpy(s_out_l, s_in_l, sizeof(sample_t) * nframes);
+	memcpy(s_out_r, s_in_r, sizeof(sample_t) * nframes);
+	
+	return 0;
+}
