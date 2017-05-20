@@ -4,6 +4,8 @@
 #include <jack/jack.h>
 #include "../core/Modules.h"
 
+#define R_DEPTH 1.0
+
 class Ringmod : public Module{
 
 	public:
@@ -15,7 +17,9 @@ class Ringmod : public Module{
 		
 	private :
 		/*
-		*
+		*	RingMod / Tremolo unique parameters are :
+		*	
+		*	float : depth
 		*/
 };
 
