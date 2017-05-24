@@ -1,6 +1,8 @@
 #ifndef DEF_RINGBUFFER_H
 #define DEF_RINGBUFFER_H
 
+#include "Utility.h"
+
 class Ringbuffer{
 
 	public :
