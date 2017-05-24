@@ -17,15 +17,15 @@ class Ringbuffer{
 		/*
 		*	Read the block starting at (writing head) - delay
 		*/
-		int read_block(float *block, int delay, int length);
+		int read_block(sample_t *block, int delay, int length);
 	
 		/*
 		*	Write a new block and move the head
 		*/
-		int write_block(float *block, int length);
+		int write_block(sample_t *block, int length);
 	
 	protected :
-		float *buffer;
+		sample_t *buffer;
 	
 		int buffer_size;
 		int samplerate;
