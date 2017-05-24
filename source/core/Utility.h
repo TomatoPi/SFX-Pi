@@ -41,6 +41,17 @@ float spi_dbtorms(float d);
 */
 float spi_rmstodb(float g); 
 
+
+/*
+* Convert a length in ms to sample
+*/
+int spi_mstos(int ms, int sr);
+
+/*
+* Convert a length in sample to ms
+*/
+int spi_stoms(int sample, int sr);
+
 /*
 *	3 Bands EQ ( low, mid, high )
 */
