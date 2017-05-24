@@ -3,21 +3,34 @@
 Ringbuffer::Ringbuffer(int length, int samplerate){
 
 	this->samplerate = samplerate;
-	this->buffer_size = (int)( (float)(length * samplerate) / 1000.0 );
+	this->buffer_size = mstosample(length, samplerate);
 	
-	this->buffer = malloc(this->buffer_size * sizeof(float));
+	this->buffer = malloc(this->buffer_size * sizeof(sample_t));
 	if(this->buffer == NULL){
 		exit(0);
 	}
-	memset( this->buffer, 0.0, this->buffer_size * sizeof(float) );
+	memset( this->buffer, 0.0, this->buffer_size * sizeof(sample_t) );
 	
 	this->write_head = 0;
 }
 
-Ringbuffer::int read_block(float *block, int delay, int length){
-
+void Ringbuffer::read_value(rng_reader *reader){
+	
+	reader->index = ++(reader->index)%this->buffer_size;
+	reader->value = this->buffer[reader->index];
 }
 
-Ringbuffer::int write_block(float *block, int length){
+void Ringbuffer::write_value(sample_t value){
 
+	this->write_head = ++(this->write_head)%this->buffer_size;
+	this->buffer[this->write_head] = value;
+}
+
+rng_reader new_read_head(int ms){
+
+	int delay_s = mstos(ms, this->samplerate);
+	int index = (delay_s > this->samplerate)?(this->buffer_size + this->write_head - delay_s):(this->write_head - delay_s);
+	rng_reader r = { index, this->buffer[index]}
+	
+	return r;
 }
