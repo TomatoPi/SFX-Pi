@@ -3,6 +3,10 @@
 
 #include "Utility.h"
 
+typedef struct{
+	int index;
+	sample_t value;
+}rng_reader;
 class Ringbuffer{
 
 	public :
@@ -15,14 +19,16 @@ class Ringbuffer{
 		Ringbuffer(int length, int samplerate);
 		
 		/*
-		*	Read the block starting at (writing head) - delay
+		*	Move the reader and get the value
 		*/
-		int read_block(sample_t *block, int delay, int length);
+		void read_value(rng_reader *reader);
 	
 		/*
-		*	Write a new block and move the head
+		*	Write the value and move the writing head
 		*/
-		int write_block(sample_t *block, int length);
+		void write_value(sample_t value);
+	
+		rng_reader new_read_head(int ms);
 	
 	protected :
 		sample_t *buffer;
