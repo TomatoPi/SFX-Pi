@@ -25,6 +25,16 @@ float spi_rmstodb(float g){
 	return 20 * log10(g);
 }
 
+int spi_mstos(int ms, int sr){
+	
+	return (int)( (float)(ms*sr) / 1000.0 );
+}
+
+int spi_stoms(int sample, int sr){
+	
+	return (int)( (float)(sample * 1000) / (float)(sr) );
+}
+
 void spi_init_tripole(spi_tripole *f, int fl, int fh, int sr, float gl, float gm, float gh){
 	
 	//initialisating values to 0
