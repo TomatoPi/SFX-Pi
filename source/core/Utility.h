@@ -32,6 +32,11 @@ sample_t spi_soft(sample_t in, float max, float soft, float shape);
 sample_t spi_abs(sample_t in);
 
 /*
+* Mix between dry and wet signal with a : amout of wet signal
+*/
+sample_t spi_dry_wet(sample_t dry, sample_t wet, float a);
+
+/*
 * Convert db to gain ( ex : +20dB ==> *100 )
 */
 float spi_dbtorms(float d);
