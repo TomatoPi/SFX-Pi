@@ -3,7 +3,7 @@
 Ringbuffer::Ringbuffer(int length, int samplerate){
 
 	this->samplerate = samplerate;
-	this->buffer_size = mstosample(length, samplerate);
+	this->buffer_size = spi_mstos(length, samplerate);
 	
 	this->buffer = malloc(this->buffer_size * sizeof(sample_t));
 	if(this->buffer == NULL){
@@ -26,7 +26,7 @@ void Ringbuffer::write_value(sample_t value){
 	this->buffer[this->write_head] = value;
 }
 
-rng_reader new_read_head(int ms){
+rng_reader Ringbuffer::new_read_head(int ms){
 
 	int delay_s = mstos(ms, this->samplerate);
 	int index = (delay_s > this->samplerate)?(this->buffer_size + this->write_head - delay_s):(this->write_head - delay_s);
