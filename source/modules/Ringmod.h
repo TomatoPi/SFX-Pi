@@ -21,6 +21,7 @@ class Ringmod : public Module{
 		*	RingMod / Tremolo unique parameters are :
 		*	
 		*	float : depth
+		*	dry wet
 		*/
 };
 
