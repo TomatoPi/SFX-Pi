@@ -41,8 +41,8 @@ int Delay::process(jack_nframes_t nframes, void *arg){
 		out_L[i] = in_L[i] + this->reader_L->value;
 		out_R[i] = in_R[i] + this->reader_R->value;
 		
-		this->buffer_L->write_value(out_L[i]);
-		this->buffer_R->write_value(out_R[i]);
+		this->buffer_L->write_value(in_L[i] + fl*out_L[i]);
+		this->buffer_R->write_value(in_R[i] + fr*out_R[i]);
 	}
 	return 0;
 }
