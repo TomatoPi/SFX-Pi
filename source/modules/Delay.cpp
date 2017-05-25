@@ -22,11 +22,11 @@ Delay::Delay(const char *server, const char *name) : Module(server, name, 5, 2, 
 		
 int Delay::process(jack_nframes_t nframes, void *arg){
 
-	sample_t *s_in_l, *s_out_l;	
+	sample_t *in_L, *out_L;	
 	in_L = (sample_t*)jack_port_get_buffer(this->port[0], nframes);	//collecting Left input buffer
 	out_L = (sample_t*)jack_port_get_buffer(this->port[2], nframes);	//collecting Right input buffer
 
-	sample_t *s_in_r, *s_out_r;	
+	sample_t *in_R, *out_R;	
 	in_R = (sample_t*)jack_port_get_buffer(this->port[1], nframes);
 	out_R = (sample_t*)jack_port_get_buffer(this->port[3], nframes);
 	
