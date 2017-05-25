@@ -3,9 +3,13 @@ Delay::Delay(const char *server, const char *name) : Module(server, name, 5, 2, 
     
     this->buffer_L = new Ringbuffer(D_DMAX, jack_get_sample_rate(this->client));
     this->buffer_R = new Ringbuffer(D_DMAX, jack_get_sample_rate(this->client));
+	
+	if(this->buffer_L == NULL || this->buffer_R == NULL){
+		exit(1);
+	}
   
-    this->reader_L = new rng_reader(this->buffer_L->new_read_head(D_DELAY));
-    this->reader_R = new rng_reader(this->buffer_R->new_read_head(D_DELAY));
+    this->reader_L = this->buffer_L->new_read_head(D_DELAY);
+    this->reader_R = this->buffer_R->new_read_head(D_DELAY);
   
     this->params[0] = D_DMAX;
   
@@ -35,14 +39,14 @@ int Delay::process(jack_nframes_t nframes, void *arg){
 
 	for(jack_nframes_t i = 0; i < nframes; i++){
 		
-		this->buffer_L->read_value(this->reader_L);
-		this->buffer_R->read_value(this->reader_R);
+		//this->buffer_L->read_value(this->reader_L);
+		//this->buffer_R->read_value(this->reader_R);
 			
-		out_L[i] = in_L[i] + this->reader_L->value;
-		out_R[i] = in_R[i] + this->reader_R->value;
+		//out_L[i] = in_L[i] + this->reader_L->value;
+		//out_R[i] = in_R[i] + this->reader_R->value;
 		
-		this->buffer_L->write_value(in_L[i] + fl*out_L[i]);
-		this->buffer_R->write_value(in_R[i] + fr*out_R[i]);
+		//this->buffer_L->write_value(in_L[i] + fl*out_L[i]);
+		//this->buffer_R->write_value(in_R[i] + fr*out_R[i]);
 	}
 	return 0;
 }
