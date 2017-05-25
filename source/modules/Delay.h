@@ -26,10 +26,13 @@ class Delay : public Module{
 		* Params are :
 		*
 		* max_delay
+		*
 		* delay_L
 		* delay_R
 		* feedback_L
 		* feedback_R
+		*
+		* dry _ wet
 		*/
 };
 
