@@ -29,7 +29,7 @@ void Ringbuffer::write_value(sample_t value){
 rng_reader Ringbuffer::new_read_head(int ms){
 
 	int delay_s = spi_mstos(ms, this->samplerate);
-	int index = (delay_s > this->samplerate)?(this->buffer_size + this->write_head - delay_s):(this->write_head - delay_s);
+	int index = (delay_s > this->write_head)?(this->buffer_size + this->write_head - delay_s):(this->write_head - delay_s);
 	rng_reader r = { index, this->buffer[index]};
 	
 	return r;
