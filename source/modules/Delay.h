@@ -14,8 +14,8 @@ class Delay : public Module{
 	public:
 		Delay(const char *server, const char *name);
 		
-		int process(jack_nframes_t nframes, void *arg){};
-		int bypass(jack_nframes_t nframes, void *arg){};
+		int process(jack_nframes_t nframes, void *arg);
+		int bypass(jack_nframes_t nframes, void *arg);
 	
 	protected:
 		
