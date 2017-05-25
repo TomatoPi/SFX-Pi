@@ -7,7 +7,7 @@
 #include "../core/Modules.h"
 
 #define L_TYPE WAVE_SIN
-#define L_FREQ 1.0
+#define L_FREQ 440.0
 #define L_SPLR 48000
 
 #define L_RAMP 0.0
