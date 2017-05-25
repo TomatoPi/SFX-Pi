@@ -43,7 +43,7 @@ class Module{
 		Module(const char *server, const char *name,int pc, int ai, int ao, int mi, int mo, ...);
 		
 		virtual int process(jack_nframes_t nframes, void *arg){}; // Client's callback function
-		virtual int bypass(jack_nframes_t nframes, void *arg){} // Client's callback function when client is bypassed
+		virtual int bypass(jack_nframes_t nframes, void *arg){}; // Client's callback function when client is bypassed
 	
 		void set_bypass(int state);
 		int get_bypass();
