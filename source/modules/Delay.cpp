@@ -1,8 +1,8 @@
 #include "Delay.h"
 Delay::Delay(const char *server, const char *name) : Module(server, name, 5, 2, 2, 0, 0, "in_L", "in_R", "out_L", "out_R"){
     
-    this->buffer_L = new Ringbuffer(D_MAX, jack_get_sample_rate(this->client));
-    this->buffer_R = new Ringbuffer(D_MAX, jack_get_sample_rate(this->client));
+    this->buffer_L = new Ringbuffer(D_DMAX, jack_get_sample_rate(this->client));
+    this->buffer_R = new Ringbuffer(D_DMAX, jack_get_sample_rate(this->client));
   
     this->reader_L = new rng_reader(this->buffer_L->new_read_head(D_DELAY));
     this->reader_R = new rng_reader(this->buffer_R->new_read_head(D_DELAY));
