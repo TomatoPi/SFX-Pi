@@ -28,7 +28,7 @@ class Ringbuffer{
 		*/
 		void write_value(sample_t value);
 	
-		rng_reader new_read_head(int ms);
+		rng_reader* new_read_head(int ms);
 	
 	protected :
 		sample_t *buffer;
