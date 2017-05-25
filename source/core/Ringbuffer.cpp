@@ -5,7 +5,7 @@ Ringbuffer::Ringbuffer(int length, int samplerate){
 	this->samplerate = samplerate;
 	this->buffer_size = spi_mstos(length, samplerate);
 	
-	this->buffer = malloc(this->buffer_size * sizeof(sample_t));
+	this->buffer = (sample_t*) malloc(this->buffer_size * sizeof(sample_t));
 	if(this->buffer == NULL){
 		exit(0);
 	}
