@@ -20,7 +20,7 @@ class Delay : public Module{
 	protected:
 		
 		Ringbuffer *buffer_L, *buffer_R;
-		rng_reader *reader_L, *reader_R;
+		rng_reader reader_L, reader_R;
 	
 		/*
 		* Params are :
