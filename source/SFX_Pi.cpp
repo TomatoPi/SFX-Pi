@@ -9,6 +9,7 @@
 #include "./modules/Drive.h"
 #include "./modules/LFO.h"
 #include "./modules/Ringmod.h"
+#include "./modules/Delay.h"
 
 int SAMPLERATE = 48000;
 const char *SERVER_NAME = "Space_Fx";
@@ -19,5 +20,6 @@ int main(int argc, char *argv[]){
 	Drive test = Drive(SERVER_NAME, (char*)"HC");
 	LFO test2 = LFO(SERVER_NAME, (char*)"LFO");
 	Ringmod test3 = Ringmod(SERVER_NAME, (char*)"RG");
+	Delay test4 = Delay(SERVER_NAME, (char*)"DL");
 	sleep(-1);
 }
