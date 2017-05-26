@@ -6,7 +6,7 @@
 #include <wiringPi.h>
 #include <mcp3004.h>
 
-#define BASE 200
+#define BASE 100
 #define SPI_CHAN1 0
 #define SPI_CHAN2 1
 
