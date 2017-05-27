@@ -30,6 +30,8 @@ typedef enum{
 	DRIVE, DELAY, LFO, RINGM
 }MODULE_TYPE;
 
+const char* mod_tton(MODULE_TYPE type);
+
 /*
 *	Basic class for all modules
 */
@@ -47,7 +49,7 @@ class Module{
 		*	mo : number of midi output
 		*	... : list of port names in order ai -> ao -> mi -> mo
 		*/
-		Module(const char *server, const char *name,int pc, int ai, int ao, int mi, int mo, ...);
+		Module(const char *server, MODULE_TYPE type,int pc, int ai, int ao, int mi, int mo, ...);
 		
 		virtual int process(jack_nframes_t nframes, void *arg){}; // Client's callback function
 		virtual int bypass(jack_nframes_t nframes, void *arg){}; // Client's callback function when client is bypassed
