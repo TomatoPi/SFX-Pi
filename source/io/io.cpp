@@ -7,7 +7,7 @@ void io_init_spi(){
 	if (wiringPiSetup () == -1)
 	  	exit (1) ;
 
-	mcp3004Setup (SPI_BASE, SPI_CHAN);
+	mcp3004Setup (SPI_BASE, SPI_CHAN1);
 }
 
 int io_get_param(int param){
