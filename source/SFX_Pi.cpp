@@ -21,8 +21,10 @@ int main(int argc, char *argv[]){
 
 int main_add_module(MODULE_TYPE mod){
 	
-	while(MAIN_LIST_MODULE.find(MAIN_COUNT_MODULE) == MAIN_LIST_MODULE.end())
+	while(MAIN_LIST_MODULE.find(MAIN_COUNT_MODULE) != MAIN_LIST_MODULE.end()){
 		MAIN_COUNT_MODULE++;
+	}
+	fprintf (stderr, "Added new module ! \n");
 	
 	Module *newmod;
 	switch(mod){
@@ -79,11 +81,12 @@ int main_add_connection(Module *source, int is, Module *destination, int id){
 		if(source->get_port(is) != NULL){
 			from = jack_port_name(source->get_port(is));
 		}else{
+			fprintf (stderr, "***Failed get source port*** ");
 			from = NULL;
 		}
 	}
 	if(destination == NULL){
-		fprintf (stderr, "Playback destination\n");
+		fprintf (stderr, "Playback destination");
 		
 		const char **port;
 		port = jack_get_ports (source->get_client(), NULL, NULL, JackPortIsPhysical|JackPortIsInput);
@@ -94,17 +97,21 @@ int main_add_connection(Module *source, int is, Module *destination, int id){
 		to = port[(id==0)?0:1];
 		free(port);
 	}else{
-		fprintf (stderr, "Module destination\n");
+		fprintf (stderr, "Module destination");
 		
 		if(destination->get_port(id) != NULL){
 			to = jack_port_name(destination->get_port(id));
 		}else{
+			fprintf (stderr, "***Failed get destination port*** ");
 			to = NULL;
 		}
 	}
+	fprintf (stderr, "\n");
 	
-	if(from == NULL || to == NULL)
+	if(from == NULL || to == NULL){
+		fprintf (stderr, "failed get ports names\n");
 		return 1;
+	}
 	
 	if (jack_connect (source->get_client(), from, to)) {
 		fprintf (stderr, "cannot connect input ports\n");
