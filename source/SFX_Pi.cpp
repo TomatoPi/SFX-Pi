@@ -26,19 +26,19 @@ int main_add_module(MODULE_TYPE mod){
 	
 	Module *newmod;
 	switch(mod){
-		case DRIVE:
+		case MDRIVE:
 			newmod = new Drive(SERVER_NAME);
 			fprintf (stderr, "new Drive \n");
 			break;
-		case DELAY:
+		case MDELAY:
 			newmod = new Delay(SERVER_NAME);
 			fprintf (stderr, "new Delay \n");
 			break;
-		case LFO:
+		case MLFO:
 			newmod = new LFO(SERVER_NAME);
 			fprintf (stderr, "new LFO \n");
 			break;
-		case RINGM:
+		case MRINGM:
 			newmod = new Ringmod(SERVER_NAME);
 			fprintf (stderr, "new Ringmod \n");
 			break;
@@ -85,7 +85,7 @@ int main_add_connection(Module *source, int is, Module *destination, int id){
 	if(destination == NULL){
 		fprintf (stderr, "Playback destination\n");
 		
-		const char port**;
+		const char **port;
 		port = jack_get_ports (client, NULL, NULL, JackPortIsPhysical|JackPortIsInput);
 		if (port == NULL) {
 			fprintf(stderr, "no physical playback ports\n");
