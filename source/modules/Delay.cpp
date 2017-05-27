@@ -1,5 +1,5 @@
 #include "Delay.h"
-Delay::Delay(const char *server, const char *name) : Module(server, name, 6, 2, 2, 0, 0, "in_L", "in_R", "out_L", "out_R"){
+Delay::Delay(const char *server) : Module(server, DELAY, 6, 2, 2, 0, 0, "in_L", "in_R", "out_L", "out_R"){
     
     this->buffer_L = new Ringbuffer(D_DMAX, jack_get_sample_rate(this->client));
     this->buffer_R = new Ringbuffer(D_DMAX, jack_get_sample_rate(this->client));
