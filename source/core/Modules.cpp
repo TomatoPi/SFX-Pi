@@ -49,7 +49,7 @@ Module::Module(const char *server, MODULE_TYPE type, int pc, int ai, int ao, int
 	
 	jack_client_t *client;
 	
-	char* name = mod_tton(type);
+	const char* name = mod_tton(type);
 	
 	//Creating jack client with name "name", in server "server"
 	client = jack_client_open (name, options, &status, server);
