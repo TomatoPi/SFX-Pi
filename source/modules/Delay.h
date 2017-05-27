@@ -12,7 +12,7 @@
 class Delay : public Module{
 
 	public:
-		Delay(const char *server, const char *name);
+		Delay(const char *server);
 		
 		int process(jack_nframes_t nframes, void *arg);
 		int bypass(jack_nframes_t nframes, void *arg);
