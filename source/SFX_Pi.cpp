@@ -9,7 +9,7 @@ int main(int argc, char *argv[]){
 	
 	fprintf (stderr, "\nBienvenu dans le fantastique et magnifique software Space-FX\n\n------------------\n");
 	
-	int i = main_add_module(DRIVE);
+	int i = main_add_module(MDRIVE);
 	main_add_connection(NULL, 0, MAIN_LIST_MODULE[i], 0);
 	main_add_connection(NULL, 0, MAIN_LIST_MODULE[i], 1);
 	
@@ -86,7 +86,7 @@ int main_add_connection(Module *source, int is, Module *destination, int id){
 		fprintf (stderr, "Playback destination\n");
 		
 		const char **port;
-		port = jack_get_ports (client, NULL, NULL, JackPortIsPhysical|JackPortIsInput);
+		port = jack_get_ports (source->get_client(), NULL, NULL, JackPortIsPhysical|JackPortIsInput);
 		if (port == NULL) {
 			fprintf(stderr, "no physical playback ports\n");
 			exit (1);
