@@ -1,6 +1,6 @@
 #include "LFO.h"
 
-LFO::LFO(const char *server): Module(server, LFO, 8, 0, 1, 0, 0, "out"){
+LFO::LFO(const char *server): Module(server, MLFO, 8, 0, 1, 0, 0, "out"){
 		
 	lfo_set_type(this, L_TYPE);
 	this->params[1] = L_FREQ;
