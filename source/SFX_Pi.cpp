@@ -39,7 +39,7 @@ int main_add_module(MODULE_TYPE mod){
 			fprintf (stderr, "new LFO \n");
 			break;
 		case RINGM:
-			newmod = new RINGM(SERVER_NAME);
+			newmod = new Ringmod(SERVER_NAME);
 			fprintf (stderr, "new Ringmod \n");
 			break;
 		default:
