@@ -20,17 +20,36 @@ int mod_GenericStereoBypass_Callback(jack_nframes_t nframes, jack_port_t **ports
 	return 0;
 }
 
+const char* mod_tton(MODULE_TYPE type){
+
+	switch(type){
+		
+		case DRIVE:
+			return "Drive";
+		case DELAY:
+			return "Delay";
+		case LFO:
+			return "LFO";
+		case RINGM:
+			return "RingMod";
+		default:
+			return "Module";
+	}
+}
+
 /*
 *	Basic module constructor
 *	basic setup of jack client and server
 *	Port registration
 */
-Module::Module(const char *server, const char *name,int pc, int ai, int ao, int mi, int mo, ...): params_count(pc), is_bypassed(0){
+Module::Module(const char *server, MODULE_TYPE type, int pc, int ai, int ao, int mi, int mo, ...): type(type), params_count(pc), is_bypassed(0){
 
 	jack_options_t options = JackNullOption;
 	jack_status_t status;
 	
 	jack_client_t *client;
+	
+	char* name = mod_tton(type);
 	
 	//Creating jack client with name "name", in server "server"
 	client = jack_client_open (name, options, &status, server);
