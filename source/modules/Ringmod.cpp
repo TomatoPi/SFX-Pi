@@ -1,6 +1,6 @@
 #include "Ringmod.h"
 
-Ringmod::Ringmod(const char *server): Module(server, RINGM, 2, 3, 2, 0, 0, "in_L", "in_R", "in_M", "out_L", "out_R"){
+Ringmod::Ringmod(const char *server): Module(server, MRINGM, 2, 3, 2, 0, 0, "in_L", "in_R", "in_M", "out_L", "out_R"){
 
 	this->params[0] = R_DEPTH;
 	this->params[1] = 1.0;
