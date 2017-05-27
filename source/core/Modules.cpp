@@ -42,7 +42,7 @@ const char* mod_tton(MODULE_TYPE type){
 *	basic setup of jack client and server
 *	Port registration
 */
-Module::Module(const char *server, MODULE_TYPE type, int pc, int ai, int ao, int mi, int mo, ...): type(type), params_count(pc), is_bypassed(0){
+Module::Module(const char *server, MODULE_TYPE type, int pc, int ai, int ao, int mi, int mo, ...): type(type), port_count(ai+ao+mi+mo), params_count(pc), is_bypassed(0){
 
 	jack_options_t options = JackNullOption;
 	jack_status_t status;
@@ -155,4 +155,11 @@ float Module::get_param(int param){
 		return this->params[param];
 	}
 	return 0.0;
+}
+
+jack_port_t* Module::get_port(int idx){
+	
+	if(idx > this->port_count){
+		return this->port[idx];
+	}
 }
