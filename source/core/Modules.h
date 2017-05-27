@@ -62,6 +62,7 @@ class Module{
 	
 		jack_client_t *client;	//JACK Client
 		char* name;		//Client unique name
+		MODULE_TYPE type;
 	
 		jack_port_t **port;
 		
