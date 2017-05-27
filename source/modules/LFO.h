@@ -42,7 +42,7 @@ class LFO : public Module{
 	
 	public:
 		
-		LFO(const char *server, const char *name);
+		LFO(const char *server);
 		
 		int process(jack_nframes_t nframes, void *arg);
 		int bypass(jack_nframes_t nframes, void *arg);
