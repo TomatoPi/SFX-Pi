@@ -60,6 +60,8 @@ class Module{
 		int set_param(int param, float var);
 		float get_param(int param);
 	
+		jack_port_t* get_port(int idx);
+	
 	protected:
 	
 		jack_client_t *client;	//JACK Client
@@ -67,6 +69,7 @@ class Module{
 		MODULE_TYPE type;
 	
 		jack_port_t **port;
+		int port_count;
 		
 		int is_bypassed;
 		int params_count;
