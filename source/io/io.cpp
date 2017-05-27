@@ -2,8 +2,6 @@
 
 void io_init_spi(){
   
-	int chan;
-	int x;
 	printf ("Raspberry Pi wiringPi test program\n") ;
 
 	if (wiringPiSetup () == -1)
@@ -13,7 +11,7 @@ void io_init_spi(){
 }
 
 int io_get_param(int param){
-	if(param < 8)
-	  	return analogRead(SPI_BASE + param);
+	
+	if(param < 8) return analogRead(SPI_BASE + param);
 	return -1;
 }
