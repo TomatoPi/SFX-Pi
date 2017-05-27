@@ -7,7 +7,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <unordered_map>
+#include <bits/stdc++.h>
+using namespace std;
 
 #include <jack/jack.h>
 
