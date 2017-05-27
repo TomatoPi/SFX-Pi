@@ -162,4 +162,5 @@ jack_port_t* Module::get_port(int idx){
 	if(idx > this->port_count){
 		return this->port[idx];
 	}
+	return NULL;
 }
