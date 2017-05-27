@@ -24,6 +24,13 @@ int mod_Bypass_Callback(jack_nframes_t nframes, void *u);
 int mod_GenericStereoBypass_Callback(jack_nframes_t nframes, jack_port_t **ports, int foi);
 
 /*
+*	Enum constainig list of all avaiable modules
+*/
+typedef enum{
+	DRIVE, DELAY, LFO, RINGM
+}MODULE_TYPE;
+
+/*
 *	Basic class for all modules
 */
 class Module{
