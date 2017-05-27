@@ -24,13 +24,13 @@ const char* mod_tton(MODULE_TYPE type){
 
 	switch(type){
 		
-		case DRIVE:
+		case MDRIVE:
 			return "Drive";
-		case DELAY:
+		case MDELAY:
 			return "Delay";
-		case LFO:
+		case MLFO:
 			return "LFO";
-		case RINGM:
+		case MRINGM:
 			return "RingMod";
 		default:
 			return "Module";
