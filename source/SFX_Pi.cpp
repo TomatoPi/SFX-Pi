@@ -2,7 +2,7 @@
 
 const char *SERVER_NAME = "Space_Fx";
 
-unordered_map<int, Module*> MAIN_LIST_MODULE;
+std::unordered_map<int, Module*> MAIN_LIST_MODULE;
 int MAIN_COUNT_MODULE = 0;
 
 int main(int argc, char *argv[]){
@@ -21,7 +21,7 @@ int main(int argc, char *argv[]){
 
 int main_add_module(MODULE_TYPE mod){
 	
-	while(MAIN_LIST_MODULE.find(MAIN_COUNT_MODULE) == umap.end())
+	while(MAIN_LIST_MODULE.find(MAIN_COUNT_MODULE) == MAIN_LIST_MODULE.end())
 		MAIN_COUNT_MODULE++;
 	
 	Module *newmod;
