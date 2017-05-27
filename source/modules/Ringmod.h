@@ -11,7 +11,7 @@ class Ringmod : public Module{
 
 	public:
 	
-		Ringmod(const char *server, const char *name);
+		Ringmod(const char *server);
 		
 		int process(jack_nframes_t nframes, void *arg);
 		int bypass(jack_nframes_t nframes, void *arg);
