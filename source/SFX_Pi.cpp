@@ -17,8 +17,8 @@ int main(int argc, char *argv[]){
 	main_add_connection(MAIN_LIST_MODULE[i], 2, NULL, 0);
 	main_add_connection(MAIN_LIST_MODULE[i], 3, NULL, 1);
 	
-	io_param_accessor test* = new io_param_accessor(0, 10, 40, &(MAIN_LIST_MODULE[i]->get_param(2)), 1);
-	io_param_accessor test1* = new io_param_accessor(1, 0, 20, &(MAIN_LIST_MODULE[i]->get_param(6)), 1);
+	io_param_accessor *test = new io_param_accessor(0, 10, 40, MAIN_LIST_MODULE[i]->get_param_adress(2), 1);
+	io_param_accessor *test1 = new io_param_accessor(1, 0, 20, MAIN_LIST_MODULE[i]->get_param_adress(6), 1);
 	
 	while(1){
 	
@@ -77,19 +77,14 @@ int main_del_module(int idx){
 	return 0;
 }
 
-char** get_ports_names(Module *source, int is, Module *destination, int id){
+const char* get_source_name(Module *source, int is, Module *target){
 	
-	const char *from, *to;
-	int is_source_null = 0;
-	
-	if(source == NULL && destination == NULL)
-		return NULL;
-	
+	const char *from;
 	if(source == NULL){
 		fprintf (stderr, "Capture source --- ");
 		
 		const char **port;
-		port = jack_get_ports (destination->get_client(), NULL, NULL, JackPortIsPhysical|JackPortIsOutput);
+		port = jack_get_ports (target->get_client(), NULL, NULL, JackPortIsPhysical|JackPortIsOutput);
 		if (port == NULL) {
 			fprintf(stderr, "no physical capture ports\n");
 			exit (1);
@@ -107,7 +102,12 @@ char** get_ports_names(Module *source, int is, Module *destination, int id){
 			return NULL;
 		}
 	}
-	if(destination == NULL){
+	return from;
+	
+const char* get_target_name(Module *target, int id, Module *source){
+	
+	const char *to;
+	if(target == NULL){
 		fprintf (stderr, "Playback destination\n");
 		
 		const char **port;
@@ -121,31 +121,31 @@ char** get_ports_names(Module *source, int is, Module *destination, int id){
 	}else{
 		fprintf (stderr, "Module destination\n");
 		
-		if(destination->get_port(id) != NULL){
-			to = jack_port_name(destination->get_port(id));
+		if(target->get_port(id) != NULL){
+			to = jack_port_name(target->get_port(id));
 		}else{
 			fprintf (stderr, "***Failed get destination port***\n");
 			return NULL;
 		}
 	}
-	
-	const char *names[] = {from, to};
-	return names;
+	return to;
 }
 
 int main_add_connection(Module *source, int is, Module *target, int id){
 	
-	char *names[] = get_ports_names(source, is, target, id);
-	if(names == NULL)
+	const char *source_port = get_source_name(source, is, target);
+	const char *target_port = get_target_name(target, id, source);
+	
+	if(source_port == NULL && target_port == NULL)
 		return 1;
 	
 	if(source == NULL){
-		if (jack_connect (target->get_client(), names[0], names[1])) {
+		if (jack_connect (target->get_client(), source_port, target_port)) {
 			fprintf (stderr, "cannot connect input ports\n");
 			return 1;
 		}
 	}else{
-		if (jack_connect (source->get_client(), names[0], names[1])) {
+		if (jack_connect (source->get_client(), source_port, target_port)) {
 			fprintf (stderr, "cannot connect input ports\n");
 			return 1;
 		}
