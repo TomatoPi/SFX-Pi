@@ -50,6 +50,7 @@ class Module{
 		*	... : list of port names in order ai -> ao -> mi -> mo
 		*/
 		Module(const char *server, MODULE_TYPE type,int pc, int ai, int ao, int mi, int mo, ...);
+		~Module();
 		
 		virtual int process(jack_nframes_t nframes, void *arg){}; // Client's callback function
 		virtual int bypass(jack_nframes_t nframes, void *arg){}; // Client's callback function when client is bypassed
