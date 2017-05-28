@@ -16,7 +16,7 @@ int io_get_potentiometer(int potentiometer){
 	return -1;
 }
 
-io_param_accessor::io_param_accessor(int potentiometer, float min, float max, float *target, int is_db):min(min), max(max), target(target), is_db(is_db){
+io_param_accessor::io_param_accessor(int potentiometer, float min, float max, float *target, int is_db, int is_inv):min(min), max(max), target(target), is_db(is_db), is_inv(is_inv){
 
 	if(potentiometer < 0 || potentiometer > 7)
 		this->potentiometer = 0;
