@@ -17,7 +17,7 @@ using namespace std;
 #include "./modules/Ringmod.h"
 #include "./modules/Delay.h"
 
-#incldue "./io/io.h"
+#include "./io/io.h"
 
 int main_add_module(MODULE_TYPE mod);
 int main_del_module(int idx);
