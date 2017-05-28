@@ -26,6 +26,12 @@ Delay::Delay(const char *server) : Module(server, MDELAY, 6, 2, 2, 0, 0, "in_L",
       exit (1);
     }
 }
+
+Delay::~Delay(){
+	
+	delete this->buffer_L;
+	delete this->buffer_R;
+}
 		
 int Delay::process(jack_nframes_t nframes, void *arg){
 
