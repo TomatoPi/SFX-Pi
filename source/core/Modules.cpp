@@ -164,6 +164,14 @@ float Module::get_param(int param){
 	return 0.0;
 }
 
+float* Module::get_param_adress(int param){
+	
+	if(param < this->params_count){
+		return &(this->params[param]);
+	}
+	return NULL;
+}
+
 jack_port_t* Module::get_port(int idx){
 	
 	if(idx < this->port_count){
