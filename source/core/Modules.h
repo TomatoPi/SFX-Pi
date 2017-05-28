@@ -60,6 +60,7 @@ class Module{
 	
 		int set_param(int param, float var);
 		float get_param(int param);
+		float* get_param_adress(int param);
 	
 		jack_port_t* get_port(int idx);
 		int get_port_count();
