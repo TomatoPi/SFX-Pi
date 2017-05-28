@@ -28,6 +28,11 @@ Drive::Drive(const char *server): Module(server, MDRIVE, 10, 2, 2, 0, 0, "in_L",
 	}
 }
 
+Drive::~Drive(){
+	
+	free(this->filter);
+}
+
 /*
 *	Drive effect's Callback
 */
