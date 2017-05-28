@@ -16,28 +16,22 @@ int io_get_potentiometer(int potentiometer){
 	return -1;
 }
 
-int io_set_param_accessor(io_param_accessor *accessor, int potentiometer, float min, float max, float *target, int is_db){
-	
-	if(potentiometer < 0 || potentiometer > 7 || target == NULL)
-		return 1;
-	
-	accessor->potentiometer = potentiometer;
-	accessor->min = min;
-	accessor->max = max;
-	accessor->target = target;
-	accessor->is_db = is_db;
-	
-	return 0;
+io_param_accessor::io_param_accessor(int potentiometer, float min, float max, float *target, int is_db):min(min), max(max), target(target), is_db(is_db){
+
+	if(potentiometer < 0 || potentiometer > 7)
+		this->potentiometer = 0;
+	else
+		this->potentiometer = potentiometer;
 }
 
-void io_update_param(io_param_accessor *accessor){
+io_param_accessor::io_update_param(){
 	
-	float value = (float)io_get_potentiometer(accessor->potentiometer);
-	float param = ((value/SPI_MAX) * (accessor->max - accessor->min)) + accessor->min;
+	float value = (float)io_get_potentiometer(this->potentiometer);
+	float param = ((value/SPI_MAX) * (this->max - this->min)) + this->min;
 	
 	if(is_db){
-		*(accessor->target) = spi_dbtorms(param);
+		*(this->target) = spi_dbtorms(param);
 	}else{
-		*(accessor->target) = param;
+		*(this->target) = param;
 	}
 }
