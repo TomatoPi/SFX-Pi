@@ -24,7 +24,7 @@ int main(int argc, char *argv[]){
 	
 		test->io_update_param();
 		test1->io_update_param();
-		usleep(10000);
+		usleep(500000);
 	}
 	
 	sleep(-1);
@@ -90,7 +90,6 @@ const char* get_source_name(Module *source, int is, Module *target){
 			exit (1);
 		}
 		from = port[(is==0)?0:1];
-		is_source_null = 1;
 		free(port);
 	}else{
 		fprintf (stderr, "Module source --- ");
@@ -103,6 +102,7 @@ const char* get_source_name(Module *source, int is, Module *target){
 		}
 	}
 	return from;
+}
 	
 const char* get_target_name(Module *target, int id, Module *source){
 	
@@ -157,17 +157,19 @@ int main_add_connection(Module *source, int is, Module *target, int id){
 
 int main_del_connection(Module *source, int is, Module *target, int id){
 	
-	char *names[] = get_ports_names(source, is, target, id);
-	if(names == NULL)
+	const char *source_port = get_source_name(source, is, target);
+	const char *target_port = get_target_name(target, id, source);
+	
+	if(source_port == NULL && target_port == NULL)
 		return 1;
 	
 	if(source == NULL){
-		if (jack_disconnect (target->get_client(), names[0], names[1])) {
+		if (jack_disconnect (target->get_client(), source_port, target_port)) {
 			fprintf (stderr, "cannot connect input ports\n");
 			return 1;
 		}
 	}else{
-		if (jack_disconnect (source->get_client(), names[0], names[1])) {
+		if (jack_disconnect (source->get_client(), source_port, target_port)) {
 			fprintf (stderr, "cannot connect input ports\n");
 			return 1;
 		}
