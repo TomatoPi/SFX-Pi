@@ -172,7 +172,7 @@ jack_port_t* Module::get_port(int idx){
 	return NULL;
 }
 
-int get_port_count(){
+int Module::get_port_count(){
 
 	return this->port_count;
 }
