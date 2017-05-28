@@ -129,7 +129,7 @@ char** get_ports_names(Module *source, int is, Module *destination, int id){
 		}
 	}
 	
-	char *names[] = {from, to};
+	const char *names[] = {from, to};
 	return names;
 }
 
@@ -140,7 +140,7 @@ int main_add_connection(Module *source, int is, Module *target, int id){
 		return 1;
 	
 	if(source == NULL){
-		if (jack_connect (destination->get_client(), names[0], names[1])) {
+		if (jack_connect (target->get_client(), names[0], names[1])) {
 			fprintf (stderr, "cannot connect input ports\n");
 			return 1;
 		}
@@ -162,7 +162,7 @@ int main_del_connection(Module *source, int is, Module *target, int id){
 		return 1;
 	
 	if(source == NULL){
-		if (jack_disconnect (destination->get_client(), names[0], names[1])) {
+		if (jack_disconnect (target->get_client(), names[0], names[1])) {
 			fprintf (stderr, "cannot connect input ports\n");
 			return 1;
 		}
