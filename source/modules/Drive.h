@@ -32,6 +32,7 @@ class Drive : public Module{
 	public:	
 		
 		Drive(const char *server);
+		~Drive();
 		
 		int process(jack_nframes_t nframes, void *arg);
 		int bypass(jack_nframes_t nframes, void *arg);
