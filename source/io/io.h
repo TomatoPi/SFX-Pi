@@ -16,15 +16,17 @@
 void io_init_spi();
 int io_get_potentiometer(int potentiometer);
 
-typedef struct{
-  
-	float *target;
-	float min, max;
-	int potentiometer;
-	int is_db;
-}io_param_accessor;
-
-int io_set_param_accessor(io_param_accessor *accessor, int potentiometer, float min, float max, float *target, int is_db);
-int io_update_param(io_param_accessor *accessor);
+class io_param_accessor{
+ 
+	public :
+	
+		io_param_accessor(int potentiometer, float min, float max, float *target, int is_db);
+		int io_update_param(io_param_accessor *accessor);
+	
+		float *target;
+		float min, max;
+		int potentiometer;
+		int is_db;
+};
 
 #endif
