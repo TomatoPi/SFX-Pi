@@ -20,7 +20,8 @@ using namespace std;
 int main_add_module(MODULE_TYPE mod);
 int main_del_module(int idx);
 
-int main_add_connection(Module *source, int is, Module *destination, int id);
-int main_del_connection(Module *source, int is, Module *destination, int id);
+char** get_ports_names(Module *source, int is, Module *target, int id);
+int main_add_connection(Module *source, int is, Module *target, int id);
+int main_del_connection(Module *source, int is, Module *target, int id);
 
 #endif
