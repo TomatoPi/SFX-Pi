@@ -26,6 +26,7 @@ char** get_ports_names(Module *source, int is, Module *target, int id);
 int main_add_connection(Module *source, int is, Module *target, int id);
 int main_del_connection(Module *source, int is, Module *target, int id);
 
-int main_add_accessor(Module *target, int param_idx, int potentiometer, float min, float max, int is_db, int is_inv);
+int main_add_accessor(int target, int param_idx, int potentiometer, float min, float max, int is_db, int is_inv);
+int main_del_accessor(int idx);
 
 #endif
