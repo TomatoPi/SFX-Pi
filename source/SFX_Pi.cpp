@@ -57,13 +57,22 @@ int main_add_module(MODULE_TYPE mod){
 	return 0;
 }
 
-int main_add_connection(Module *source, int is, Module *destination, int id){
+int main_del_module(int idx){
+	
+	if(MAIN_LIST_MODULE.find(idx) == MAIN_LIST_MODULE.end())
+		return 1;
+	
+	MAIN_LIST_MODULE.erase(idx);
+	return 0;
+}
+
+char** get_ports_names(Module *source, int is, Module *destination, int id){
 	
 	const char *from, *to;
 	int is_source_null = 0;
 	
 	if(source == NULL && destination == NULL)
-		return 1;
+		return NULL;
 	
 	if(source == NULL){
 		fprintf (stderr, "Capture source --- ");
@@ -84,7 +93,7 @@ int main_add_connection(Module *source, int is, Module *destination, int id){
 			from = jack_port_name(source->get_port(is));
 		}else{
 			fprintf (stderr, "\n***Failed get source port***\n");
-			return -1;
+			return NULL;
 		}
 	}
 	if(destination == NULL){
@@ -105,22 +114,54 @@ int main_add_connection(Module *source, int is, Module *destination, int id){
 			to = jack_port_name(destination->get_port(id));
 		}else{
 			fprintf (stderr, "***Failed get destination port***\n");
-			return -1;
+			return NULL;
 		}
 	}
 	
-	if(is_source_null){
-		if (jack_connect (destination->get_client(), from, to)) {
+	char *names[] = {from, to};
+	return names;
+}
+
+int main_add_connection(Module *source, int is, Module *target, int id){
+	
+	char *names[] = get_ports_names(source, is, target, id);
+	if(names == NULL)
+		return 1;
+	
+	if(source == NULL){
+		if (jack_connect (destination->get_client(), names[0], names[1])) {
 			fprintf (stderr, "cannot connect input ports\n");
 			return 1;
 		}
 	}else{
-		if (jack_connect (source->get_client(), from, to)) {
+		if (jack_connect (source->get_client(), names[0], names[1])) {
 			fprintf (stderr, "cannot connect input ports\n");
 			return 1;
 		}
 	}
 	fprintf (stderr, "New connection made\n");
+	
+	return 0;
+}
+
+int main_del_connection(Module *source, int is, Module *target, int id){
+	
+	char *names[] = get_ports_names(source, is, target, id);
+	if(names == NULL)
+		return 1;
+	
+	if(source == NULL){
+		if (jack_disconnect (destination->get_client(), names[0], names[1])) {
+			fprintf (stderr, "cannot connect input ports\n");
+			return 1;
+		}
+	}else{
+		if (jack_disconnect (source->get_client(), names[0], names[1])) {
+			fprintf (stderr, "cannot connect input ports\n");
+			return 1;
+		}
+	}
+	fprintf (stderr, "Connection removed\n");
 	
 	return 0;
 }
