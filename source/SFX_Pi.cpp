@@ -8,6 +8,7 @@ int MAIN_COUNT_MODULE = 0;
 int main(int argc, char *argv[]){
 	
 	fprintf (stderr, "\nBienvenu dans le fantastique et magnifique software Space-FX\n\n------------------\n");
+	io_init_spi();
 	
 	int i = main_add_module(MDRIVE);
 	main_add_connection(NULL, 0, MAIN_LIST_MODULE[i], 0);
@@ -15,6 +16,16 @@ int main(int argc, char *argv[]){
 	
 	main_add_connection(MAIN_LIST_MODULE[i], 2, NULL, 0);
 	main_add_connection(MAIN_LIST_MODULE[i], 3, NULL, 1);
+	
+	io_param_accessor test* = new io_param_accessor(0, 10, 40, &(MAIN_LIST_MODULE[i]->get_param(2)), 1);
+	io_param_accessor test1* = new io_param_accessor(1, 0, 20, &(MAIN_LIST_MODULE[i]->get_param(6)), 1);
+	
+	while(1){
+	
+		test->io_update_param();
+		test1->io_update_param();
+		usleep(10000);
+	}
 	
 	sleep(-1);
 }
