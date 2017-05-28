@@ -127,10 +127,10 @@ Module::Module(const char *server, MODULE_TYPE type, int pc, int ai, int ao, int
 }
 
 Module::~Module(){
-	
-	jack_client_close(this->client);
+
 	free(this->port);
 	free(this->params);
+	jack_client_close(this->client);
 }
 
 void Module::set_bypass(int state){
