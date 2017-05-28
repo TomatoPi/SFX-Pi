@@ -5,26 +5,50 @@ const char *SERVER_NAME = "Space_Fx";
 std::unordered_map<int, Module*> MAIN_LIST_MODULE;
 int MAIN_COUNT_MODULE = 0;
 
+std::unordered_map<int, io_param_accessor*> MAIN_LIST_ACCESSOR;
+int MAIN_COUNT_ACCESSOR = 0;
+
 int main(int argc, char *argv[]){
 	
 	fprintf (stderr, "\nBienvenu dans le fantastique et magnifique software Space-FX\n\n------------------\n");
 	io_init_spi();
 	
-	int i = main_add_module(MDRIVE);
-	main_add_connection(NULL, 0, MAIN_LIST_MODULE[i], 0);
-	main_add_connection(NULL, 0, MAIN_LIST_MODULE[i], 1);
+	int drive = main_add_module(MDRIVE);
+	float drivep[] = {0, 1, 20.0, 1, 8.0, 0.26, 10.0, 1, 10.0, 0.6}
+	MAIN_LIST_MODULE[drive]->set_param_list(10, drivep);
+	main_add_connection(NULL, 0, MAIN_LIST_MODULE[drive], 0);
+	main_add_connection(NULL, 0, MAIN_LIST_MODULE[drive], 1);
+	main_add_accessor(drive, 2, 0, 10.0, 40.0 ,1, 0);
+	main_add_accessor(drive, 6, 0, 10.0, 30.0, 1, 1);
 	
-	main_add_connection(MAIN_LIST_MODULE[i], 2, NULL, 0);
-	main_add_connection(MAIN_LIST_MODULE[i], 3, NULL, 1);
+	int lfo = main_add_module(MLFO);
+	float lfop[] = {5, 2.0, 48000, 0.0, 0.0, 0.0, 3, 16};
+	lfo_set_type(MAIN_LIST_MODULE[lfo], WAVE_NPH);
+	MAIN_LIST_MODULE[lfo]->set_param_list(8, lfop);
+	main_add_accessor(lfo, 1, 1, 0.5, 10.0, 0, 0);
 	
-	io_param_accessor *test = new io_param_accessor(0, 10, 40, MAIN_LIST_MODULE[i]->get_param_adress(2), 1);
-	io_param_accessor *test1 = new io_param_accessor(1, 0, 20, MAIN_LIST_MODULE[i]->get_param_adress(6), 1);
+	int ringmod = main_add_module(MRINGM);
+	float ringmodp[] = {1.0, 1.0}
+	MAIN_LIST_MODULE[ringmod]->set_param_list(2, ringmodp);
+	main_add_accessor(ringmod, 0, 2, 0.0, 1.0, 0, 0);
+	
+	main_add_connection(MAIN_LIST_MODULE[lfo], 0, MAIN_LIST_MODULE[ringmod], 2);
+	main_add_connection(MAIN_LIST_MODULE[drive], 2, MAIN_LIST_MODULE[ringmod], 0);
+	main_add_connection(MAIN_LIST_MODULE[drive], 3, MAIN_LIST_MODULE[ringmod], 1);
+	
+	main_add_connection(MAIN_LIST_MODULE[ringmod], 3, NULL, 0);
+	main_add_connection(MAIN_LIST_MODULE[ringmod], 4, NULL, 1);
 	
 	while(1){
 	
-		test->io_update_param();
-		test1->io_update_param();
-		usleep(500000);
+		unordered_map<string, double>:: iterator itr;
+		for (itr = MAIN_LIST_ACCESSOR.begin(); itr != MAIN_LIST_ACCESSOR.end(); itr++)
+		{
+			// type itr->first stores the key part  and
+			// itr->second stroes the value part
+			itr->second->io_update_param();
+		 }
+		usleep(50000);
 	}
 	
 	sleep(-1);
@@ -176,5 +200,36 @@ int main_del_connection(Module *source, int is, Module *target, int id){
 	}
 	fprintf (stderr, "Connection removed\n");
 	
+	return 0;
+}
+
+int main_add_accessor(int target, int param_idx, int potentiometer, float min, float max, int is_db, int is_inv){
+	
+	fprintf (stderr, "Add new accessor --- ");
+	
+	if(MAIN_LIST_MODULE.find(target) == MAIN_LIST_MODULE.end()){
+		fprintf (stderr, "\nTarget not found\n");
+	   	return 1;
+	}
+	
+	if(MAIN_LIST_MODULE[target]->get_param_adress(param_idx) == NULL){
+		fprintf (stderr, "\nParam target not found\n");
+		return 1;
+	
+	while(MAIN_LIST_ACCESSOR.find(MAIN_COUNT_ACCESSOR) != MAIN_LIST_ACCESSOR.end())
+		MAIN_COUNT_ACCESSOR++;
+	
+	io_param_accessor accessor = new io_param_accessor(potentiometer, min, max, MAIN_LIST_MODULE[target]->get_param_adress(param_idx), is_db, is_inv);
+	MAIN_LIST_ACCESSOR.insert(make_pair(MAIN_COUNT_ACCESSOR, accessor));
+	fprintf (stderr, "Target : %d.%d -- Pot : %d -- Min : %d -- Max : %d\n", target, param_idx, potentiometer, min, max);
+	return 0;
+}
+	
+int main_del_accessor(int idx){
+	
+	if(MAIN_LIST_ACCESSOR.find(idx) == MAIN_LIST_ACCESSOR.end())
+		return 1;
+	
+	MAIN_LIST_ACCESSOR.erase(idx);
 	return 0;
 }
