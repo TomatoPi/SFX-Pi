@@ -17,6 +17,7 @@ class Ringbuffer{
 		*	samplerate : samplerate in Hz
 		*/
 		Ringbuffer(int length, int samplerate);
+		~Ringbuffer();
 		
 		/*
 		*	Move the reader and get the value
