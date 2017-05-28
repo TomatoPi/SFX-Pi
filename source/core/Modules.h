@@ -61,6 +61,7 @@ class Module{
 		float get_param(int param);
 	
 		jack_port_t* get_port(int idx);
+		int get_port_count();
 		jack_client_t* get_client();
 	
 	protected:
