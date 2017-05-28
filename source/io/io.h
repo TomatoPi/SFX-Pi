@@ -21,7 +21,7 @@ class io_param_accessor{
 	public :
 	
 		io_param_accessor(int potentiometer, float min, float max, float *target, int is_db);
-		int io_update_param();
+		void io_update_param();
 	
 		float *target;
 		float min, max;
