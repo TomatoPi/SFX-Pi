@@ -20,13 +20,13 @@ class io_param_accessor{
  
 	public :
 	
-		io_param_accessor(int potentiometer, float min, float max, float *target, int is_db);
+		io_param_accessor(int potentiometer, float min, float max, float *target, int is_db, int is_inv);
 		void io_update_param();
 	
 		float *target;
 		float min, max;
 		int potentiometer;
-		int is_db;
+		int is_db, is_inv;
 };
 
 #endif
