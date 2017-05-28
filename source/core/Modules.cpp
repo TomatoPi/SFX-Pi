@@ -165,6 +165,11 @@ jack_port_t* Module::get_port(int idx){
 	return NULL;
 }
 
+int get_port_count(){
+
+	return this->port_count;
+}
+
 jack_client_t* Module::get_client(){
 
 	return this->client;
