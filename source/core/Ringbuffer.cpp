@@ -14,6 +14,11 @@ Ringbuffer::Ringbuffer(int length, int samplerate){
 	this->write_head = 0;
 }
 
+Ringbuffer::~Ringbuffer(){
+	
+	free(this->buffer);
+}
+
 void Ringbuffer::read_value(rng_reader *reader){
 	
 	reader->index = ++(reader->index)%this->buffer_size;
