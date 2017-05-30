@@ -27,6 +27,8 @@ class io_param_accessor{
 		float min, max;
 		int potentiometer;
 		int is_db, is_inv;
+	
+		int value;
 };
 
 #endif
