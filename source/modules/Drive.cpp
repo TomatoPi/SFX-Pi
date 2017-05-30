@@ -22,6 +22,12 @@ Drive::Drive(const char *server): Module(server, MDRIVE, 10, 2, 2, 0, 0, "in_L",
 	this->params[8] = D_SOFT;
 	this->params[9] = D_SHAPE;
 	
+	this->params[10] = 200;
+	this->params[11] = 1000;
+	this->params[12] = 0.75;
+	this->params[13] = 3.0;
+	this->params[14] = 7.0;
+	
 	if (jack_activate (this->client)) {
 		fprintf (stderr, "Failed activating Client\n");
 		exit (1);
