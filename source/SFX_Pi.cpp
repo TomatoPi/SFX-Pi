@@ -25,7 +25,7 @@ int main(int argc, char *argv[]){
 	main_add_module(MDELAY);
 	int delay = MAIN_COUNT_MODULE;
 	float delayp[] = {5000.0, 250.0, 180.0, 0.75, 0.8, 0.5};
-	MAIN_LIST_MODULE[delay]->set_param_list(2, delayp);
+	MAIN_LIST_MODULE[delay]->set_param_list(6, delayp);
 	main_add_accessor(delay, 1, 1, 50.0, 1000.0, 0, 0);
 	main_add_accessor(delay, 2, 2, 50.0, 1000.0, 0, 0);
 	main_add_accessor(delay, 3, 3, 0.0, 1.0, 0, 0);
@@ -35,8 +35,23 @@ int main(int argc, char *argv[]){
 	main_add_connection(MAIN_LIST_MODULE[drive], 2, MAIN_LIST_MODULE[delay], 0);
 	main_add_connection(MAIN_LIST_MODULE[drive], 3, MAIN_LIST_MODULE[delay], 1);
 	
-	main_add_connection(MAIN_LIST_MODULE[delay], 6, MAIN_LIST_MODULE[delay], 2);
-	main_add_connection(MAIN_LIST_MODULE[delay], 7, MAIN_LIST_MODULE[delay], 3);
+	main_add_module(MLFO);
+	int lfo = MAIN_COUNT_MODULE;
+	float lfop[] = { 0, 440.0, 48000, 0.0, 0.0, 0.0, 0.0, 0.0};
+	MAIN_LIST_MODULE[lfo]->set_param_list(8, lfop);
+	
+	main_add_module(MRINGM);
+	int ringm = MAIN_COUNT_MODULE;
+	float ringmp[] = {0.75, 1.0};
+	MAIN_LIST_MODULE[ringm]->set_param_list(2, ringmp);
+	
+	main_add_connection(MAIN_LIST_MODULE[lfo], 0, MAIN_LIST_MODULE[ringm], 2);
+	
+	main_add_connection(MAIN_LIST_MODULE[delay], 6, MAIN_LIST_MODULE[ringm], 0);
+	main_add_connection(MAIN_LIST_MODULE[delay], 7, MAIN_LIST_MODULE[ringm], 1);
+	
+	main_add_connection(MAIN_LIST_MODULE[ringm], 3, MAIN_LIST_MODULE[delay], 2);
+	main_add_connection(MAIN_LIST_MODULE[ringm], 4, MAIN_LIST_MODULE[delay], 3);
 	
 	main_add_connection(MAIN_LIST_MODULE[delay], 4, NULL, 0);
 	main_add_connection(MAIN_LIST_MODULE[delay], 5, NULL, 1);
