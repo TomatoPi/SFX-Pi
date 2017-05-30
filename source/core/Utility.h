@@ -102,7 +102,7 @@ typedef struct
 */
 void spi_init_tripole(spi_tripole *f);
 
-void spi_init_tripole_freq(spi_tripole *f, int fl, int fh, int sr);
+void spi_init_tripole_freq(spi_tripole *f, float fl, float fh, int sr);
 
 /*
 *	Compute 3Bands EQ for given sample
