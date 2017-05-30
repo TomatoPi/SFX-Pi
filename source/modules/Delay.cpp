@@ -1,5 +1,5 @@
 #include "Delay.h"
-Delay::Delay(const char *server) : Module(server, MDELAY, 6, 2, 2, 0, 0, "in_L", "in_R", "out_L", "out_R"){
+Delay::Delay(const char *server) : Module(server, MDELAY, 6, 4, 4, 0, 0, "in_L", "in_R", "return_L", "return_R", "out_L", "out_R", "send_L", "send_R"){
     
     this->buffer_L = new Ringbuffer(D_DMAX, jack_get_sample_rate(this->client));
     this->buffer_R = new Ringbuffer(D_DMAX, jack_get_sample_rate(this->client));
@@ -37,11 +37,19 @@ int Delay::process(jack_nframes_t nframes, void *arg){
 
 	sample_t *in_L, *out_L;	
 	in_L = (sample_t*)jack_port_get_buffer(this->port[0], nframes);	//collecting Left input buffer
-	out_L = (sample_t*)jack_port_get_buffer(this->port[2], nframes);	//collecting Right input buffer
+	out_L = (sample_t*)jack_port_get_buffer(this->port[4], nframes);	//collecting Right input buffer
 
 	sample_t *in_R, *out_R;	
 	in_R = (sample_t*)jack_port_get_buffer(this->port[1], nframes);
-	out_R = (sample_t*)jack_port_get_buffer(this->port[3], nframes);
+	out_R = (sample_t*)jack_port_get_buffer(this->port[5], nframes);
+	
+	sample_t *send_L, *return_L;
+	send_L = (sample_t*)jack_port_get_buffer(this->port[2], nframes);
+	return_L = (sample_t*)jack_port_get_buffer(this->port[6], nframes);
+	
+	sample_t *send_R, *return_R;
+	send_R = (sample_t*)jack_port_get_buffer(this->port[3], nframes);
+	return_R = (sample_t*)jack_port_get_buffer(this->port[7], nframes);
 	
 	float fl = this->params[3];
 	float fr = this->params[4];
@@ -55,8 +63,11 @@ int Delay::process(jack_nframes_t nframes, void *arg){
 		sample_t wl = this->reader_L.value;
 		sample_t wr = this->reader_R.value;
 		
-		this->buffer_L->write_value(in_L[i] + fl*wl);
-		this->buffer_R->write_value(in_R[i] + fr*wr);
+		send_L[i] = in_L[i] + fl*wl;
+		send_R[i] = in_R[i] + fr*wr;
+		
+		this->buffer_L->write_value(return_L[i]);
+		this->buffer_R->write_value(return_R[i]);
 		
 		out_L[i] = spi_dry_wet(in_L[i], wl, dw);
 		out_R[i] = spi_dry_wet(in_R[i], wr, dw);
@@ -66,5 +77,5 @@ int Delay::process(jack_nframes_t nframes, void *arg){
 
 int Delay::bypass(jack_nframes_t nframes, void *arg){
 
-	return mod_GenericStereoBypass_Callback(nframes, this->port, 2);
+	return mod_GenericStereoBypass_Callback(nframes, this->port, 4);
 }
