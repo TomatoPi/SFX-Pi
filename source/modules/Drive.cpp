@@ -7,7 +7,7 @@
 Drive::Drive(const char *server): Module(server, MDRIVE, 10, 2, 2, 0, 0, "in_L", "in_R", "out_L", "out_R"){
 	
 	this->filter = (spi_tripole*)malloc(sizeof(spi_tripole));
-	spi_init_tripole(this->filter, 200, 1000, (int)jack_get_sample_rate(this->client), 0.75, 3.0, 7.0);
+	spi_init_tripole(this->filter);
 
 	this->params[0] = D_ABS;
 	this->params[1] = D_ASM;
@@ -27,6 +27,8 @@ Drive::Drive(const char *server): Module(server, MDRIVE, 10, 2, 2, 0, 0, "in_L",
 	this->params[12] = 0.75;
 	this->params[13] = 3.0;
 	this->params[14] = 7.0;
+	
+	spi_init_tripole_freq(this->params[10], this->params[11], (int)jack_get_sample_rate(this->client));
 	
 	if (jack_activate (this->client)) {
 		fprintf (stderr, "Failed activating Client\n");
@@ -54,6 +56,7 @@ int Drive::process(jack_nframes_t nframes, void *arg){
 	
 	float gp, sp, shp, gn, sn, shn;			//Collecting drive settings
 	int is_abs, isp, isn;
+	
 	is_abs = (int)this->params[0];
 	int n = (this->params[1] == 0.0)?0:4;
 	
@@ -67,10 +70,18 @@ int Drive::process(jack_nframes_t nframes, void *arg){
 	sn = this->params[4+n];
 	shn = this->params[5+n];
 	
+	float gl, gm, gh;
+	gl = this->params[12];
+	gm = this->params[13];
+	gh = this->params[14];
+	
+	if(this->filter->fl != this->params[10] || this->filter->fh != this->params[11])
+		spi_init_tripole_freq(this->filter, this->params[10], this->params[11] ,(int)jack_get_sample_rate(this->client));
+	
 	for(jack_nframes_t i = 0; i < nframes; i++){						//For each sample
 		
-		sample_t l = spi_do_tripole(this->filter, s_in_l[i]);				//Current Left sample
-		sample_t r = spi_do_tripole(this->filter, s_in_r[i]);				//Current Right sample
+		sample_t l = spi_do_tripole(this->filter, s_in_l[i], gl, gm, gh);				//Current Left sample
+		sample_t r = spi_do_tripole(this->filter, s_in_r[i], gl, gm, gh);				//Current Right sample
 											//Left Channel
 		if(l>0){ 										//if positive
 			if(isp){								//soft-clipping or hard-clipping
