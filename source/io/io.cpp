@@ -27,6 +27,7 @@ io_param_accessor::io_param_accessor(int potentiometer, float min, float max, fl
 void io_param_accessor::io_update_param(){
 	
 	float value = (float)io_get_potentiometer(this->potentiometer);
+	if(this->is_inv)value = SPI_MAX - value;
 	float param = ((value/SPI_MAX) * (this->max - this->min)) + this->min;
 	
 	if(is_db){
