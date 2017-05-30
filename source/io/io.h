@@ -12,6 +12,7 @@
 #define SPI_CHAN1 0
 #define SPI_PMAX 8
 #define SPI_MAX 1023
+#define SPI_HYSTERESIS 0.02
 
 void io_init_spi();
 int io_get_potentiometer(int potentiometer);
@@ -28,7 +29,7 @@ class io_param_accessor{
 		int potentiometer;
 		int is_db, is_inv;
 	
-		int value;
+		float value;
 };
 
 #endif
