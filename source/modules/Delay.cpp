@@ -51,6 +51,12 @@ int Delay::process(jack_nframes_t nframes, void *arg){
 	send_R = (sample_t*)jack_port_get_buffer(this->port[3], nframes);
 	return_R = (sample_t*)jack_port_get_buffer(this->port[7], nframes);
 	
+	if( (int)(this->params[1]) != this->reader_L.delay)
+		this->reader_L = this->buffer_L->new_read_head(this->params[1]);
+	
+	if( (int)(this->params[2]) != this->reader_R.delay)
+		this->reader_R = this->buffer_R->new_read_head(this->params[2]);
+	
 	float fl = this->params[3];
 	float fr = this->params[4];
 	float dw = this->params[5];
