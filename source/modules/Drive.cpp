@@ -75,7 +75,7 @@ int Drive::process(jack_nframes_t nframes, void *arg){
 	gm = this->params[13];
 	gh = this->params[14];
 	
-	if(this->filter->fl != this->params[10] || this->filter->fh != this->params[11])
+	if(this->filter->fl_bak != this->params[10] || this->filter->fh_bak != this->params[11])
 		spi_init_tripole_freq(this->filter, this->params[10], this->params[11] ,(int)jack_get_sample_rate(this->client));
 	
 	for(jack_nframes_t i = 0; i < nframes; i++){						//For each sample
