@@ -82,10 +82,11 @@ typedef struct
 	float sm2; // - 2
 	float sm3; // - 3
 
-  	//Band gain
-	float gl; // low
-	float gm; // mid
-	float gh; // high
+/*  	//Band gain
+*	float gl; // low
+*	float gm; // mid
+*	float gh; // high
+*/
 
 } spi_tripole;
 
@@ -99,11 +100,13 @@ typedef struct
 *	gm : mid band gain
 *	gh : high band gain
 */
-void spi_init_tripole(spi_tripole *f, int fl, int fh, int sr, float gl, float gm, float gh);
+void spi_init_tripole(spi_tripole *f);
+
+void spi_init_tripole_freq(spi_tripole *f, int fl, int fh, int sr);
 
 /*
 *	Compute 3Bands EQ for given sample
 */
-sample_t spi_do_tripole(spi_tripole* f, sample_t sample);
+sample_t spi_do_tripole(spi_tripole* f, sample_t sample, float gl, float gm, float gh);
 
 #endif
