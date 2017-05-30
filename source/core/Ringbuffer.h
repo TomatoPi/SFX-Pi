@@ -6,6 +6,8 @@
 typedef struct{
 	int index;
 	sample_t value;
+	
+	int delay;
 }rng_reader;
 class Ringbuffer{
 
