@@ -46,9 +46,12 @@ class LFO : public Module{
 		
 		int process(jack_nframes_t nframes, void *arg);
 		int bypass(jack_nframes_t nframes, void *arg);
-    
-    		friend void lfo_set_type(LFO *lfo, LFO_Wave type);
-		
+  
+		/*
+		*	Setup waveform function
+		*/
+		void lfo_set_type(LFO_Wave type);
+	
 	protected:
 	
 	    	sample_t (*waveform)(float, float, float, float); // waveform generator function		
@@ -66,10 +69,7 @@ class LFO : public Module{
 	*/
 };
 
-/*
-*	Setup waveform function
-*/
-void lfo_set_type(LFO *lfo, LFO_Wave type);
+
 
 /*
 *	Waveform functions, see wiki
