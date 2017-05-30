@@ -50,7 +50,7 @@ class LFO : public Module{
 		/*
 		*	Setup waveform function
 		*/
-		void lfo_set_type(LFO_Wave type);
+		void update_type(LFO_Wave type);
 	
 	protected:
 	
@@ -67,6 +67,7 @@ class LFO : public Module{
 		float p1;		//waveshape param 1
 		float p2;		//waveshape param 2
 	*/
+		int waveform_bak;
 };
 
 
