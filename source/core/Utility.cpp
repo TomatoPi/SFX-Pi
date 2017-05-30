@@ -40,27 +40,32 @@ int spi_stoms(int sample, int sr){
 	return (int)( (float)(sample * 1000) / (float)(sr) );
 }
 
-void spi_init_tripole(spi_tripole *f, int fl, int fh, int sr, float gl, float gm, float gh){
+void spi_init_tripole(spi_tripole *f, int fl, int fh, int sr){
 	
 	//initialisating values to 0
 	memset(f,0,sizeof(spi_tripole));
 	
-	//set gains
-	f->gl = gl;
-	f->gm = gm;
-	f->gh = gh;
+/*	//set gains
+*	f->gl = gl;
+*	f->gm = gm;
+*	f->gh = gh;
+*/
+	
+}
 
+void spi_init_tripole_freq(spi_tripole *f, int fl, int fh, int sr){
+	
 	//Scalling filters frequencies with samplerate
 	f->fl = 2 * sin(M_PI * ((float)fl / (float)sr)); 
 	f->fh = 2 * sin(M_PI * ((float)fh / (float)sr));
 }
 
-sample_t spi_do_tripole(spi_tripole* f, sample_t sample){
+sample_t spi_do_tripole(spi_tripole* f, sample_t sample, float gl, float gm, float gh){
 	
 	sample_t l,m,h; // Low / Mid / High
 
 	// Compute lowpass if gain non null
-	if(f->gl != 0.0 || f->gm != 0){
+	if(gl != 0.0 || gm != 0.0){
 		f->f1p0 += (f->fl * (sample - f->f1p0)) + vsa;
 		f->f1p1 += (f->fl * (f->f1p0 - f->f1p1));
 		f->f1p2 += (f->fl * (f->f1p1 - f->f1p2));
@@ -72,7 +77,7 @@ sample_t spi_do_tripole(spi_tripole* f, sample_t sample){
 	}
 	
 	// Compute highpass if gain non null
-	if(f->gh != 0.0 || f->gm != 0){
+	if(gh != 0.0 || gm != 0.0){
 		f->f2p0 += (f->fh * (sample - f->f2p0)) + vsa;
 		f->f2p1 += (f->fh * (f->f2p0 - f->f2p1));
 		f->f2p2 += (f->fh * (f->f2p1 - f->f2p2));
@@ -87,9 +92,9 @@ sample_t spi_do_tripole(spi_tripole* f, sample_t sample){
 	m = f->sm3 - (h + l);
 
 	// Compute gains
-	l *= f->gl;
-	m *= f->gm;
-	h *= f->gh;
+	l *= gl;
+	m *= gm;
+	h *= gh;
 
 	// Suffle buffer
 	f->sm3 = f->sm2;
