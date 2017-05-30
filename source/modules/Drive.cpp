@@ -4,7 +4,7 @@
 *	Distortion effect constructor
 *	EQ creation
 */
-Drive::Drive(const char *server): Module(server, MDRIVE, 10, 2, 2, 0, 0, "in_L", "in_R", "out_L", "out_R"){
+Drive::Drive(const char *server): Module(server, MDRIVE, 15, 2, 2, 0, 0, "in_L", "in_R", "out_L", "out_R"){
 	
 	this->filter = (spi_tripole*)malloc(sizeof(spi_tripole));
 	spi_init_tripole(this->filter);
