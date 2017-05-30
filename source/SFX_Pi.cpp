@@ -35,8 +35,8 @@ int main(int argc, char *argv[]){
 	main_add_connection(MAIN_LIST_MODULE[drive], 2, MAIN_LIST_MODULE[delay], 0);
 	main_add_connection(MAIN_LIST_MODULE[drive], 3, MAIN_LIST_MODULE[delay], 1);
 	
-	main_add_connection(MAIN_LIST_MODULE[ringmod], 2, NULL, 0);
-	main_add_connection(MAIN_LIST_MODULE[ringmod], 3, NULL, 1);
+	main_add_connection(MAIN_LIST_MODULE[delay], 2, NULL, 0);
+	main_add_connection(MAIN_LIST_MODULE[delay], 3, NULL, 1);
 	
 	while(1){
 	
