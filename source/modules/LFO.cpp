@@ -23,6 +23,9 @@ int LFO::process(jack_nframes_t nframes, void *arg){
 	
 	sample_t *out = (sample_t*)jack_port_get_buffer(this->port[0], nframes);
 	
+	if( (int)(this->waveform_bak) != (int)(this->params[0]) )
+		this->update_type( (int)(this->params[0]) );
+	
 	float f = this->params[1]; 		//LFO frequency
 	float sr = this->params[2];		//Client Samplerate
 		
@@ -52,29 +55,30 @@ int LFO::bypass(jack_nframes_t nframes, void *arg){
 	return 0;
 }
 
-void lfo_set_type(LFO *lfo, LFO_Wave type){
-	lfo->params[0] = type;
+void LFO::update_type(LFO_Wave type){
+	this->params[0] = type;
+	this->waveform_bak = type;
 	switch(type){
 		case WAVE_SIN:
-			lfo->waveform = w_sin;
+			this->waveform = w_sin;
 			break;
 		case WAVE_SQR:
-			lfo->waveform = w_sqr;
+			this->waveform = w_sqr;
 			break;
 		case WAVE_TRI:
-			lfo->waveform = w_tri;
+			this->waveform = w_tri;
 			break;
 		case WAVE_SAW:
-			lfo->waveform = w_saw;
+			this->waveform = w_saw;
 			break;
 		case WAVE_VAR:
-			lfo->waveform = w_var;
+			this->waveform = w_var;
 			break;
 		case WAVE_NPH:
-			lfo->waveform = w_nph;
+			this->waveform = w_nph;
 			break;
 		default:
-			lfo->waveform = w_sin;
+			this->waveform = w_sin;
 			break;
 	}
 }
