@@ -15,8 +15,8 @@ int main(int argc, char *argv[]){
 	
 	main_add_module(MDRIVE);
 	int drive = MAIN_COUNT_MODULE;
-	float drivep[] = {0, 1, 20.0, 1, 8.0, 0.26, 10.0, 1, 10.0, 0.6};
-	MAIN_LIST_MODULE[drive]->set_param_list(10, drivep);
+	float drivep[] = {0, 1, 20.0, 1, 8.0, 0.26, 10.0, 1, 10.0, 0.6, 440, 1200, 3.0, 0.75, 5.0};
+	MAIN_LIST_MODULE[drive]->set_param_list(15, drivep);
 	main_add_connection(NULL, 0, MAIN_LIST_MODULE[drive], 0);
 	main_add_connection(NULL, 0, MAIN_LIST_MODULE[drive], 1);
 	main_add_accessor(drive, 2, 0, 10.0, 40.0 ,1, 0);
