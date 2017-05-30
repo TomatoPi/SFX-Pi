@@ -51,6 +51,12 @@ class Drive : public Module{
 		*	int is_soft_clip_p, is_soft_clip_n; //for Soft or Hard-clipping
 		*	float sp, sn; //Soft-Clipping Softness
 		*	float shp, shn; //Soft-Clipping Shape
+		*
+		*	float freq_low
+		* 	float freq_high
+		*	float gain_low
+		*	float gain_mid
+		*	float gain_high
 		*/
 };
 
