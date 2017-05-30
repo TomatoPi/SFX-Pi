@@ -40,7 +40,7 @@ int spi_stoms(int sample, int sr){
 	return (int)( (float)(sample * 1000) / (float)(sr) );
 }
 
-void spi_init_tripole(spi_tripole *f, int fl, int fh, int sr){
+void spi_init_tripole(spi_tripole *f){
 	
 	//initialisating values to 0
 	memset(f,0,sizeof(spi_tripole));
@@ -53,11 +53,14 @@ void spi_init_tripole(spi_tripole *f, int fl, int fh, int sr){
 	
 }
 
-void spi_init_tripole_freq(spi_tripole *f, int fl, int fh, int sr){
+void spi_init_tripole_freq(spi_tripole *f, float fl, float fh, int sr){
 	
 	//Scalling filters frequencies with samplerate
-	f->fl = 2 * sin(M_PI * ((float)fl / (float)sr)); 
-	f->fh = 2 * sin(M_PI * ((float)fh / (float)sr));
+	f->fl = 2 * sin(M_PI * (fl / (float)sr)); 
+	f->fh = 2 * sin(M_PI * (fh / (float)sr));
+	
+	f->fl_bak = fl;
+	f->fh_bak = fh;
 }
 
 sample_t spi_do_tripole(spi_tripole* f, sample_t sample, float gl, float gm, float gh){
