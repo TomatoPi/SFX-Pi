@@ -28,7 +28,7 @@ Drive::Drive(const char *server): Module(server, MDRIVE, 10, 2, 2, 0, 0, "in_L",
 	this->params[13] = 3.0;
 	this->params[14] = 7.0;
 	
-	spi_init_tripole_freq(this->params[10], this->params[11], (int)jack_get_sample_rate(this->client));
+	spi_init_tripole_freq(this->filter, this->params[10], this->params[11], (int)jack_get_sample_rate(this->client));
 	
 	if (jack_activate (this->client)) {
 		fprintf (stderr, "Failed activating Client\n");
