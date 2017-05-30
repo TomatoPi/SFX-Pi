@@ -69,11 +69,11 @@ int Delay::process(jack_nframes_t nframes, void *arg){
 		sample_t wl = this->reader_L.value;
 		sample_t wr = this->reader_R.value;
 		
-		send_L[i] = in_L[i] + fl*wl;
-		send_R[i] = in_R[i] + fr*wr;
+		send_L[i] = wl;
+		send_R[i] = wr;
 		
-		this->buffer_L->write_value(return_L[i]);
-		this->buffer_R->write_value(return_R[i]);
+		this->buffer_L->write_value(in_L[i] + fl*return_L[i]);
+		this->buffer_R->write_value(in_R[i] + fr*return_R[i]);
 		
 		out_L[i] = spi_dry_wet(in_L[i], wl, dw);
 		out_R[i] = spi_dry_wet(in_R[i], wr, dw);
