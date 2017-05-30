@@ -65,6 +65,7 @@ typedef struct
 
 	//Lowpass filter
 	float fl; 	//Filter frequency
+	float fl_bak;
 	float f1p0; //Filter pole
 	float f1p1; 
 	float f1p2;
@@ -72,6 +73,7 @@ typedef struct
 
 	//Highpass filter
 	float fh;   //Filter frequency
+	float fh_bak;
 	float f2p0; //Filter pole
 	float f2p1;
 	float f2p2;
