@@ -2,7 +2,7 @@
 
 LFO::LFO(const char *server): Module(server, MLFO, 8, 0, 1, 0, 0, "out"){
 		
-	lfo_set_type(this, L_TYPE);
+	this->update_type(L_TYPE);
 	this->params[1] = L_FREQ;
 	this->params[2] = jack_get_sample_rate(this->client);
 	
@@ -24,7 +24,7 @@ int LFO::process(jack_nframes_t nframes, void *arg){
 	sample_t *out = (sample_t*)jack_port_get_buffer(this->port[0], nframes);
 	
 	if( (int)(this->waveform_bak) != (int)(this->params[0]) )
-		this->update_type( (int)(this->params[0]) );
+		this->update_type( static_cast<LFO_Wave>((int)(this->params[0])) );
 	
 	float f = this->params[1]; 		//LFO frequency
 	float sr = this->params[2];		//Client Samplerate
