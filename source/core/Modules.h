@@ -80,6 +80,8 @@ class Module{
 		int is_bypassed;
 		int params_count;
 		float *params;
+	
+		int is_params_outdated;
 };
 
 #endif
