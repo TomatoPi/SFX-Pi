@@ -35,8 +35,8 @@ int main(int argc, char *argv[]){
 	main_add_connection(MAIN_LIST_MODULE[drive], 2, MAIN_LIST_MODULE[delay], 0);
 	main_add_connection(MAIN_LIST_MODULE[drive], 3, MAIN_LIST_MODULE[delay], 1);
 	
-	main_add_connection(MAIN_LIST_MODULE[delay], 2, MAIN_LIST_MODULE[delay], 6);
-	main_add_connection(MAIN_LIST_MODULE[delay], 3, MAIN_LIST_MODULE[delay], 7);
+	main_add_connection(MAIN_LIST_MODULE[delay], 6, MAIN_LIST_MODULE[delay], 2);
+	main_add_connection(MAIN_LIST_MODULE[delay], 7, MAIN_LIST_MODULE[delay], 3);
 	
 	main_add_connection(MAIN_LIST_MODULE[delay], 4, NULL, 0);
 	main_add_connection(MAIN_LIST_MODULE[delay], 5, NULL, 1);
