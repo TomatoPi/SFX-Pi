@@ -17,7 +17,7 @@ sample_t spi_abs(sample_t in){
 
 sample_t spi_dry_wet(sample_t dry, sample_t wet, float a){
 	
-	return ((1-a) * dry) + (a * wet);
+	return ( (1-(a*a)) * dry) + (a * a * wet);
 }
 
 float spi_dbtorms(float d){
