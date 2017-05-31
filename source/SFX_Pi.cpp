@@ -42,7 +42,7 @@ int main(int argc, char *argv[]){
 	
 	main_add_module(MRINGM);
 	int ringm = MAIN_COUNT_MODULE;
-	float ringmp[] = {1.0, 0.8};
+	float ringmp[] = {1.0, 0.75};
 	MAIN_LIST_MODULE[ringm]->set_param_list(2, ringmp);
 	
 	main_add_connection(MAIN_LIST_MODULE[lfo], 0, MAIN_LIST_MODULE[ringm], 2);
@@ -50,8 +50,16 @@ int main(int argc, char *argv[]){
 	main_add_connection(MAIN_LIST_MODULE[delay], 6, MAIN_LIST_MODULE[ringm], 0);
 	main_add_connection(MAIN_LIST_MODULE[delay], 7, MAIN_LIST_MODULE[ringm], 1);
 	
-	main_add_connection(MAIN_LIST_MODULE[ringm], 3, MAIN_LIST_MODULE[delay], 2);
-	main_add_connection(MAIN_LIST_MODULE[ringm], 4, MAIN_LIST_MODULE[delay], 3);
+	main_add_module(MTONE);
+	int tone = MAIN_COUNT_MODULE;
+	float tonep[] = {500.0, 3000.0, 0.5, 4.0, 1.5};
+	MAIN_LIST_MODULE[tone]->set_param_list(5, tonep);
+	
+	main_add_connection(MAIN_LIST_MODULE[ringm], 2, MAIN_LIST_MODULE[tone], 0);
+	main_add_connection(MAIN_LIST_MODULE[ringm], 3, MAIN_LIST_MODULE[tone], 1);
+	
+	main_add_connection(MAIN_LIST_MODULE[tone], 3, MAIN_LIST_MODULE[delay], 2);
+	main_add_connection(MAIN_LIST_MODULE[tone], 4, MAIN_LIST_MODULE[delay], 3);
 	
 	main_add_connection(MAIN_LIST_MODULE[delay], 4, NULL, 0);
 	main_add_connection(MAIN_LIST_MODULE[delay], 5, NULL, 1);
