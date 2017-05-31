@@ -24,7 +24,7 @@ Tonestack::~Tonestack(){
 	free(this->filter);
 }
 
-int process(jack_nframes_t nframes, void *arg){
+int Tonestack::process(jack_nframes_t nframes, void *arg){
 
 	sample_t *in_L, *out_L;	
 	in_L = (sample_t*)jack_port_get_buffer(this->port[0], nframes);
@@ -50,7 +50,7 @@ int process(jack_nframes_t nframes, void *arg){
 	return 0;	
 }
 
-int bypass(jack_nframes_t nframes, void *arg){
+int Tonestack::bypass(jack_nframes_t nframes, void *arg){
 
 	return mod_GenericStereoBypass_Callback(nframes, this->port, 2);
 }
