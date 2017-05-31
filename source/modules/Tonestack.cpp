@@ -1,6 +1,6 @@
 #include "Tonestack.h"
 
-Tonestack::Tonestack(const char *server): Module(server, MTONE, 15, 2, 2, 0, 0, "in_L", "in_R", "out_L", "out_R"){
+Tonestack::Tonestack(const char *server): Module(server, MTONE, 5, 2, 2, 0, 0, "in_L", "in_R", "out_L", "out_R"){
 	
 	this->filter = (spi_tripole*)malloc(sizeof(spi_tripole));
 	spi_init_tripole(this->filter);
