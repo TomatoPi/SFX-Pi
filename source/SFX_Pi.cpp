@@ -18,26 +18,33 @@ int main(int argc, char *argv[]){
 	float drivep[] = {0, 1, 20.0, 1, 8.0, 0.26, 10.0, 1, 10.0, 0.6, 440, 1200, 3.0, 0.75, 5.0};
 	MAIN_LIST_MODULE[drive]->set_param_list(15, drivep);
 	main_add_connection(NULL, 0, MAIN_LIST_MODULE[drive], 0);
-	main_add_connection(NULL, 0, MAIN_LIST_MODULE[drive], 1);
 	main_add_accessor(drive, 2, 0, 10.0, 40.0 ,1, 0);
 	main_add_accessor(drive, 6, 0, 10.0, 30.0, 1, 1);
+	
+	main_add_module(MDRIVE);
+	int hard = MAIN_COUNT_MODULE;
+	float hardp[] = {0, 1, 20.0, 0, 0.0, 0.0, 10.0, 1, 5.0, 0.4, 200, 1200, 8.0, 1.5, 1.0};
+	MAIN_LIST_MODULE[hard]->set_param_list(15, hardp);
+	main_add_connection(NULL, 0, MAIN_LIST_MODULE[hard], 1);
+	main_add_accessor(hard, 2, 1, 10.0, 40.0 ,1, 0);
+	main_add_accessor(hard, 6, 1, 10.0, 30.0, 1, 0);
 	
 	main_add_module(MDELAY);
 	int delay = MAIN_COUNT_MODULE;
 	float delayp[] = {5000.0, 250.0, 180.0, 0.75, 0.8, 0.5};
 	MAIN_LIST_MODULE[delay]->set_param_list(6, delayp);
-	main_add_accessor(delay, 1, 1, 50.0, 1000.0, 0, 0);
+	main_add_accessor(delay, 1, 2, 30.0, 700.0, 0, 0);
 	main_add_accessor(delay, 2, 2, 50.0, 1000.0, 0, 0);
 	main_add_accessor(delay, 3, 3, 0.0, 1.0, 0, 0);
 	main_add_accessor(delay, 4, 4, 0.0, 1.0, 0, 0);
 	main_add_accessor(delay, 5, 5, 0.0, 1.0, 0, 0);
 	
 	main_add_connection(MAIN_LIST_MODULE[drive], 2, MAIN_LIST_MODULE[delay], 0);
-	main_add_connection(MAIN_LIST_MODULE[drive], 3, MAIN_LIST_MODULE[delay], 1);
+	main_add_connection(MAIN_LIST_MODULE[hard], 3, MAIN_LIST_MODULE[delay], 1);
 	
 	main_add_module(MTONE);
 	int tone = MAIN_COUNT_MODULE;
-	float tonep[] = {500.0, 3000.0, 0.5, 4.0, 1.5};
+	float tonep[] = {500.0, 3000.0, 0.1, 1.0, 0.75};
 	MAIN_LIST_MODULE[tone]->set_param_list(5, tonep);
 	
 	main_add_connection(MAIN_LIST_MODULE[delay], 6, MAIN_LIST_MODULE[tone], 0);
