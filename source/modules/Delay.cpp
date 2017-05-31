@@ -37,7 +37,7 @@ Delay::Delay(const char *server) : Module(server, MDELAY, 6, 0, 0, 0, 0){
 	this->port_count = 8;
 	this->port = (jack_port_t**)malloc(this->port_count * sizeof(jack_port_t*));
 	if(this->port == NULL)
-		return 1;
+		exit(1);
 	
 	this->port[0] = jack_port_register( this->client, "in_L", JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
 	this->port[1] = jack_port_register( this->client, "in_R", JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
