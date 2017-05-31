@@ -36,16 +36,18 @@ int main(int argc, char *argv[]){
 	main_add_accessor(delay, 1, 2, 30.0, 700.0, 0, 0);
 	main_add_accessor(delay, 2, 2, 50.0, 1000.0, 0, 0);
 	main_add_accessor(delay, 3, 3, 0.0, 1.0, 0, 0);
-	main_add_accessor(delay, 4, 4, 0.0, 1.0, 0, 0);
-	main_add_accessor(delay, 5, 5, 0.0, 1.0, 0, 0);
+	main_add_accessor(delay, 4, 3, 0.0, 1.0, 0, 0);
+	main_add_accessor(delay, 5, 4, 0.0, 1.0, 0, 0);
 	
 	main_add_connection(MAIN_LIST_MODULE[drive], 2, MAIN_LIST_MODULE[delay], 0);
 	main_add_connection(MAIN_LIST_MODULE[hard], 3, MAIN_LIST_MODULE[delay], 1);
 	
 	main_add_module(MTONE);
 	int tone = MAIN_COUNT_MODULE;
-	float tonep[] = {500.0, 3000.0, 0.1, 1.0, 0.75};
+	float tonep[] = {700.0, 3000.0, 0.05, 1.0, 0.5};
 	MAIN_LIST_MODULE[tone]->set_param_list(5, tonep);
+	main_add_accessor(tone, 0, 5, 300.0, 1000.0, 0, 1);
+	main_add_accessor(tone, 0, 5, 1500.0, 10000.0, 0, 0);
 	
 	main_add_connection(MAIN_LIST_MODULE[delay], 6, MAIN_LIST_MODULE[tone], 0);
 	main_add_connection(MAIN_LIST_MODULE[delay], 7, MAIN_LIST_MODULE[tone], 1);
