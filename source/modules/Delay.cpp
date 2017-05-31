@@ -56,7 +56,7 @@ Delay::Delay(const char *server) : Module(server, MDELAY, 6, 0, 0, 0, 0){
 	this->private_port_count = 4;
 	this->private_port = (jack_port_t**)malloc(this->private_port_count * sizeof(jack_port_t*));
 	if(this->private_port == NULL)
-		return 1;
+		exit(1);
 	
 	this->private_port[0] = jack_port_register( this->client, "p_out_L", JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
 	this->private_port[1] = jack_port_register( this->client, "p_out_R", JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
@@ -95,13 +95,13 @@ Delay::Delay(const char *server) : Module(server, MDELAY, 6, 0, 0, 0, 0){
 		fprintf (stderr, "Echec de l'activation du client 2\n");
 		exit (1);
 	}
-	if (jack_connect (this->client, this->private_port[0], this->private_port[2])) {
+	if (jack_connect (this->client, jack_port_name(this->private_port[0]), jack_port_name(this->private_port[2]))) {
 		fprintf (stderr, "cannot make private connection L\n");
-		return 1;
+		exit(1);
 	}
-	if (jack_connect (this->client, this->private_port[1], this->private_port[3])) {
+	if (jack_connect (this->client, jack_port_name(this->private_port[1]), jack_port_name(this->private_port[3]))) {
 		fprintf (stderr, "cannot make private connection R\n");
-		return 1;
+		exit(1);
 	}
 }
 
@@ -109,6 +109,8 @@ Delay::~Delay(){
 	
 	delete this->buffer_L;
 	delete this->buffer_R;
+	free(this->private_port);
+	jack_client_close(this->client_2);
 }
 		
 int Delay::process(jack_nframes_t nframes, void *arg){
