@@ -25,6 +25,7 @@ class Ringbuffer{
 		*	Move the reader and get the value
 		*/
 		void read_value(rng_reader *reader);
+		void reverse_read_value(rng_reader *reader);
 	
 		/*
 		*	Write the value and move the writing head
