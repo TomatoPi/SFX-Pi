@@ -28,8 +28,8 @@ int main(int argc, char *argv[]){
 	MAIN_LIST_MODULE[delay]->set_param_list(6, delayp);
 	main_add_accessor(delay, 1, 1, 50.0, 1000.0, 0, 0);
 	main_add_accessor(delay, 2, 2, 50.0, 1000.0, 0, 0);
-	main_add_accessor(delay, 3, 3, 0.0, 1.0, 0, 0);
-	main_add_accessor(delay, 4, 4, 0.0, 1.0, 0, 0);
+	main_add_accessor(delay, 3, 3, 0.0, 1.5, 0, 0);
+	main_add_accessor(delay, 4, 4, 0.0, 1.5, 0, 0);
 	main_add_accessor(delay, 5, 5, 0.0, 1.0, 0, 0);
 	
 	main_add_connection(MAIN_LIST_MODULE[drive], 2, MAIN_LIST_MODULE[delay], 0);
@@ -42,7 +42,7 @@ int main(int argc, char *argv[]){
 	
 	main_add_module(MRINGM);
 	int ringm = MAIN_COUNT_MODULE;
-	float ringmp[] = {0.75, 1.0};
+	float ringmp[] = {1.0, 0.8};
 	MAIN_LIST_MODULE[ringm]->set_param_list(2, ringmp);
 	
 	main_add_connection(MAIN_LIST_MODULE[lfo], 0, MAIN_LIST_MODULE[ringm], 2);
