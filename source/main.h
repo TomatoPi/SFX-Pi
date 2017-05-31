@@ -16,6 +16,7 @@ using namespace std;
 #include "./modules/LFO.h"
 #include "./modules/Ringmod.h"
 #include "./modules/Delay.h"
+#include "./modules/Tonestack.h"
 
 #include "./io/io.h"
 
