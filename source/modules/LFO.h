@@ -32,7 +32,8 @@ typedef enum {
 	WAVE_TRI=2,
 	WAVE_SAW=3,
 	WAVE_VAR=4,
-	WAVE_NPH=5
+	WAVE_NPH=5,
+	WAVE_WHI=6
 }LFO_Wave;
 
 /*
@@ -81,5 +82,6 @@ sample_t w_tri(float in, float sign, float p1, float p2);	//Triangular : p1, p2 
 sample_t w_saw(float in, float sign, float p1, float p2);	//Sawtooth : sign > 0, ascendent ; sign < 0 descendent
 sample_t w_var(float in, float sign, float p1, float p2);	//Varislope : p1 first extremum position ( 0 - 100% ) ; p2 transition form ( 0 : square, 1 : triangle )
 sample_t w_nph(float in, float sign, float p1, float p2);	//N-Phase : p1 phase quantity (int) ; p2 cutting quantity (int)
+sample_t w_whi(float in, float sign, float p1, float p2) 	//White noise
 
 #endif
