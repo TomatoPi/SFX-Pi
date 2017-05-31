@@ -88,36 +88,36 @@ void LFO::update_type(LFO_Wave type){
 
 sample_t w_sin(float in, float sign, float p1, float p2){
 	
-	return (sample_t) (sign*0.5*sin(M_PI * 2.0 * in));
+	return (sample_t) (sign*sin(M_PI * 2.0 * in));
 }
 
 sample_t w_sqr(float in, float sign, float p1, float p2){
 	
-	return (sample_t) ((in-0.5 < 0)? sign * (-0.5) : sign*0.5);
+	return (sample_t) ((in-0.5 < 0)? sign * (-1.0) : sign*1.0);
 }
 
 sample_t w_tri(float in, float sign, float p1, float p2){
 	
-	return (sample_t) (sign * 0.5 * ( 2.0*spi_abs(2.0*in -1.0) - 1.0));
+	return (sample_t) (sign * ( 2.0*spi_abs(2.0*in -1.0) - 1.0));
 }
 
 sample_t w_saw(float in, float sign, float p1, float p2){
 	
-	return (sample_t) (sign * 0.5 * (2.0*in -1.0));
+	return (sample_t) (sign * (2.0*in -1.0));
 }
 
 sample_t w_var(float in, float sign, float p1, float p2){
 	
 	if(in < p1){
-		return (sample_t)(sign * 0.5 * (2.0*((p2*in)/p1) - 1.0));
+		return (sample_t)(sign * (2.0*((p2*in)/p1) - 1.0));
 	}else{
-		return (sample_t)(sign * 0.5 * (1.0 - 2.0*p2*(in-p1)/(1-p1)));
+		return (sample_t)(sign * (1.0 - 2.0*p2*(in-p1)/(1-p1)));
 	}
 }
 
 sample_t w_nph(float in, float sign, float p1, float p2){
 	
-	return (sample_t)(sign * 0.5 * sin(M_PI * 2.0 * (in + (((float)((int)(in*(p1+1))))/p2))));
+	return (sample_t)(sign * sin(M_PI * 2.0 * (in + (((float)((int)(in*(p1+1))))/p2))));
 }
 
 sample_t w_whi(float in, float sign, float p1, float p2){
