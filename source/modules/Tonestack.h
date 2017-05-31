@@ -25,6 +25,6 @@ class Tonestack : public Module{
 		*	float gain_high
 		*/
 
-}
+};
 
 #endif
