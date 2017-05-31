@@ -85,28 +85,28 @@ int Drive::process(jack_nframes_t nframes, void *arg){
 											//Left Channel
 		if(l>0){ 										//if positive
 			if(isp){								//soft-clipping or hard-clipping
-				s_out_l[i] = spi_soft(l*gp, 0.5, sp, shp);					//soft-clipping
+				s_out_l[i] = spi_soft(l*gp, 1.0, sp, shp);					//soft-clipping
 			}else{											//else
-				s_out_l[i] = spi_clip(l*gp, -0.5, 0.5);							//hard-clipping
+				s_out_l[i] = spi_clip(l*gp, -1.0, 1.0);							//hard-clipping
 			}																
 		}else{											//if negative	
 			if(isn){                                      				//soft-clipping or hard-clipping
-				s_out_l[i] = spi_soft(l*gn, 0.5, sn, shn);          			//soft-clipping
+				s_out_l[i] = spi_soft(l*gn, 1.0, sn, shn);          			//soft-clipping
 			}else{                                                              			//else
-				s_out_l[i] = spi_clip(l*gn, -0.5, 0.5);                         			//hard-clipping
+				s_out_l[i] = spi_clip(l*gn, -1.0, 1.0);                         			//hard-clipping
 			}
 		}
 		if(r>0){										//Same for Right Channel
 			if(isp){
-				s_out_r[i] = spi_soft(r*gp, 0.5, sp, shp);
+				s_out_r[i] = spi_soft(r*gp, 1.0, sp, shp);
 			}else{
-				s_out_r[i] = spi_clip(r*gp, -0.5, 0.5);
+				s_out_r[i] = spi_clip(r*gp, -1.0, 1.0);
 			}
 		}else{
 			if(isn){
-				s_out_r[i] = spi_soft(r*gn, 0.5, sn, shn);
+				s_out_r[i] = spi_soft(r*gn, 1.0, sn, shn);
 			}else{
-				s_out_r[i] = spi_clip(r*gn, -0.5, 0.5);
+				s_out_r[i] = spi_clip(r*gn, -1.0, 1.0);
 			}
 		}
 		if(is_abs){									//if absolute value mode is true, full-wave rectification
