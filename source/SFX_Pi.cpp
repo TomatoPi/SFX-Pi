@@ -96,6 +96,10 @@ int main_add_module(MODULE_TYPE mod){
 			newmod = new Ringmod(SERVER_NAME);
 			fprintf (stderr, "new Ringmod\n");
 			break;
+		case MTONE:
+			newmod = new Tonestack(SERVER_NAME);
+			fprintf (stderr, "new Tonestack\n");
+			break;
 		default:
 			newmod = NULL;
 			break;
