@@ -77,6 +77,9 @@ void LFO::update_type(LFO_Wave type){
 		case WAVE_NPH:
 			this->waveform = w_nph;
 			break;
+		case WAVE_WHI:
+			this->waveform = w_whi;
+			break;
 		default:
 			this->waveform = w_sin;
 			break;
@@ -115,4 +118,9 @@ sample_t w_var(float in, float sign, float p1, float p2){
 sample_t w_nph(float in, float sign, float p1, float p2){
 	
 	return (sample_t)(sign * 0.5 * sin(M_PI * 2.0 * (in + (((float)((int)(in*(p1+1))))/p2))));
+}
+
+sample_t w_whi(float in, float sign, float p1, float p2){
+	
+	return ((float)(((RandSeed = RandSeed * 214013L + 2531011L) >> 16) & 0x7fff)/RAND_MAX) * 2.0f - 1.0f;
 }
