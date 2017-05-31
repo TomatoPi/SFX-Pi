@@ -25,6 +25,12 @@ void Ringbuffer::read_value(rng_reader *reader){
 	reader->value = this->buffer[reader->index];
 }
 
+void Ringbuffer::reverse_read_value(rng_reader *reader){
+	
+	reader->index = --(reader->index)%this->buffer_size;
+	reader->value = this->buffer[reader->index];
+}
+
 void Ringbuffer::write_value(sample_t value){
 
 	this->write_head = ++(this->write_head)%this->buffer_size;
