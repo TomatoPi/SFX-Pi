@@ -18,16 +18,16 @@ int main(int argc, char *argv[]){
 	float drivep[] = {0, 1, 20.0, 1, 8.0, 0.26, 10.0, 1, 10.0, 0.6, 440, 1200, 3.0, 0.75, 5.0};
 	MAIN_LIST_MODULE[drive]->set_param_list(15, drivep);
 	main_add_connection(NULL, 0, MAIN_LIST_MODULE[drive], 0);
-	main_add_accessor(drive, 2, 0, 10.0, 40.0 ,1, 0);
-	main_add_accessor(drive, 6, 0, 10.0, 30.0, 1, 1);
+	main_add_accessor(drive, 2, 0, 10.0, 60.0 ,1, 0);
+	main_add_accessor(drive, 6, 0, 10.0, 40.0, 1, 1);
 	
 	main_add_module(MDRIVE);
 	int hard = MAIN_COUNT_MODULE;
 	float hardp[] = {0, 1, 20.0, 0, 0.0, 0.0, 10.0, 1, 5.0, 0.4, 200, 1200, 8.0, 1.5, 1.0};
 	MAIN_LIST_MODULE[hard]->set_param_list(15, hardp);
 	main_add_connection(NULL, 0, MAIN_LIST_MODULE[hard], 1);
-	main_add_accessor(hard, 2, 1, 10.0, 40.0 ,1, 0);
-	main_add_accessor(hard, 6, 1, 10.0, 30.0, 1, 0);
+	main_add_accessor(hard, 2, 1, 10.0, 60.0 ,1, 0);
+	main_add_accessor(hard, 6, 1, 10.0, 40.0, 1, 0);
 	
 	main_add_module(MDELAY);
 	int delay = MAIN_COUNT_MODULE;
