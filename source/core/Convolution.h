@@ -3,18 +3,6 @@
 
 #include "Ringbuffer.h"
 
-class Convolution{
-
-	public:
-		
-		Convolution();
-		~Convolution();
-		
-		sample_t do_convolution(sample_t *X, int N, sample_t *H, M);
-		
-	protected:
-		
-		
-};
+sample_t do_convolution(sample_t *X, int N, sample_t *H, M);
 
 #endif
