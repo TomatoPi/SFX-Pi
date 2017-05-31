@@ -27,7 +27,7 @@ int mod_GenericStereoBypass_Callback(jack_nframes_t nframes, jack_port_t **ports
 *	Enum constainig list of all avaiable modules
 */
 typedef enum{
-	MDRIVE, MDELAY, MLFO, MRINGM
+	MDRIVE, MDELAY, MLFO, MRINGM, MTONE
 }MODULE_TYPE;
 
 const char* mod_tton(MODULE_TYPE type);
