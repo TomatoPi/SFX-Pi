@@ -17,6 +17,8 @@
 #define L_PAR1 1.0
 #define L_PAR2 1.0
 
+static int RandSeed = 48172;
+
 /*
 *	List of possible LFO waveshape
 *	Sinus
