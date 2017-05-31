@@ -55,11 +55,11 @@ int main(int argc, char *argv[]){
 	float tonep[] = {500.0, 3000.0, 0.5, 4.0, 1.5};
 	MAIN_LIST_MODULE[tone]->set_param_list(5, tonep);
 	
-	main_add_connection(MAIN_LIST_MODULE[ringm], 2, MAIN_LIST_MODULE[tone], 0);
-	main_add_connection(MAIN_LIST_MODULE[ringm], 3, MAIN_LIST_MODULE[tone], 1);
+	main_add_connection(MAIN_LIST_MODULE[ringm], 3, MAIN_LIST_MODULE[tone], 0);
+	main_add_connection(MAIN_LIST_MODULE[ringm], 4, MAIN_LIST_MODULE[tone], 1);
 	
-	main_add_connection(MAIN_LIST_MODULE[tone], 3, MAIN_LIST_MODULE[delay], 2);
-	main_add_connection(MAIN_LIST_MODULE[tone], 4, MAIN_LIST_MODULE[delay], 3);
+	main_add_connection(MAIN_LIST_MODULE[tone], 2, MAIN_LIST_MODULE[delay], 2);
+	main_add_connection(MAIN_LIST_MODULE[tone], 3, MAIN_LIST_MODULE[delay], 3);
 	
 	main_add_connection(MAIN_LIST_MODULE[delay], 4, NULL, 0);
 	main_add_connection(MAIN_LIST_MODULE[delay], 5, NULL, 1);
