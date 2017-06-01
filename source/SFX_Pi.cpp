@@ -107,7 +107,7 @@ int main_add_module(MODULE_TYPE mod){
 			newmod = new Tonestack(SERVER_NAME);
 			fprintf (stderr, "new Tonestack\n");
 			break;
-		case MTONE:
+		case MREV:
 			newmod = new Reverb(SERVER_NAME);
 			fprintf (stderr, "new Reverb\n");
 			break;
