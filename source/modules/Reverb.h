@@ -4,6 +4,11 @@
 #include "../core/Modules.h"
 #include "../core/Utility.h"
 #include "../core/Ringbuffer.h"
+#include "../core/Convolution"
+
+#define R_PREDELAY 20
+#define R_DECAYMAX 20000
+#define R_DECAY 1000
 
 class Reverb : public Module{
 	
@@ -17,7 +22,19 @@ class Reverb : public Module{
 	
 	protected:
 		
-		
+		Ringbuffer *buffer_L, *buffer_R;
+	
+		sample_t* reverb_reponse;
+	
+		/*
+		*	float samplerate
+		*	int reverb_reponse_size
+		*
+		*	float predelay
+		*	float decay
+		*
+		*	float dry_wet
+		*/
 };
 
 #endif
