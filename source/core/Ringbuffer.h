@@ -4,7 +4,7 @@
 #include "Utility.h"
 
 typedef struct{
-	int index;
+	float index;
 	sample_t value;
 	
 	int delay;
