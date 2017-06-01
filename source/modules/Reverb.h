@@ -1,9 +1,11 @@
 #ifndef DEF_REVERB_H
 #define DEF_REVERB_H
 
-#include "Delay.h"
+#include "../core/Modules.h"
+#include "../core/Utility.h"
+#include "../core/Ringbuffer.h"
 
-class Reverb : public Delay{
+class Reverb : public Module{
 	
 	public:
 		
