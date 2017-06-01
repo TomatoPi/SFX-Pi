@@ -5,7 +5,7 @@ int delay_Process_Callback(jack_nframes_t nframes, void *u){
 	return static_cast<Delay*>(u)->process_2(nframes, u);
 }
 
-Delay::Delay(const char *server) : Module(server, type, params_count, 0, 0, 0, 0){
+Delay::Delay(const char *server) : Module(server, MDELAY, 6, 0, 0, 0, 0){
 	
 	jack_options_t options_2 = JackNullOption;
 	jack_status_t status_2;
