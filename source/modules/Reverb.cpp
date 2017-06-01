@@ -19,6 +19,11 @@ Reverb::Reverb(const char *server) : Module(server, MREV, 5, 2, 4, 0, 0, "in_L",
 	
 		this->reverb_reponse[i] = exp( (i * -6.9078) / (R_DECAYMAX) ) * ( ((float)rand()/(float)RAND_MAX) * 2.0 - 1.0 );
 	}
+	
+	if (jack_activate (this->client)) {
+		fprintf (stderr, "Echec de l'activation du client\n");
+		exit (1);
+	}
 }
 
 Reverb::~Reverb(){
