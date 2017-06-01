@@ -34,6 +34,8 @@ const char* mod_tton(MODULE_TYPE type){
 			return "RingMod";
 		case MTONE:
 			return "Tonestack";
+		case MREV:
+			return "Reverb";
 		default:
 			return "Module";
 	}
