@@ -5,19 +5,7 @@ int delay_Process_Callback(jack_nframes_t nframes, void *u){
 	return static_cast<Delay*>(u)->process_2(nframes, u);
 }
 
-Delay(const char *server) : Delay(server, MDELAY, 6){
-	
-	this->params[0] = D_DMAX;
-
-	this->params[1] = D_DELAY;
-	this->params[2] = D_DELAY;
-	this->params[3] = D_FEED;
-	this->params[4] = D_FEED;
-
-	this->params[5] = 1.0;
-}
-
-Delay::Delay(const char *server, MODULE_TYPE type, int params_count) : Module(server, type, params_count, 0, 0, 0, 0){
+Delay::Delay(const char *server) : Module(server, type, params_count, 0, 0, 0, 0){
 	
 	jack_options_t options_2 = JackNullOption;
 	jack_status_t status_2;
@@ -89,7 +77,15 @@ Delay::Delay(const char *server, MODULE_TYPE type, int params_count) : Module(se
 	this->reader_L = this->buffer_L->new_read_head(D_DELAY);
 	this->reader_R = this->buffer_R->new_read_head(D_DELAY);
 
+	this->params[0] = D_DMAX;
 
+	this->params[1] = D_DELAY;
+	this->params[2] = D_DELAY;
+	this->params[3] = D_FEED;
+	this->params[4] = D_FEED;
+
+	this->params[5] = 1.0;
+	
 	if (jack_activate (this->client)) {
 		fprintf (stderr, "Echec de l'activation du client\n");
 		exit (1);
