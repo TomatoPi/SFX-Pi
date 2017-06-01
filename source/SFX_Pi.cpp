@@ -46,8 +46,6 @@ int main(int argc, char *argv[]){
 	int tone = MAIN_COUNT_MODULE;
 	float tonep[] = {700.0, 3000.0, 0.05, 1.0, 0.5};
 	MAIN_LIST_MODULE[tone]->set_param_list(5, tonep);
-	main_add_accessor(tone, 0, 5, 300.0, 1000.0, 0, 1);
-	main_add_accessor(tone, 0, 5, 1500.0, 10000.0, 0, 0);
 	
 	main_add_connection(MAIN_LIST_MODULE[delay], 6, MAIN_LIST_MODULE[tone], 0);
 	main_add_connection(MAIN_LIST_MODULE[delay], 7, MAIN_LIST_MODULE[tone], 1);
@@ -55,8 +53,15 @@ int main(int argc, char *argv[]){
 	main_add_connection(MAIN_LIST_MODULE[tone], 2, MAIN_LIST_MODULE[delay], 2);
 	main_add_connection(MAIN_LIST_MODULE[tone], 3, MAIN_LIST_MODULE[delay], 3);
 	
-	main_add_connection(MAIN_LIST_MODULE[delay], 4, NULL, 0);
-	main_add_connection(MAIN_LIST_MODULE[delay], 5, NULL, 1);
+	main_add_module(MREV);
+	int rev = MAIN_COUNT_MODULE;
+	main_add_accessor(rev, 3, 5, 100.0, 18000.0, 0, 0);
+	
+	main_add_connection(MAIN_LIST_MODULE[delay], 4, MAIN_LIST_MODULE[rev], 0);
+	main_add_connection(MAIN_LIST_MODULE[delay], 5, MAIN_LIST_MODULE[rev], 1);
+	
+	main_add_connection(MAIN_LIST_MODULE[rev], 2, NULL, 0);
+	main_add_connection(MAIN_LIST_MODULE[rev], 3, NULL, 1);
 	
 	while(1){
 	
@@ -101,6 +106,10 @@ int main_add_module(MODULE_TYPE mod){
 		case MTONE:
 			newmod = new Tonestack(SERVER_NAME);
 			fprintf (stderr, "new Tonestack\n");
+			break;
+		case MTONE:
+			newmod = new Reverb(SERVER_NAME);
+			fprintf (stderr, "new Reverb\n");
 			break;
 		default:
 			newmod = NULL;
