@@ -13,7 +13,7 @@ Reverb::Reverb(const char *server) : Module(server, MREV, 5, 2, 4, 0, 0, "in_L",
 	
 	this->params[4] = 0.5;
 	
-	this->reverb_reponse = malloc( (int)(this->params[1]) * sizeof(sample_t) );
+	this->reverb_reponse = (sample_t*)malloc( (int)(this->params[1]) * sizeof(sample_t) );
 	
 	for(int i = 0; i < this->params[1]; i++){
 	
