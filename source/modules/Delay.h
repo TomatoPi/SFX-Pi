@@ -15,7 +15,6 @@ class Delay : public Module{
 
 	public:
 		Delay(const char *server);
-		Delay(const char *server, MODULE_TYPE type, int params_count);
 		~Delay();
 		
 		int process(jack_nframes_t nframes, void *arg);
