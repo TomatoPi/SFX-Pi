@@ -17,7 +17,7 @@ using namespace std;
 #include "./modules/Ringmod.h"
 #include "./modules/Delay.h"
 #include "./modules/Tonestack.h"
-#include "./modules/Convolution.h"
+#include "./modules/Reverb.h"
 
 #include "./io/io.h"
 
