@@ -17,7 +17,7 @@ Reverb::Reverb(const char *server) : Module(server, MREV, 5, 2, 4, 0, 0, "in_L",
 	
 	for(int i = 0; i < this->params[1]; i++){
 	
-		this->reverb_reponse[i] = exp( (i * -6.9078) / (R_DECAYMAX) ) * ( ((float)rand()/(float)RAND_MAX) * 2.0 - 1.0 );
+		this->reverb_reponse[i] = ((float)rand()/(float)RAND_MAX >= 0.6)?exp( (i * -6.9078) / (R_DECAYMAX) ) * ( ((float)rand()/(float)RAND_MAX) * 2.0 - 1.0 ):0.0;
 	}
 	
 	if (jack_activate (this->client)) {
