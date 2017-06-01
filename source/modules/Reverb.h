@@ -4,7 +4,7 @@
 #include "../core/Modules.h"
 #include "../core/Utility.h"
 #include "../core/Ringbuffer.h"
-#include "../core/Convolution"
+#include "../core/Convolution.h"
 
 #define R_PREDELAY 20
 #define R_DECAYMAX 20000
