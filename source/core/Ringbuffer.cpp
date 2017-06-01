@@ -22,13 +22,19 @@ Ringbuffer::~Ringbuffer(){
 void Ringbuffer::read_value(rng_reader *reader){
 	
 	reader->index = ++(reader->index)%this->buffer_size;
-	reader->value = this->buffer[reader->index];
+	reader->value = this->buffer[(int)(reader->index)];
 }
 
 void Ringbuffer::reverse_read_value(rng_reader *reader){
 	
 	reader->index = --(reader->index)%this->buffer_size;
-	reader->value = this->buffer[reader->index];
+	reader->value = this->buffer[(int)(reader->index)];
+}
+
+void Ringbuffer::variable_read_value(rng_reader *reader, float speed){
+	
+	reader->index = (reader->index+speed)%this->buffer_size;
+	reader->value = ( (1 - fmod(reader->index, 1.0)) * this->buffer[(int)(reader->index)] ) + ( fmod(reader->index, 1.0) * this->buffer[((int)(reader->index)+1)%this->buffer_size] );
 }
 
 void Ringbuffer::write_value(sample_t value){
