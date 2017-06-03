@@ -6,6 +6,6 @@
 
 sample_t do_convolution(sample_t *X, sample_t *H, int M);
 
-sample_t do_convolution(Ringbuffer *buff, int offset, sample_t *H, int M, int m);
+sample_t do_convolution(const Ringbuffer *buff,const rng_reader reader,const sample_t *H,const int M);
 
 #endif

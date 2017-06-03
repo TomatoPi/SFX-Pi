@@ -9,6 +9,7 @@ typedef struct{
 	
 	int delay;
 }rng_reader;
+
 class Ringbuffer{
 
 	public :
@@ -24,16 +25,16 @@ class Ringbuffer{
 		/*
 		*	Move the reader and get the value
 		*/
-		void read_value(rng_reader *reader);
-		void reverse_read_value(rng_reader *reader);
-		void variable_read_value(rng_reader *reader, float speed);
+		void read_value(rng_reader *reader) const;
+		void reverse_read_value(rng_reader *reader) const;
+		void variable_read_value(rng_reader *reader, float speed) const;
 	
 		/*
 		*	Write the value and move the writing head
 		*/
 		void write_value(sample_t value);
 	
-		rng_reader new_read_head(int ms);
+		rng_reader new_read_head(int ms) const;
 	
 	protected :
 		sample_t *buffer;

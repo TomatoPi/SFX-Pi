@@ -29,15 +29,15 @@ int main(int argc, char *argv[]){
 	main_add_accessor(hard, 2, 1, 10.0, 60.0 ,1, 0);
 	main_add_accessor(hard, 6, 1, 10.0, 40.0, 1, 0);
 	
-	main_add_module(MDELAY);
+/*	main_add_module(MDELAY);
 	int delay = MAIN_COUNT_MODULE;
 	float delayp[] = {5000.0, 250.0, 180.0, 0.75, 0.8, 0.5};
 	MAIN_LIST_MODULE[delay]->set_param_list(6, delayp);
-	main_add_accessor(delay, 1, 2, 30.0, 700.0, 0, 0);
-	main_add_accessor(delay, 2, 2, 50.0, 1000.0, 0, 0);
-	main_add_accessor(delay, 3, 3, 0.0, 1.0, 0, 0);
-	main_add_accessor(delay, 4, 3, 0.0, 1.0, 0, 0);
-	main_add_accessor(delay, 5, 4, 0.0, 1.0, 0, 0);
+//	main_add_accessor(delay, 1, 2, 30.0, 700.0, 0, 0);
+//	main_add_accessor(delay, 2, 2, 50.0, 1000.0, 0, 0);
+	main_add_accessor(delay, 3, 2, 0.0, 1.0, 0, 0);
+	main_add_accessor(delay, 4, 2, 0.0, 1.0, 0, 0);
+//	main_add_accessor(delay, 5, 3, 0.0, 1.0, 0, 0);
 	
 	main_add_connection(MAIN_LIST_MODULE[drive], 2, MAIN_LIST_MODULE[delay], 0);
 	main_add_connection(MAIN_LIST_MODULE[hard], 3, MAIN_LIST_MODULE[delay], 1);
@@ -52,13 +52,15 @@ int main(int argc, char *argv[]){
 	
 	main_add_connection(MAIN_LIST_MODULE[tone], 2, MAIN_LIST_MODULE[delay], 2);
 	main_add_connection(MAIN_LIST_MODULE[tone], 3, MAIN_LIST_MODULE[delay], 3);
-	
+*/	
 	main_add_module(MREV);
 	int rev = MAIN_COUNT_MODULE;
-	main_add_accessor(rev, 3, 5, 100.0, 18000.0, 0, 0);
+	main_add_accessor(rev, 4, 3, 100.0f, 1000000.0f, 0, 0);
+	main_add_accessor(rev, 5, 4, 0.0f, 1.0f, 0, 0);
+	main_add_accessor(rev, 7, 5, 0.0f, 1.0f, 0, 0);
 	
-	main_add_connection(MAIN_LIST_MODULE[delay], 4, MAIN_LIST_MODULE[rev], 0);
-	main_add_connection(MAIN_LIST_MODULE[delay], 5, MAIN_LIST_MODULE[rev], 1);
+	main_add_connection(MAIN_LIST_MODULE[drive], 2, MAIN_LIST_MODULE[rev], 0);
+	main_add_connection(MAIN_LIST_MODULE[hard], 3, MAIN_LIST_MODULE[rev], 1);
 	
 	main_add_connection(MAIN_LIST_MODULE[rev], 2, NULL, 0);
 	main_add_connection(MAIN_LIST_MODULE[rev], 3, NULL, 1);

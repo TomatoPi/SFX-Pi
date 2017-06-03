@@ -57,6 +57,8 @@ int spi_mstos(int ms, int sr);
 */
 int spi_stoms(int sample, int sr);
 
+float spi_frand(float min, float max);
+
 /*
 *	3 Bands EQ ( low, mid, high )
 */
@@ -92,23 +94,46 @@ typedef struct
 
 } spi_tripole;
 
+typedef struct{
+	
+	float f; 	//Filter frequency
+	float f_bak;
+	float fp0; //Filter pole
+	float fp1; 
+	float fp2;
+	float fp3;
+	
+	//Save last samples
+	float sm1; // Sample - 1
+	float sm2; // - 2
+	float sm3; // - 3
+	
+}spi_onepole;
+
 /*
 *	Initialisating 3Bands EQ
 *	f : EQ
 *	fl : low freq
 * 	fh : high freq
 *	sr : current samplerate
-*	gl : low band gain
-*	gm : mid band gain
-*	gh : high band gain
 */
 void spi_init_tripole(spi_tripole *f);
-
 void spi_init_tripole_freq(spi_tripole *f, float fl, float fh, int sr);
 
 /*
 *	Compute 3Bands EQ for given sample
+*	gl : low band gain
+*	gm : mid band gain
+*	gh : high band gain
 */
 sample_t spi_do_tripole(spi_tripole* f, sample_t sample, float gl, float gm, float gh);
+
+
+void spi_init_onepole(spi_onepole *f);
+
+void spi_init_onepole_freq(spi_onepole *f, float ff, int sr);
+
+sample_t spi_do_lowpass(spi_onepole* f, sample_t sample);
+sample_t spi_do_highpass(spi_onepole* f, sample_t sample);
 
 #endif

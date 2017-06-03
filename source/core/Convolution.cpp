@@ -10,15 +10,21 @@ sample_t do_convolution(sample_t *X, sample_t *H, int M){
 	return yn;
 }
 
-sample_t do_convolution(Ringbuffer *buff, int offset, sample_t *H, int M, int m){
+sample_t do_convolution(const Ringbuffer *buff,const rng_reader reader,const sample_t *H,const int M){
+	
+	rng_reader r = {reader.index + 1, 0.0f, reader.delay};
+	rng_reader r2 = {0.0f, 0.0f, 0};
 
-	sample_t yn = 0.0;
-	if(m > M) return 0.0;
-	rng_reader reader = buff->new_read_head(offset);
-	for(int k = 0; k < m; k++){
-		
-		buff->reverse_read_value(&reader);
-		yn += reader.value * H[(int)(((float)k/(float)m)*(float)M)];
+	sample_t yn = 0.0;		
+
+	buff->reverse_read_value(&r);
+	yn += r.value;
+	
+	//buff->reverse_read_value(&r2);
+	
+	for(int k = 1; k < M; k++){
+			
+		//yn += r.value * 0.0f;
 	}
 	return yn;
 }

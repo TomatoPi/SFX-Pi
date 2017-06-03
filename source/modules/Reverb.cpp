@@ -1,24 +1,39 @@
 #include "Reverb.h"
 
-Reverb::Reverb(const char *server) : Module(server, MREV, 5, 2, 4, 0, 0, "in_L", "in_R", "out_L", "out_R", "reverb_L", "reverb_R"){
-
-	this->buffer_L = new Ringbuffer(R_DECAYMAX, jack_get_sample_rate(this->client));
-	this->buffer_R = new Ringbuffer(R_DECAYMAX, jack_get_sample_rate(this->client));
+Reverb::Reverb(const char *server) : Module(server, MREV, 8, 2, 4, 0, 0, "in_L", "in_R", "out_L", "out_R", "reverb_L", "reverb_R"){
 	
 	this->params[0] = jack_get_sample_rate(this->client);
-	this->params[1] = (int)(R_DECAYMAX/1000)*this->params[0];
 	
-	this->params[2] = R_PREDELAY;
-	this->params[3] = R_DECAY;
+	this->params[1] = R_TAP;
+	this->params[2] = R_SEP;
 	
-	this->params[4] = 0.5;
+	this->params[3] = R_PREDELAY;
+	this->params[4] = R_DECAY;
 	
-	this->reverb_reponse = (sample_t*)malloc( (int)(this->params[1]) * sizeof(sample_t) );
+	this->params[5] = 0.6f;
+	
+	this->params[6] = R_CUT;
+	
+	this->params[7] = 0.5f;
+	
+	this->buffer_L = new Ringbuffer(R_DECAYMAX, this->params[0]);
+	this->buffer_R = new Ringbuffer(R_DECAYMAX, this->params[0]);
+
+	this->reader_L = (rng_reader*) malloc(this->params[1] * sizeof(rng_reader));
+	this->reader_R = (rng_reader*) malloc(this->params[1] * sizeof(rng_reader));
 	
 	for(int i = 0; i < this->params[1]; i++){
-	
-		this->reverb_reponse[i] = ((float)rand()/(float)RAND_MAX >= 0.6)?exp( (i * -6.9078) / (R_DECAYMAX) ) * ( ((float)rand()/(float)RAND_MAX) * 2.0 - 1.0 ):0.0;
+		
+		this->reader_L[i] = this->buffer_L->new_read_head(this->params[3] + (float)i * spi_frand(0.7f, 1.3f)*this->params[2]);
+		this->reader_R[i] = this->buffer_R->new_read_head(this->params[3] + (float)i * spi_frand(0.7f, 1.3f)*this->params[2]);
 	}
+	
+	this->filter_L = (spi_tripole*)malloc(sizeof(spi_tripole));
+	this->filter_R = (spi_tripole*)malloc(sizeof(spi_tripole));
+	spi_init_tripole(this->filter_L);
+	spi_init_tripole(this->filter_R);
+	spi_init_tripole_freq(this->filter_L, 200.0, this->params[6], this->params[0]);
+	spi_init_tripole_freq(this->filter_R, 200.0, this->params[6], this->params[0]);
 	
 	if (jack_activate (this->client)) {
 		fprintf (stderr, "Echec de l'activation du client\n");
@@ -30,7 +45,10 @@ Reverb::~Reverb(){
 
 	delete this->buffer_L;
 	delete this->buffer_R;
-	free(this->reverb_reponse);
+	free(this->filter_L);
+	free(this->filter_R);
+	free(this->reader_L);
+	free(this->reader_R);
 }
 	
 int Reverb::process(jack_nframes_t nframes, void *arg){
@@ -47,19 +65,36 @@ int Reverb::process(jack_nframes_t nframes, void *arg){
 	rev_L = (sample_t*)jack_port_get_buffer(this->port[4], nframes);
 	rev_R = (sample_t*)jack_port_get_buffer(this->port[5], nframes);
 	
-	float reponse_size = this->params[1];
-	float predelay = this->params[2];
-	float decay = this->params[3];
-	float dw = this->params[4];
+	float tapcount = this->params[1];
+	
+	float predelay = this->params[3];
+	
+	float fb = pow(10.0f, -3.0f * this->params[2] / this->params[4]);
+	float ff = this->params[5];
+	
+	float dw = this->params[7];
 	
 	for(jack_nframes_t i = 0; i < nframes; i++){
-	
-		this->buffer_L->write_value(in_L[i]);
-		this->buffer_R->write_value(in_R[i]);
-	
-		rev_L[i] = do_convolution(this->buffer_L, predelay, this->reverb_reponse, reponse_size, decay);
-		rev_R[i] = do_convolution(this->buffer_R, predelay, this->reverb_reponse, reponse_size, decay);
 		
+		sample_t l = 0.0f;
+		sample_t r = 0.0f;
+	//*
+		for(int i = 0; i < tapcount; i++){
+			
+			this->buffer_L->read_value(this->reader_L +i);
+			this->buffer_R->read_value(this->reader_R +i);
+			
+			l += this->reader_L[i].value / (float)tapcount;
+			r += this->reader_R[i].value / (float)tapcount;
+		}
+	//*/
+	
+		rev_L[i] = l ;//- ff*in_L[i];
+		rev_R[i] = r ;//- ff*in_R[i];
+		
+		this->buffer_L->write_value(0.5f * (in_L[i] + fb * (spi_do_tripole(this->filter_L, l, 0.6, 1.0, 0.1)) ) );
+		this->buffer_R->write_value(0.5f * (in_R[i] + fb * (spi_do_tripole(this->filter_R, r, 0.6, 1.0, 0.1)) ) );
+	
 		out_L[i] = spi_dry_wet(in_L[i], rev_L[i], dw);
 		out_R[i] = spi_dry_wet(in_R[i], rev_R[i], dw);
 	}

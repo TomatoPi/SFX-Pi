@@ -15,7 +15,7 @@ class Tonestack : public Module{
 		
 	protected:
 		
-		spi_tripole *filter; // EQ ( bass, mid, high )
+		spi_tripole *filter_L, *filter_R; // EQ ( bass, mid, high )
 		
 		/*
 		*	float freq_low
