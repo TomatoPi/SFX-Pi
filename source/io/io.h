@@ -7,29 +7,39 @@
 #include <mcp3004.h>
 
 #include "../core/Utility.h"
+#include "../core/Modules.h"
 
 #define SPI_BASE 100
 #define SPI_CHAN1 0
 #define SPI_PMAX 8
 #define SPI_MAX 1023
-#define SPI_HYSTERESIS 0.02
+#define SPI_HYSTERESIS 0.01f
 
 void io_init_spi();
 int io_get_potentiometer(int potentiometer);
 
-class io_param_accessor{
+class IO_Accessor{
  
 	public :
 	
-		io_param_accessor(int potentiometer, float min, float max, float *target, int is_db, int is_inv);
-		void io_update_param();
+		IO_Accessor(Module *target, int param, int potentiometer, float min, float max, int is_db, int is_inv);
+		
+		void update();
+		
+		void set_target(Module *target, int param);
+		
+		int is_dead() const;
 	
-		float *target;
-		float min, max;
+	private :
+	
+		Module *target;
+		int param;
+		
 		int potentiometer;
 		int is_db, is_inv;
+		float min, max;
 	
-		float value;
+		int value;
 };
 
 #endif

@@ -5,7 +5,7 @@ const char *SERVER_NAME = "Space_Fx";
 std::unordered_map<int, Module*> MAIN_LIST_MODULE;
 int MAIN_COUNT_MODULE = 0;
 
-std::unordered_map<int, io_param_accessor*> MAIN_LIST_ACCESSOR;
+std::unordered_map<int, IO_Accessor*> MAIN_LIST_ACCESSOR;
 int MAIN_COUNT_ACCESSOR = 0;
 
 int main(int argc, char *argv[]){
@@ -53,7 +53,7 @@ int main(int argc, char *argv[]){
 	main_add_connection(MAIN_LIST_MODULE[tone], 2, MAIN_LIST_MODULE[delay], 2);
 	main_add_connection(MAIN_LIST_MODULE[tone], 3, MAIN_LIST_MODULE[delay], 3);
 */	
-	main_add_module(MREV);
+/*	main_add_module(MREV);
 	int rev = MAIN_COUNT_MODULE;
 	main_add_accessor(rev, 4, 3, 100.0f, 1000000.0f, 0, 0);
 	main_add_accessor(rev, 5, 4, 0.0f, 1.0f, 0, 0);
@@ -61,18 +61,20 @@ int main(int argc, char *argv[]){
 	
 	main_add_connection(MAIN_LIST_MODULE[drive], 2, MAIN_LIST_MODULE[rev], 0);
 	main_add_connection(MAIN_LIST_MODULE[hard], 3, MAIN_LIST_MODULE[rev], 1);
-	
-	main_add_connection(MAIN_LIST_MODULE[rev], 2, NULL, 0);
-	main_add_connection(MAIN_LIST_MODULE[rev], 3, NULL, 1);
+	*/
+	main_add_connection(MAIN_LIST_MODULE[drive], 2, NULL, 0);
+	main_add_connection(MAIN_LIST_MODULE[hard], 3, NULL, 1);
 	
 	while(1){
 	
-		unordered_map<int, io_param_accessor*>:: iterator itr;
+		unordered_map<int, IO_Accessor*>:: iterator itr;
 		for (itr = MAIN_LIST_ACCESSOR.begin(); itr != MAIN_LIST_ACCESSOR.end(); itr++)
 		{
 			// type itr->first stores the key part  and
 			// itr->second stroes the value part
-			itr->second->io_update_param();
+			itr->second->update();
+			if(itr->second->is_dead())
+				main_del_accessor(itr->first);
 		 }
 		usleep(50000);
 	}
@@ -109,10 +111,10 @@ int main_add_module(MODULE_TYPE mod){
 			newmod = new Tonestack(SERVER_NAME);
 			fprintf (stderr, "new Tonestack\n");
 			break;
-		case MREV:
+		/*case MREV:
 			newmod = new Reverb(SERVER_NAME);
 			fprintf (stderr, "new Reverb\n");
-			break;
+			break;*/
 		default:
 			newmod = NULL;
 			break;
@@ -246,7 +248,7 @@ int main_add_accessor(int target, int param_idx, int potentiometer, float min, f
 	   	return 1;
 	}
 	
-	if(MAIN_LIST_MODULE[target]->get_param_adress(param_idx) == NULL){
+	if(MAIN_LIST_MODULE[target]->get_param_count() <= param_idx){
 		fprintf (stderr, "\nParam target not found\n");
 		return 1;
 	}
@@ -255,7 +257,7 @@ int main_add_accessor(int target, int param_idx, int potentiometer, float min, f
 		MAIN_COUNT_ACCESSOR++;
 	
 	fprintf (stderr, "Idx : %d -- Target : %d.%d -- Pot : %d -- Min : %f -- Max : %f\n", MAIN_COUNT_ACCESSOR, target, param_idx, potentiometer, min, max);
-	io_param_accessor *accessor = new io_param_accessor(potentiometer, min, max, MAIN_LIST_MODULE[target]->get_param_adress(param_idx), is_db, is_inv);
+	IO_Accessor *accessor = new IO_Accessor(MAIN_LIST_MODULE[target], param_idx, potentiometer, min, max, is_db, is_inv);
 	MAIN_LIST_ACCESSOR.insert(make_pair(MAIN_COUNT_ACCESSOR, accessor));
 	return 0;
 }

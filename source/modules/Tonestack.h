@@ -1,21 +1,26 @@
 #ifndef DEF_TONESTACK_H
 #define DEF_TONESTACK_H
 
-#include "../core/Utility.h"
+#include "../core/Filter.h"
 #include "../core/Modules.h"
 
 class Tonestack : public Module{
 
 	public:
+	
 		Tonestack(const char *server);
 		~Tonestack();
 		
 		int process(jack_nframes_t nframes, void *arg);
 		int bypass(jack_nframes_t nframes, void *arg);
 		
+		int set_param(int param, float var);
+		int set_param_list(int size, float *params);
+		
 	protected:
 		
-		spi_tripole *filter_L, *filter_R; // EQ ( bass, mid, high )
+		Filter_3EQ *filter_L;
+		Filter_3EQ *filter_R; // EQ ( bass, mid, high )
 		
 		/*
 		*	float freq_low

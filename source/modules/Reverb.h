@@ -3,7 +3,7 @@
 
 #include "../core/Modules.h"
 #include "../core/Utility.h"
-#include "../core/Ringbuffer.h"
+#include "../core/Buffer.h"
 #include "../core/Convolution.h"
 
 #define R_TAP 1

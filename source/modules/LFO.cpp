@@ -56,6 +56,7 @@ int LFO::bypass(jack_nframes_t nframes, void *arg){
 }
 
 void LFO::update_type(LFO_Wave type){
+	
 	this->params[0] = type;
 	this->waveform_bak = type;
 	switch(type){
@@ -86,22 +87,45 @@ void LFO::update_type(LFO_Wave type){
 	}
 }
 
-sample_t w_sin(float in, float sign, float p1, float p2){
+int LFO::set_param(int param, float var){
+	
+	if(param == 0){
+		
+		this->update_type( static_cast<LFO_Wave>(var) );
+		this->params[0];
+		return 0;
+	}else{
+		
+		return this->Module::set_param(param, var);
+	}
+}
+
+int LFO::set_param_list(int size, float *params){
+	
+	if(!this->Module::set_param_list(size, params)){
+		
+		this->update_type( static_cast<LFO_Wave>((int)this->params[0]) );
+		return 0;
+	}
+	return 1;
+}
+
+inline sample_t w_sin(float in, float sign, float p1, float p2){
 	
 	return (sample_t) (sign*sin(M_PI * 2.0 * in));
 }
 
-sample_t w_sqr(float in, float sign, float p1, float p2){
+inline sample_t w_sqr(float in, float sign, float p1, float p2){
 	
 	return (sample_t) ((in-0.5 < 0)? sign * (-1.0) : sign*1.0);
 }
 
-sample_t w_tri(float in, float sign, float p1, float p2){
+inline sample_t w_tri(float in, float sign, float p1, float p2){
 	
 	return (sample_t) (sign * ( 2.0*spi_abs(2.0*in -1.0) - 1.0));
 }
 
-sample_t w_saw(float in, float sign, float p1, float p2){
+inline sample_t w_saw(float in, float sign, float p1, float p2){
 	
 	return (sample_t) (sign * (2.0*in -1.0));
 }
@@ -115,12 +139,12 @@ sample_t w_var(float in, float sign, float p1, float p2){
 	}
 }
 
-sample_t w_nph(float in, float sign, float p1, float p2){
+inline sample_t w_nph(float in, float sign, float p1, float p2){
 	
 	return (sample_t)(sign * sin(M_PI * 2.0 * (in + (((float)((int)(in*(p1+1))))/p2))));
 }
 
-sample_t w_whi(float in, float sign, float p1, float p2){
+inline sample_t w_whi(float in, float sign, float p1, float p2){
 	
 	return ((float)(((RandSeed = RandSeed * 214013L + 2531011L) >> 16) & 0x7fff)/RAND_MAX) * 2.0f - 1.0f;
 }

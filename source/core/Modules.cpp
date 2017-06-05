@@ -46,7 +46,7 @@ const char* mod_tton(MODULE_TYPE type){
 *	basic setup of jack client and server
 *	Port registration
 */
-Module::Module(const char *server, MODULE_TYPE type, int pc, int ai, int ao, int mi, int mo, ...): type(type), port_count(ai+ao+mi+mo), params_count(pc), is_bypassed(0), is_params_outdated(0){
+Module::Module(const char *server, MODULE_TYPE type, int pc, int ai, int ao, int mi, int mo, ...): type(type), port_count(ai+ao+mi+mo), params_count(pc), is_bypassed(0){
 
 	jack_options_t options = JackNullOption;
 	jack_status_t status;
@@ -150,7 +150,8 @@ void Module::set_bypass(int state){
 	}
 }
 
-int Module::get_bypass(){
+int Module::get_bypass() const{
+	
 	return this->is_bypassed;
 }
 
@@ -160,11 +161,10 @@ int Module::set_param(int param, float var){
 		return 1;
 	}
 	this->params[param] = var;
-	this->is_params_outdated = 1;
 	return 0;
 }
 
-float Module::get_param(int param){
+float Module::get_param(int param) const{
 	
 	if(param < this->params_count){
 		return this->params[param];
@@ -172,6 +172,12 @@ float Module::get_param(int param){
 	return 0.0;
 }
 
+int Module::get_param_count() const{
+	
+	return this->params_count;
+}
+
+/*
 float* Module::get_param_adress(int param){
 	
 	if(param < this->params_count){
@@ -179,6 +185,7 @@ float* Module::get_param_adress(int param){
 	}
 	return NULL;
 }
+*/
 
 int Module::set_param_list(int size, float *params){
 	
@@ -186,11 +193,10 @@ int Module::set_param_list(int size, float *params){
 		return 1;
 	free(this->params);
 	this->params = params;
-	this->is_params_outdated = 1;
 	return 0;
 }
 
-jack_port_t* Module::get_port(int idx){
+jack_port_t* Module::get_port(int idx) const{
 	
 	if(idx < this->port_count){
 		return this->port[idx];
@@ -198,12 +204,12 @@ jack_port_t* Module::get_port(int idx){
 	return NULL;
 }
 
-int Module::get_port_count(){
+int Module::get_port_count() const{
 
 	return this->port_count;
 }
 
-jack_client_t* Module::get_client(){
+jack_client_t* Module::get_client() const{
 
 	return this->client;
 }

@@ -27,6 +27,7 @@ int mod_GenericStereoBypass_Callback(jack_nframes_t nframes, jack_port_t **ports
 *	Enum constainig list of all avaiable modules
 */
 typedef enum{
+	
 	MDRIVE, MDELAY, MLFO, MRINGM, MTONE, MREV
 }MODULE_TYPE;
 
@@ -56,17 +57,18 @@ class Module{
 		virtual int bypass(jack_nframes_t nframes, void *arg){}; // Client's callback function when client is bypassed
 	
 		void set_bypass(int state);
-		int get_bypass();
+		int get_bypass() const;
 	
 		int set_param(int param, float var);
-		float get_param(int param);
+		float get_param(int param) const;
+		int get_param_count() const;
 	
-		float* get_param_adress(int param);
+		//float* get_param_adress(int param);
 		int set_param_list(int size, float *params);
 	
-		jack_port_t* get_port(int idx);
-		int get_port_count();
-		jack_client_t* get_client();
+		jack_port_t* get_port(int idx) const;
+		int get_port_count() const;
+		jack_client_t* get_client() const;
 	
 	protected:
 	
@@ -81,7 +83,7 @@ class Module{
 		int params_count;
 		float *params;
 	
-		int is_params_outdated;
+		//int is_params_outdated;
 };
 
 #endif

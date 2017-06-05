@@ -64,27 +64,17 @@ Delay::Delay(const char *server) : Module(server, MDELAY, 6, 0, 0, 0, 0){
 	this->private_port[2] = jack_port_register( this->client_2, "p_in_L", JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
 	this->private_port[3] = jack_port_register( this->client_2, "p_in_R", JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
 	
-
-	this->buffer_L = new Ringbuffer(D_DMAX, jack_get_sample_rate(this->client));
-	this->buffer_R = new Ringbuffer(D_DMAX, jack_get_sample_rate(this->client));
-
-	if(this->buffer_L == NULL || this->buffer_R == NULL){
-		exit(1);
-	}
-	
 	jack_set_process_callback(client_2, delay_Process_Callback, this);
 
-	this->reader_L = this->buffer_L->new_read_head(D_DELAY);
-	this->reader_R = this->buffer_R->new_read_head(D_DELAY);
-
-	this->params[0] = D_DMAX;
-
+	this->params[0] = D_DELAY;
 	this->params[1] = D_DELAY;
-	this->params[2] = D_DELAY;
+	this->params[2] = D_FEED;
 	this->params[3] = D_FEED;
-	this->params[4] = D_FEED;
 
-	this->params[5] = 1.0;
+	this->params[4] = 1.0;
+	
+	this->buffer_L = new Buffer_S(this->params[0], jack_get_sample_rate(this->client));
+	this->buffer_R = new Buffer_S(this->params[1], jack_get_sample_rate(this->client));
 	
 	if (jack_activate (this->client)) {
 		fprintf (stderr, "Echec de l'activation du client\n");
@@ -130,22 +120,12 @@ int Delay::process(jack_nframes_t nframes, void *arg){
 	p_out_L = (sample_t*)jack_port_get_buffer(this->private_port[0], nframes);
 	p_out_R = (sample_t*)jack_port_get_buffer(this->private_port[1], nframes);
 	
-	
-	if( (int)(this->params[1]) != this->reader_L.delay)
-		this->reader_L = this->buffer_L->new_read_head(this->params[1]);
-	
-	if( (int)(this->params[2]) != this->reader_R.delay)
-		this->reader_R = this->buffer_R->new_read_head(this->params[2]);
-	
-	float dw = this->params[5];
+	float dw = this->params[4];
 
 	for(jack_nframes_t i = 0; i < nframes; i++){
-		
-		this->buffer_L->read_value(&(this->reader_L));
-		this->buffer_R->read_value(&(this->reader_R));
 			
-		sample_t wl = this->reader_L.value;
-		sample_t wr = this->reader_R.value;
+		sample_t wl = this->buffer_L->read();
+		sample_t wr = this->buffer_R->read();
 		
 		send_L[i] = wl;
 		send_R[i] = wr;
@@ -169,13 +149,15 @@ int Delay::process_2(jack_nframes_t nframes, void *arg){
 	p_in_L = (sample_t*)jack_port_get_buffer(this->private_port[2], nframes);
 	p_in_R = (sample_t*)jack_port_get_buffer(this->private_port[3], nframes);
 		
-	float fl = this->params[3];
-	float fr = this->params[4];
+	float fl = this->params[2];
+	float fr = this->params[3];
 	
-	for(jack_nframes_t i = 0; i < nframes; i++){
-				
-		this->buffer_L->write_value(p_in_L[i] + fl*return_L[i]);
-		this->buffer_R->write_value(p_in_R[i] + fr*return_R[i]);
+	if(!this->is_bypassed){
+		for(jack_nframes_t i = 0; i < nframes; i++){
+					
+			this->buffer_L->write(p_in_L[i] + fl*return_L[i]);
+			this->buffer_R->write(p_in_R[i] + fr*return_R[i]);
+		}
 	}
 	return 0;
 }
@@ -207,4 +189,33 @@ int Delay::bypass(jack_nframes_t nframes, void *arg){
 	memset(p_out_R, 0.0, sizeof(sample_t) * nframes);
 	
 	return 0;
+}
+
+int Delay::set_param(int param, float var){
+	
+	if(param == 0){
+		
+		this->buffer_L->set_length((int)var, jack_get_sample_rate(this->client));
+		this->params[0] = var;
+		return 0;
+	}else if(param == 1){
+		
+		this->buffer_R->set_length((int)var, jack_get_sample_rate(this->client));
+		this->params[1] = var;
+		return 0;
+	}else{
+		
+		return this->Module::set_param(param, var);
+	}
+}
+
+int Delay::set_param_list(int size, float *params){
+	
+	if(!this->Module::set_param_list(size, params)){
+		
+		this->buffer_L->set_length((int)this->params[0], jack_get_sample_rate(this->client));
+		this->buffer_R->set_length((int)this->params[1], jack_get_sample_rate(this->client));
+		return 0;
+	}
+	return 1;
 }

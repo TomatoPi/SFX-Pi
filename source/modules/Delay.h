@@ -3,7 +3,8 @@
 
 #include "../core/Modules.h"
 #include "../core/Utility.h"
-#include "../core/Ringbuffer.h"
+#include "../core/Buffer.h"
+#include "../core/Filter.h"
 
 #define D_DMAX 5000
 #define D_DELAY 250
@@ -20,6 +21,9 @@ class Delay : public Module{
 		int process(jack_nframes_t nframes, void *arg);
 		int process_2(jack_nframes_t nframes, void *arg);
 		int bypass(jack_nframes_t nframes, void *arg);
+		
+		int set_param(int param, float var);
+		int set_param_list(int size, float *params);
 	
 	protected:
 	
@@ -29,13 +33,11 @@ class Delay : public Module{
 		jack_port_t **private_port;
 		int private_port_count;
 		
-		Ringbuffer *buffer_L, *buffer_R;
-		rng_reader reader_L, reader_R;
+		Buffer_S *buffer_L;
+		Buffer_S *buffer_R;
 	
 		/*
 		* Params are :
-		*
-		* max_delay
 		*
 		* delay_L
 		* delay_R

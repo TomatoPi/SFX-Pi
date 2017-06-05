@@ -54,7 +54,10 @@ class LFO : public Module{
 		*	Setup waveform function
 		*/
 		void update_type(LFO_Wave type);
-	
+		
+		int set_param(int param, float var);
+		int set_param_list(int size, float *params);
+		
 	protected:
 	
 	    	sample_t (*waveform)(float, float, float, float); // waveform generator function		

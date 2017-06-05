@@ -9,7 +9,7 @@
 
 #include <jack/jack.h>
 
-#include "../core/Utility.h"
+#include "../core/Filter.h"
 #include "../core/Modules.h"
 
 /*
@@ -36,10 +36,14 @@ class Drive : public Module{
 		
 		int process(jack_nframes_t nframes, void *arg);
 		int bypass(jack_nframes_t nframes, void *arg);
+		
+		int set_param(int param, float var);
+		int set_param_list(int size, float *params);
 	
 	protected :
 			
-		spi_tripole *filter; // EQ ( bass, mid, high )
+		Filter_3EQ *filter_L;
+		Filter_3EQ *filter_R; // EQ ( bass, mid, high )
 	
 		/*
 		* Specific parameters for drive module are, in order :	unique parameters -> positives parameters -> negatives parameters
