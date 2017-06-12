@@ -1,5 +1,9 @@
 #include "Modules.h"
-
+/*
+*	---------------------------------------------------------------------------
+*	Misc stuff
+*	---------------------------------------------------------------------------
+*/
 int mod_Process_Callback(jack_nframes_t nframes, void *u){
 	
 	return static_cast<Module*>(u)->process(nframes, u);
@@ -10,14 +14,54 @@ int mod_Bypass_Callback(jack_nframes_t nframes, void *u){
 	return static_cast<Module*>(u)->bypass(nframes, u);
 }
 
-int mod_GenericStereoBypass_Callback(jack_nframes_t nframes, jack_port_t **ports, int foi){
+int mod_generic_bypass_callback(jack_nframes_t nframes, jack_port_t *port_in, jack_port_t *port_out){
 	
-	for(int i = 0; i < 2; i++){
-		jack_default_audio_sample_t *in = (jack_default_audio_sample_t*)jack_port_get_buffer(ports[i], nframes);
-		jack_default_audio_sample_t *out = (jack_default_audio_sample_t*) jack_port_get_buffer(ports[foi+i], nframes);
-		memcpy(out, in, sizeof(jack_default_audio_sample_t) * nframes);
-	}
+	jack_default_audio_sample_t *in  = (jack_default_audio_sample_t*) jack_port_get_buffer(port_in, nframes);
+	jack_default_audio_sample_t *out = (jack_default_audio_sample_t*) jack_port_get_buffer(port_out, nframes);
+	memcpy(out, in, sizeof(jack_default_audio_sample_t) * nframes);
 	return 0;
+}
+
+void register_port(jack_client_t *client, jack_port_t **port_tab, int type, int count, ...){
+	
+	if(count > 0 && type < PORT_TYPE_COUNT && type >= 0){
+		
+		va_list arg;
+		
+		if(port_tab == NULL){
+			fprintf(stderr, "Failed creating ports array\n");
+			exit(1);
+		}
+		va_start(arg, count);
+		for(int i = 0; i < count; i++){
+
+			jack_port_t *port;
+			const char *n = va_arg(arg, char*);
+
+			switch(type){
+				case PORT_AI:
+					port = jack_port_register( client, n, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
+					break;
+				case PORT_AO:
+					port = jack_port_register( client, n, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
+					break;
+				case PORT_MI:
+					port = jack_port_register( client, n, JACK_DEFAULT_MIDI_TYPE, JackPortIsInput, 0);
+					break;
+				case PORT_MO:
+					port = jack_port_register( client, n, JACK_DEFAULT_MIDI_TYPE, JackPortIsOutput, 0);
+					break;
+			}
+
+			if(port == NULL){
+				fprintf(stderr	, "No more port aviable\n");
+				exit(1);
+			}
+			
+			port_tab[i] = port;
+		}
+		va_end(arg);
+	}
 }
 
 const char* mod_tton(MODULE_TYPE type){
@@ -42,11 +86,106 @@ const char* mod_tton(MODULE_TYPE type){
 }
 
 /*
-*	Basic module constructor
-*	basic setup of jack client and server
-*	Port registration
+*	---------------------------------------------------------------------------
+*	Module Voice stuff
+*	---------------------------------------------------------------------------
 */
-Module::Module(const char *server, MODULE_TYPE type, int pc, int ai, int ao, int mi, int mo, ...): type(type), port_count(ai+ao+mi+mo), params_count(pc), is_bypassed(0){
+Module_voice::Module_voice(jack_client_t *client, int pc, int ai, int ao, int mi, int mo):
+	param_count_(pc)
+{
+	this->port_count_[PORT_AI] = ai;
+	this->port_count_[PORT_AO] = ao;
+	this->port_count_[PORT_MI] = mi;
+	this->port_count_[PORT_MO] = mo;
+	
+	this->port_audio_in_ 	= (jack_port_t**) calloc(this->port_count_[PORT_AI], sizeof(jack_port_t*));
+	this->port_audio_out_ 	= (jack_port_t**) calloc(this->port_count_[PORT_AO], sizeof(jack_port_t*));
+	this->port_midi_in_ 	= (jack_port_t**) calloc(this->port_count_[PORT_MI], sizeof(jack_port_t*));
+	this->port_midi_out_ 	= (jack_port_t**) calloc(this->port_count_[PORT_MO], sizeof(jack_port_t*));
+	
+	this->param_ = (float*) calloc(pc, sizeof(float));
+	if(this->param_ == NULL){
+		fprintf(stderr, "Cannot allocate params array \n");
+		exit(1);
+	}
+}
+
+Module_voice::~Module_voice(){
+	
+	free(this->port_audio_in_);
+	free(this->port_audio_out_);
+	free(this->port_midi_in_);
+	free(this->port_midi_out_);
+	free(this->param_);
+}
+
+void Module_voice::set_param(int param, float var){
+	
+	if(param < this->param_count_ && param > -1){
+		
+		this->param_[param] = var;
+	}
+}
+
+float Module_voice::get_param(int param) const{
+
+	if(param < this->param_count_ && param > -1) return this->param_[param];
+	return PARAM_NOT_FOUND;
+}
+
+int Module_voice::get_param_count() const{
+	
+	return this->param_count_;
+}
+
+void Module_voice::set_param_list(int size, float *pl){
+	
+	if(size == this->param_count_){
+		free(this->param_);
+		this->param_ = pl;
+	}
+}
+
+jack_port_t* Module_voice::get_port(int type, int port) const{
+	
+	switch(type){
+		case PORT_AI:
+			return this->port_audio_in_[port];
+		case PORT_AO:
+			return this->port_audio_out_[port];
+		case PORT_MI:
+			return this->port_midi_in_[port];
+		case PORT_MO:
+			return this->port_midi_out_[port];
+	}
+}
+
+jack_port_t** get_port_array(int type){
+	
+	switch(type){
+		case PORT_AI:
+			return this->port_audio_in_;
+		case PORT_AO:
+			return this->port_audio_out_;
+		case PORT_MI:
+			return this->port_midi_in_;
+		case PORT_MO:
+			return this->port_midi_out_;
+	}
+}
+
+int	Module_voice::get_port_count(int type) const{
+	
+	if(type < PORT_TYPE_COUNT && type > -1) return this->port_count_[type];
+	return NULL;
+}
+
+/*
+*	---------------------------------------------------------------------------
+*	Module class stuff
+*	---------------------------------------------------------------------------
+*/
+Module::Module(const char *server, MODULE_TYPE type, int pc, int vc): type_(type), param_count_(pc), voice_count_(vc), is_bypassed_(0){
 
 	jack_options_t options = JackNullOption;
 	jack_status_t status;
@@ -55,7 +194,7 @@ Module::Module(const char *server, MODULE_TYPE type, int pc, int ai, int ao, int
 	
 	const char* name = mod_tton(type);
 	
-	//Creating jack client with name "name", in server "server"
+	// Creating jack client with name "name", in server "server"
 	client = jack_client_open (name, options, &status, server);
 	if (client == NULL) {
 		fprintf (stderr, "jack_client_open() failed, "
@@ -66,83 +205,29 @@ Module::Module(const char *server, MODULE_TYPE type, int pc, int ai, int ao, int
 		exit (1);
 	}
 	
-	//upgrade name if given name is not unique
+	// Upgrade name if given name is not unique
 	if (status & JackNameNotUnique) {
 		name = jack_get_client_name(client);
 		fprintf (stderr, "Unique name `%s' assigned\n", name);
 	}
 	
-	this->client = client;
-	this->name = (char*)name;
+	this->client_ = client;
+	this->name_ = (char*)name;
 	
-	//register module ports
-	int port_count = ai + ao + mi + mo;
-	if(port_count != 0){
-		
-		va_list arg;
-		this->port = (jack_port_t**)malloc(port_count * sizeof(jack_port_t*));
-		if(this->port == NULL){
-			fprintf(stderr, "Failed creating ports array\n");
-			exit(1);
-		}
-		va_start(arg, mo);
-		for(int i = 0; i < port_count; i++){
-			int c = 0;
-			if(i < (ai+ao+mi+mo))c = 3;
-			if(i < (ai+ao+mi))c = 2;
-			if(i < (ai+ao))c = 1;
-			if(i < ai)c = 0;
-
-			jack_port_t *port;
-			const char *n = va_arg(arg, char*);
-
-			switch(c){
-				case 0:
-					port = jack_port_register( this->client, n, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
-					break;
-				case 1:
-					port = jack_port_register( this->client, n, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
-					break;
-				case 2:
-					port = jack_port_register( this->client, n, JACK_DEFAULT_MIDI_TYPE, JackPortIsInput, 0);
-					break;
-				case 3:
-					port = jack_port_register( this->client, n, JACK_DEFAULT_MIDI_TYPE, JackPortIsOutput, 0);
-					break;
-			}
-
-			if(port == NULL){
-				fprintf(stderr	, "No more port aviable\n");
-				exit(1);
-			}
-			this->port[i] = port;
-		}
-		va_end(arg);
-	}
-	
-	//register callback function
+	// Register callback function
 	jack_set_process_callback(client, mod_Process_Callback, this);
-	
-	/*
-	*	Setup params list
-	*/
-	this->params = (float*)malloc(this->params_count * sizeof(float));
-	if(this->params == NULL){
-		fprintf(stderr, "Failed Create Params list\n");
-		exit(1);
-	}
 }
 
 Module::~Module(){
 
-	free(this->port);
-	free(this->params);
-	jack_client_close(this->client);
+	for(Voice_array::iterator itr = this->voice_.begin(); itr != this->voice_.end(); itr++) this->voice_.erase(itr);
+	this->voice_.clear();
+	jack_client_close(this->client_);
 }
 
 void Module::set_bypass(int state){
 	
-	this->is_bypassed = state;
+	this->is_bypassed_ = state;
 	if(state){
 		jack_set_process_callback(client, mod_Bypass_Callback, this);
 	}else{
@@ -152,63 +237,81 @@ void Module::set_bypass(int state){
 
 int Module::get_bypass() const{
 	
-	return this->is_bypassed;
+	return this->is_bypassed_;
 }
 
-int Module::set_param(int param, float var){
+/*
+int Module::set_param(int voice, int param, float var){
 	
-	if(param >= this->params_count){
+	if(param >= this->params_count_ || voice >= this->voice_count_){
 		return 1;
 	}
-	this->params[param] = var;
+	this->params_[voice][param] = var;
 	return 0;
 }
 
-float Module::get_param(int param) const{
+float Module::get_param(int voice, int param) const{
 	
-	if(param < this->params_count){
-		return this->params[param];
+	if(param < this->params_count_ && voice < this->voice_count_){
+		return this->params_[param];
 	}
-	return 0.0;
+	return 0.0f;
 }
 
 int Module::get_param_count() const{
 	
-	return this->params_count;
-}
-
-/*
-float* Module::get_param_adress(int param){
-	
-	if(param < this->params_count){
-		return &(this->params[param]);
-	}
-	return NULL;
+	return this->params_count_;
 }
 */
+Module_voice* Module::get_voice(int idx) const{
+	
+	if(idx < this->voice_.size()) return this->voice_[idx];
+	return NULL;
+}
 
+int Module::get_voice_count() const{
+	
+	return this->voice_count_;
+}
+
+void Module::del_voice(int idx){
+	
+	if(idx < this->voice_.size()) this->voice_.erase(this->voice_.begin() +idx);
+}
+/*
 int Module::set_param_list(int size, float *params){
 	
-	if(size != this->params_count)
+	if(size != this->params_count_)
 		return 1;
-	free(this->params);
-	this->params = params;
+	free(this->params_);
+	this->params_ = params;
 	return 0;
 }
 
-jack_port_t* Module::get_port(int idx) const{
+jack_port_t* Module::get_port(int type, int idx) const{
 	
-	if(idx < this->port_count){
-		return this->port[idx];
-	}
+	if(type < PORT_TYPE_COUNT && type >= 0)
+		if(idx < this->port_count_[type] && idx >= 0){
+			return this->port_[type][idx];
+		}
 	return NULL;
 }
 
-int Module::get_port_count() const{
+int Module::get_port_count(int type) const{
 
-	return this->port_count;
+	if(type < PORT_TYPE_COUNT && type >= 0)
+		return this->port_count_[type];
+	return 0;
 }
 
+void Module::add_port(int type, char* name){
+	
+}
+
+void Module::remove_port(int type, int idx){
+	
+}
+*/
 jack_client_t* Module::get_client() const{
 
 	return this->client;

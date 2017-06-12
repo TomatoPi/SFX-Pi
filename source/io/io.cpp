@@ -8,62 +8,124 @@ void io_init_spi(){
 	mcp3004Setup (SPI_BASE, SPI_CHAN1);
 }
 
-int io_get_potentiometer(int potentiometer){
+void io_get_potentiometer(int *potar_tab){
 	
-	if(potentiometer < 8 && potentiometer >= 0) return analogRead(SPI_BASE + potentiometer);
-	return -1;
+	for(int i = 0; i < SPI_POTAR_COUNT; i++){
+		
+		potar_tab[i] = analogRead(SPI_BASE + i);
+	}
 }
 
-IO_Accessor::IO_Accessor(Module *target, int param, int potentiometer, float min, float max, int is_db, int is_inv):target(target), param(param), min(min), max(max), is_db(is_db), is_inv(is_inv), value(0){
-
-	if(potentiometer < 0 || potentiometer > 7)
-		this->potentiometer = -1;
-	else
-		this->potentiometer = potentiometer;
+IO_Accessor::IO_Accessor(Module *target, int target_param, int potentiometer, float min, float max, IO_CURVE curve, int is_db, int is_inv):
+	target(target),
+	target_param(target_param),
+	potentiometer(potentiometer),
+	min(min),
+	max(max),
+	is_db(is_db),
+	is_inv(is_inv),
+	value(0),
+	state(1)
+{
 	
-	if(target == NULL)
-		this->param = -1;
-	if(param >= target->get_param_count())
-		this->param = -1;
+	switch(curve){
+		case CURVE_LIN :
+			this->curve = curve_lin;
+			break;
+		case CURVE_SIG :
+			this->curve = curve_sig;
+			break;
+		case CURVE_HAN :
+			this->curve = curve_han;
+			break;
+		case CURVEIHAN :
+			this->curve = curveihan;
+			break;
+		default :
+			this->curve = curve_lin;
+			break;
+	}
+
+	this->state = this->potentiometer >= 0 && this->potentiometer < SPI_POTAR_COUNT;
+	this->state = target_param < target->get_voice(0)->get_param_count();
 }
 
-void IO_Accessor::update(){
+int IO_Accessor::update(int *potar_tab){
 	
-	int value = io_get_potentiometer(this->potentiometer);
-	
-	if(this->target != NULL){
+	if(this->state){
+		
+		int value = potar_tab[this->potentiometer];
 		if( ((float)value > (float)this->value * (1.0f + SPI_HYSTERESIS)) || ((float)value  < (float)this->value * (1.0f - SPI_HYSTERESIS)) ){
 			
 			this->value = value;
 			if(this->is_inv)value = SPI_MAX - value;
-			
-			float param = (((float)value/(float)SPI_MAX) * (this->max - this->min)) + this->min;
 
 			if(is_db){
-				if(this->target->set_param(this->param, spi_dbtorms(param)))
-					this->param = -1;
+				this->target->get_voice(0)->set_param( this->target_param, spi_dbtorms( (((*this->curve)((float)value/(float)SPI_MAX))*(this->max - this->min)) + this->min ) );
 			}else{
-				if(this->target->set_param(this->param, param))
-					this->param = -1;
+				this->target->get_voice(0)->set_param( this->target_param, (((*this->curve)((float)value/(float)SPI_MAX))*(this->max - this->min)) + this->min );
 			}
+			return 1;
 		}
+		return 0;
 	}
+	return -1;
 }
 
 void IO_Accessor::set_target(Module *target, int param){
 	
-	if(param >= target->get_param_count()){
+	if(param >= target->get_voice(0)->get_param_count()){
 		
-		this->target = NULL;
-		this->param = -1;
+		this->state = 0;
 	}else{
 		
 		this->target = target;
-		this->param = param;
+		this->target_param = param;
 	}
 }
 
 int IO_Accessor::is_dead() const{
 	
-	return this->param == -1 || this->target == NULL;
+	return !this->state;
+}
+
+inline float curve_lin(float v){
+	
+	return (v);
+}
+
+inline float curve_sig(float v){
+	
+	return 0.5f*( tanh( 5*((v)-0.5f)) + 1 );
+}
+
+inline float curve_han(float v){
+	
+	return 0.5f*( 1 - cos(2*M_PI*(v)) );
+}
+
+inline float curveihan(float v){
+	
+	return 1 - curve_han(v);
+}
+
+void io_init_screen(){
+
+	int i=0;
+	int cport_nr=16; /* /dev/ttyUSB0 */
+	int bdrate=57600; /* 9600 baud */
+
+	char mode[]={'8','N','1',0}; // 8 data bits, no parity, 1 stop bit
+	char str_send[BUF_SIZE]; // send data buffer
+	strcpy(str_send, "Space-Fx!");
+
+	if(RS232_OpenComport(cport_nr, bdrate, mode)){
+		printf("Can not open comport\n");
+		return;
+	}
+
+	usleep(2000000);  /* waits 2000ms for stable condition */
+
+	RS232_cputs(cport_nr, str_send); // sends string on serial
+
 }

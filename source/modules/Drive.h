@@ -12,16 +12,57 @@
 #include "../core/Filter.h"
 #include "../core/Modules.h"
 
+
+
+/*
+*	Drive's params count and param's index
+*/
+#define DRIVE_PARAMS 15
+
+#define DRIVE_ABS 0
+#define DRIVE_ASM 1
+
+#define DRIVE_GAIN_P 2
+#define DRIVE_TYPE_P 3
+#define DRIVE_SOFT_P 4
+#define DRIVE_SHAPE_P 5
+
+#define DRIVE_GAIN_N 6
+#define DRIVE_TYPE_N 7
+#define DRIVE_SOFT_N 8
+#define DRIVE_SHAPE_N 9
+
+#define DRIVE_F_BASS 10
+#define DRIVE_F_HIGH 11
+#define DRIVE_F_GBASS 12
+#define DRIVE_F_GMID 13
+#define DRIVE_F_GHIGH 14
+
 /*
 *	Default values for drive module
 */
-#define D_GAIN 50.0
-#define D_SOFT 2.0
-#define D_SHAPE 0.5
-#define D_TYPE 1.0
-#define D_ABS 0.0
-#define D_ASM 0.0
+static const float default_drive_values[DRIVE_PARAMS] = {0, 0, 20, 1, 5, 0.5f, 20, 1, 5, 0.5f, 200, 1000, 0.75f, 3.0f, 7.0f};
+static const char* drive_param_names[] = {"Fullwave", "Asymetrical", 
+											"Gain-p", "Soft-Clipping-p", "Softness-p", "Shape-p",
+											"Gain-n", "Soft-Clipping-n", "Softness-n", "Shape-n",
+											"Lowcut", "Highcut", "Lowgain", "Midgain", "Highgain"};
 
+class Drive_voice : public Module_voice{
+	
+	public :
+	
+		Drive_voice(jack_client_t *client, int idx);
+		~Drive_voice();
+		
+		void set_param(int param, float var);
+		void set_param_list(int size, float *pl);
+		
+		Filter_3EQ* get_filter() const;
+		
+	protected :
+	
+		Filter_3EQ *filter;
+};
 /*
 * 	Drive, Soft & Hard Clipping effects
 *	EQ pre-drive
@@ -31,19 +72,17 @@ class Drive : public Module{
 	
 	public:	
 		
-		Drive(const char *server);
+		Drive(const char *server, int vc);
 		~Drive();
 		
 		int process(jack_nframes_t nframes, void *arg);
 		int bypass(jack_nframes_t nframes, void *arg);
 		
-		int set_param(int param, float var);
-		int set_param_list(int size, float *params);
+		void add_voice();
+		
+		const char* get_param_name(int p) const;
 	
 	protected :
-			
-		Filter_3EQ *filter_L;
-		Filter_3EQ *filter_R; // EQ ( bass, mid, high )
 	
 		/*
 		* Specific parameters for drive module are, in order :	unique parameters -> positives parameters -> negatives parameters

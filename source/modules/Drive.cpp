@@ -1,34 +1,65 @@
 #include "Drive.h"
 
+Drive_voice::Drive_voice(jack_client_t *client, int idx): Module_voice(client, DRIVE_PARAMS, 1, 1, 0, 0){
+
+	this->filter = new Filter_3EQ(200, 1000, jack_get_sample_rate(client));
+	this->set_param_list(DRIVE_PARAMS, (float*)default_drive_values);
+	
+	char n[10];
+	sprintf(n, "In_%d", idx);
+	register_port(client, this->port_audio_in_, PORT_AI, 1, n);
+	sprintf(n, "Out_%d", idx);
+	register_port(client, this->port_audio_out_, PORT_AO, 1, n);
+}
+
+Drive_voice::~Drive_voice(){
+	
+	delete this->filter;
+}
+
+void Drive_voice::set_param(int param, float var){
+
+	if(param == DRIVE_F_BASS){
+		
+		this->filter->set_lf(var);
+		this->param_[DRIVE_F_BASS] = var;
+	}else if(param == DRIVE_F_HIGH){
+		
+		this->filter->set_hf(var);
+		this->param_[DRIVE_F_HIGH] = var;
+	}else{
+		
+		return this->Module_voice::set_param(param, var);
+	}
+}
+
+void Drive_voice::set_param_list(int size, float *pl){
+
+	if(size == this->param_count_){
+		
+		this->Module_voice::set_param_list(size, pl);
+		this->filter->set_freq(this->param_[DRIVE_F_BASS], this->param_[DRIVE_F_HIGH]);
+	}
+}
+
+Filter_3EQ* Drive_voice::get_filter() const{
+	
+	return this->filter;
+}
+
 /*
 *	Distortion effect constructor
 *	EQ creation
 */
-Drive::Drive(const char *server): Module(server, MDRIVE, 15, 2, 2, 0, 0, "in_L", "in_R", "out_L", "out_R"){
+Drive::Drive(const char *server, int vc): Module(server, MDRIVE, DRIVE_PARAMS, vc){
 
-	this->params[0] = D_ABS;
-	this->params[1] = D_ASM;
+	for(int i = 0; i < vc; i++){
+		
+		Module_voice *mod = new Drive_voice(this->client_, i);
+		this->voice_.push_back(mod);
+	}
 	
-	this->params[2] = D_GAIN;
-	this->params[3] = D_TYPE;
-	this->params[4] = D_SOFT;
-	this->params[5] = D_SHAPE;
-	
-	this->params[6] = D_GAIN;
-	this->params[7] = D_TYPE;
-	this->params[8] = D_SOFT;
-	this->params[9] = D_SHAPE;
-	
-	this->params[10] = 200;
-	this->params[11] = 1000;
-	this->params[12] = 0.75;
-	this->params[13] = 3.0;
-	this->params[14] = 7.0;
-	
-	filter_L = new Filter_3EQ(this->params[10], this->params[11], (int)jack_get_sample_rate(this->client));
-	filter_R = new Filter_3EQ(this->params[10], this->params[11], (int)jack_get_sample_rate(this->client));
-	
-	if (jack_activate (this->client)) {
+	if (jack_activate (this->client_)) {
 		fprintf (stderr, "Failed activating Client\n");
 		exit (1);
 	}
@@ -36,8 +67,6 @@ Drive::Drive(const char *server): Module(server, MDRIVE, 15, 2, 2, 0, 0, "in_L",
 
 Drive::~Drive(){
 	
-	delete this->filter_L;
-	delete this->filter_R;
 }
 
 /*
@@ -45,106 +74,77 @@ Drive::~Drive(){
 */
 int Drive::process(jack_nframes_t nframes, void *arg){
 	
-	sample_t *in_l, *out_l;	
-	in_l = (sample_t*)jack_port_get_buffer(this->port[0], nframes);	//collecting Left input buffer
-	out_l = (sample_t*)jack_port_get_buffer(this->port[2], nframes);	//collecting Right input buffer
-	
-	sample_t *in_r, *out_r;	
-	in_r = (sample_t*)jack_port_get_buffer(this->port[1], nframes);
-	out_r = (sample_t*)jack_port_get_buffer(this->port[3], nframes);
-	
-	float gp, sp, shp, gn, sn, shn;			//Collecting drive settings
-	int is_abs, isp, isn;
-	
-	is_abs = (int)this->params[0];
-	int n = (this->params[1] == 0.0)?0:4;
-	
-	gp = this->params[2];
-	isp = (int)this->params[3];
-	sp = this->params[4];
-	shp = this->params[5];
-	
-	gn = this->params[2+n];
-	isn = (int)this->params[3+n];
-	sn = this->params[4+n];
-	shn = this->params[5+n];
-	
-	float gl, gm, gh;
-	gl = this->params[12];
-	gm = this->params[13];
-	gh = this->params[14];
+	for(Voice_array::iterator itr = this->voice_.begin(); itr != this->voice_.end(); itr++){ //For each voice
 		
-	for(jack_nframes_t i = 0; i < nframes; i++){						//For each sample
+		sample_t *in, *out;	
+		in  = (sample_t*)jack_port_get_buffer((*itr)->get_port(PORT_AI, 0), nframes);	// Collecting input buffer
+		out = (sample_t*)jack_port_get_buffer((*itr)->get_port(PORT_AO, 0), nframes);	// Collecting output buffer
+
+		float gp, sp, shp, gn, sn, shn;			// Collecting drive settings
+		int is_abs, isp, isn;
 		
-		sample_t l = this->filter_L->compute(in_l[i], gl, gm, gh);				//Current Left sample
-		sample_t r = this->filter_R->compute(in_r[i], gl, gm, gh);				//Current Right sample
-											//Left Channel
-		if(l>0){ 										//if positive
-			if(isp){								//soft-clipping or hard-clipping
-				out_l[i] = spi_soft(l*gp, 1.0, sp, shp);					//soft-clipping
-			}else{											//else
-				out_l[i] = spi_clip(l*gp, -1.0, 1.0);							//hard-clipping
-			}																
-		}else{											//if negative	
-			if(isn){                                      				//soft-clipping or hard-clipping
-				out_l[i] = spi_soft(l*gn, 1.0, sn, shn);          			//soft-clipping
-			}else{                                                              			//else
-				out_l[i] = spi_clip(l*gn, -1.0, 1.0);                         			//hard-clipping
+		is_abs = (int)!!(*itr)->get_param(DRIVE_ABS);
+		int n = ((int)!!(*itr)->get_param(DRIVE_ASM))?0:4;
+		
+		gp = 		(*itr)->get_param(DRIVE_GAIN_P);
+		isp = (int)!!(*itr)->get_param(DRIVE_TYPE_P);
+		sp = 		(*itr)->get_param(DRIVE_SOFT_P);
+		shp = 		(*itr)->get_param(DRIVE_SHAPE_P);
+		
+		gn = 		(*itr)->get_param(DRIVE_GAIN_P +n);
+		isn = (int)!!(*itr)->get_param(DRIVE_TYPE_P +n);
+		sn = 		(*itr)->get_param(DRIVE_SOFT_P +n);
+		shn = 		(*itr)->get_param(DRIVE_SHAPE_P +n);
+		
+		float gl, gm, gh;
+		gl = (*itr)->get_param(DRIVE_F_GBASS);
+		gm = (*itr)->get_param(DRIVE_F_GMID);
+		gh = (*itr)->get_param(DRIVE_F_GHIGH);
+			
+		for(jack_nframes_t i = 0; i < nframes; i++){									//For each sample
+			
+			sample_t l = (Drive_voice*)(*itr)->get_filter()->compute(in[i], gl, gm, gh);	//Compute 3bands EQ
+			
+			if(l>0){ 																	//if positive
+				if(isp){																	//soft-clipping or hard-clipping
+					out[i] = spi_soft(l*gp, 1.0, sp, shp);										//soft-clipping
+				}else{																		//else
+					out[i] = spi_clip(l*gp, -1.0, 1.0);											//hard-clipping
+				}																
+			}else{																		//if negative	
+				if(isn){                                      								//soft-clipping or hard-clipping
+					out[i] = spi_soft(l*gn, 1.0, sn, shn);          							//soft-clipping
+				}else{                                                              		//else
+					out[i] = spi_clip(l*gn, -1.0, 1.0);                         				//hard-clipping
+				}
 			}
-		}
-		if(r>0){										//Same for Right Channel
-			if(isp){
-				out_r[i] = spi_soft(r*gp, 1.0, sp, shp);
-			}else{
-				out_r[i] = spi_clip(r*gp, -1.0, 1.0);
+			
+			if(is_abs){							//if absolute value mode is true, full-wave rectification
+				out[i] = spi_abs(out[i]);
 			}
-		}else{
-			if(isn){
-				out_r[i] = spi_soft(r*gn, 1.0, sn, shn);
-			}else{
-				out_r[i] = spi_clip(r*gn, -1.0, 1.0);
-			}
-		}
-		if(is_abs){									//if absolute value mode is true, full-wave rectification
-			out_l[i] = spi_abs(out_l[i]);
-			out_r[i] = spi_abs(out_r[i]);
 		}
 	}
 	return 0;
 }
 
+void Drive::add_voice(){
+	
+	int idx = this->voice_.size();
+	Module_voice *mod = new Drive_voice(this->client_, idx);
+	this->voice_.push_back(mod);
+}
+
 int Drive::bypass(jack_nframes_t nframes, void *arg){
 	
-	return mod_GenericStereoBypass_Callback(nframes, this->port, 2);
-}
-
-int Drive::set_param(int param, float var){
-	
-	if(param == 10){
+	for(Voice_array::iterator itr = this->voice_.begin(); itr != this->voice_.end(); itr++){
 		
-		this->filter_L->set_lf(var);
-		this->filter_R->set_lf(var);
-		this->params[10] = var;
-		return 0;
-	}else if(param == 11){
-		
-		this->filter_L->set_hf(var);
-		this->filter_R->set_hf(var);
-		this->params[11] = var;
-		return 0;
-	}else{
-		
-		return this->Module::set_param(param, var);
+		mod_generic_bypass_callback(nframes, (*itr)->get_port(PORT_AI, 0), (*itr)->get_port(PORT_AO, 0));
 	}
 }
 
-
-int Drive::set_param_list(int size, float *params){
+const char* Drive::get_param_name(int p) const{
 	
-	if(!this->Module::set_param_list(size, params)){
-		this->filter_L->set_freq(this->params[10], this->params[11]);
-		this->filter_R->set_freq(this->params[10], this->params[11]);
-		return 0;
-	}
-	return 1;
+	if(p < ->get_voice(0)->get_param_count())
+		return drive_param_names[p];
+	return "NULL";
 }

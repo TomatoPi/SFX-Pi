@@ -5,7 +5,89 @@ int delay_Process_Callback(jack_nframes_t nframes, void *u){
 	return static_cast<Delay*>(u)->process_2(nframes, u);
 }
 
-Delay::Delay(const char *server) : Module(server, MDELAY, 6, 0, 0, 0, 0){
+/*
+*	---------------------------------------------------------------------------
+*	Delay voice stuff
+*	---------------------------------------------------------------------------
+*/
+Delay_Voice::Delay_Voice(jack_client_t *client, jack_client_t *client_2, int idx): Module_voice(client, DELAY_PARAMS, 2, 2, 0, 0){
+	
+	this->samplerate = jack_get_sample_rate(client);
+	
+	this->buffer_ = new Buffer_S(100, this->samplerate);
+	this->set_param_list(DELAY_PARAMS, (float*)default_delay_values);
+
+	char n[20];
+	sprintf(n, "In_%d", idx);
+	this->port_audio_in_[0] = jack_port_register( client, n, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
+	sprintf(n, "Return_%d", idx);
+	this->port_audio_in_[1] = jack_port_register( client_2, n, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
+	
+	sprintf(n, "Out_%d", idx);
+	this->port_audio_out_[0] = jack_port_register( client, n, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
+	sprintf(n, "Send_%d", idx);
+	this->port_audio_out_[1] = jack_port_register( client, n, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
+	
+	sprintf(n, "p_send_%d", idx);
+	this->p_send_ = jack_port_register(client, n, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
+	sprintf(n, "p_return_%d", idx);
+	this->p_return_ = jack_port_register(client, n, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
+	
+	/*
+	*	Connect direct link
+	*/
+	if (jack_connect (this->client, jack_port_name(this->p_send_), jack_port_name(this->p_return_))) {
+		fprintf (stderr, "cannot make private connection %d\n", idx);
+		exit(1);
+	}
+}
+
+Delay_Voice::~Delay_Voice(){
+	
+	delete this->buffer_;
+}
+
+void Delay_Voice::set_param(int param, float var){
+	
+	if(param == DELAY_DELAY){
+		
+		this->buffer_->set_length((int)var, this->samplerate);
+		this->param_[DELAY_DELAY] = var;
+	}else{
+		
+		this->Module_voice::set_param(param, var);
+	}
+}
+
+void Delay_Voice::set_param_list(int size, float *pl){
+	
+	if(size == this->param_count_){
+		this->Module_voice::set_param_list(size, pl);
+		this->buffer_->set_length((int)this->param_[DELAY_DELAY], this->samplerate);
+	}
+}
+
+jack_port_t* Delay_Voice::get_p_send() const{
+	
+	return this->p_send_;
+}
+
+jack_port_t* Delay_Voice::get_p_return() const{
+	
+	return this->p_return_;
+}
+
+Buffer_S* Delay_Voice::get_buffer() const{
+	
+	return this->buffer_;
+}
+
+/*
+*	---------------------------------------------------------------------------
+*	Delay Stuff
+*	---------------------------------------------------------------------------
+*/
+Delay::Delay(const char *server, int vc) : Module(server, MDELAY, DELAY_PARAMS, vc){
 	
 	jack_options_t options_2 = JackNullOption;
 	jack_status_t status_2;
@@ -14,7 +96,9 @@ Delay::Delay(const char *server) : Module(server, MDELAY, 6, 0, 0, 0, 0){
 	
 	const char* name_2 = "Delay_Part_2";
 	
-	//Creating jack client_2 with name "name_2", in server "server"
+	/*
+	*	Creating jack client_2 with name "name_2", in server "server"
+	*/
 	client_2 = jack_client_open (name_2, options_2, &status_2, server);
 	if (client_2 == NULL) {
 		fprintf (stderr, "jack_client_open() failed, "
@@ -25,15 +109,23 @@ Delay::Delay(const char *server) : Module(server, MDELAY, 6, 0, 0, 0, 0){
 		exit (1);
 	}
 	
-	//upgrade name_2 if given name is not unique
+	/*
+	*	Upgrade name_2 if given name is not unique
+	*/
 	if (status_2 & JackNameNotUnique) {
 		name_2 = jack_get_client_name(client_2);
 		fprintf (stderr, "Unique name `%s' assigned\n", name_2);
 	}
 	
-	this->client_2 = client_2;
-	this->name_2 = (char*)name_2;
+	this->client_2_ = client_2;
+	this->name_2_ = (char*)name_2;
 	
+	
+	/*
+	*	Register regular ports for delay module
+	*	Client ports on reading head
+	*	client_2 ports on writing head
+	*//*
 	this->port_count = 8;
 	this->port = (jack_port_t**)malloc(this->port_count * sizeof(jack_port_t*));
 	if(this->port == NULL)
@@ -51,8 +143,10 @@ Delay::Delay(const char *server) : Module(server, MDELAY, 6, 0, 0, 0, 0){
 	
 	this->port[6] = jack_port_register( this->client, "send_L", JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
 	this->port[7] = jack_port_register( this->client, "send_R", JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
-	
-	
+	*/
+	/*
+	*	Register private ports for direct link between input and write head
+	*//*
 	this->private_port_count = 4;
 	this->private_port = (jack_port_t**)malloc(this->private_port_count * sizeof(jack_port_t*));
 	if(this->private_port == NULL)
@@ -63,100 +157,99 @@ Delay::Delay(const char *server) : Module(server, MDELAY, 6, 0, 0, 0, 0){
 	
 	this->private_port[2] = jack_port_register( this->client_2, "p_in_L", JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
 	this->private_port[3] = jack_port_register( this->client_2, "p_in_R", JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
-	
+	*/
 	jack_set_process_callback(client_2, delay_Process_Callback, this);
 
-	this->params[0] = D_DELAY;
-	this->params[1] = D_DELAY;
-	this->params[2] = D_FEED;
-	this->params[3] = D_FEED;
-
-	this->params[4] = 1.0;
+	/*
+	*	Set default params and create buffers
+	*//*
+	this->params[DELAY_DELAY_L] = D_DELAY;
+	this->params[DELAY_DELAY_R] = D_DELAY;
+	this->params[DELAY_FEEDB_L] = D_FEED;
+	this->params[DELAY_FEEDB_R] = D_FEED;
+	this->params[DELAY_DRYWET] = 1.0;
 	
-	this->buffer_L = new Buffer_S(this->params[0], jack_get_sample_rate(this->client));
-	this->buffer_R = new Buffer_S(this->params[1], jack_get_sample_rate(this->client));
-	
-	if (jack_activate (this->client)) {
+	this->buffer_L = new Buffer_S(this->params[DELAY_DELAY_L], jack_get_sample_rate(this->client));
+	this->buffer_R = new Buffer_S(this->params[DELAY_DELAY_R], jack_get_sample_rate(this->client));
+	*/
+	/*
+	*	Activation of jack clients
+	*/
+	if (jack_activate (this->client_)) {
 		fprintf (stderr, "Echec de l'activation du client\n");
 		exit (1);
 	}	
-	if (jack_activate (this->client_2)) {
+	if (jack_activate (this->client_2_)) {
 		fprintf (stderr, "Echec de l'activation du client 2\n");
 		exit (1);
 	}
-	if (jack_connect (this->client, jack_port_name(this->private_port[0]), jack_port_name(this->private_port[2]))) {
-		fprintf (stderr, "cannot make private connection L\n");
-		exit(1);
-	}
-	if (jack_connect (this->client, jack_port_name(this->private_port[1]), jack_port_name(this->private_port[3]))) {
-		fprintf (stderr, "cannot make private connection R\n");
-		exit(1);
+	
+	for(int i = 0; i < vc; i++){
+		
+		Module_voice *mod = new Delay_voice(this->client_, this->client_2_, i);
+		this->voice_.push_back(mod);
 	}
 }
 
 Delay::~Delay(){
 	
-	delete this->buffer_L;
-	delete this->buffer_R;
-	free(this->private_port);
-	jack_client_close(this->client_2);
+	jack_client_close(this->client_2_);
 }
 		
 int Delay::process(jack_nframes_t nframes, void *arg){
 
-	sample_t *in_L, *in_R;	
-	in_L = (sample_t*)jack_port_get_buffer(this->port[0], nframes);
-	in_R = (sample_t*)jack_port_get_buffer(this->port[1], nframes);
+	for(Voice_array::iterator itr = this->voice_.begin(); itr != this->voice_.end(); itr++){
 	
-	sample_t *out_L, *out_R;
-	out_L = (sample_t*)jack_port_get_buffer(this->port[4], nframes);
-	out_R = (sample_t*)jack_port_get_buffer(this->port[5], nframes);
+		sample_t *in;	
+		in 	= 	(sample_t*)jack_port_get_buffer((*itr)->get_port(PORT_AI, 0), nframes);
 		
-	sample_t *send_L, *send_R;
-	send_L = (sample_t*)jack_port_get_buffer(this->port[6], nframes);
-	send_R = (sample_t*)jack_port_get_buffer(this->port[7], nframes);
-	
-	sample_t *p_out_L, *p_out_R;
-	p_out_L = (sample_t*)jack_port_get_buffer(this->private_port[0], nframes);
-	p_out_R = (sample_t*)jack_port_get_buffer(this->private_port[1], nframes);
-	
-	float dw = this->params[4];
-
-	for(jack_nframes_t i = 0; i < nframes; i++){
+		sample_t *out;
+		out = 	(sample_t*)jack_port_get_buffer((*itr)->get_port(PORT_AO, 0), nframes);
 			
-		sample_t wl = this->buffer_L->read();
-		sample_t wr = this->buffer_R->read();
+		sample_t *send;
+		send = 	(sample_t*)jack_port_get_buffer((*itr)->get_port(PORT_AO, 1), nframes);
 		
-		send_L[i] = wl;
-		send_R[i] = wr;
+		sample_t *p_out;
+		p_out = (sample_t*)jack_port_get_buffer(((Delay_Voice*)*itr)->get_p_send(), nframes);
 		
-		p_out_L[i] = in_L[i];
-		p_out_R[i] = in_R[i];
-		
-		out_L[i] = spi_dry_wet(in_L[i], wl, dw);
-		out_R[i] = spi_dry_wet(in_R[i], wr, dw);
+		float dw = (*itr)->get_param(DELAY_DRYWET);
+
+		for(jack_nframes_t i = 0; i < nframes; i++){
+				
+			//read buffer
+			sample_t w = ((Delay_Voice*)*itr)->get_buffer()->read();
+			
+			//send buffer output to send port
+			send[i] = w;
+			
+			//send input to write head
+			p_out[i] = in[i];
+			
+			//mix buffer and input to regular output
+			out[i] = spi_dry_wet(in[i], w, dw);
+		}
 	}
 	return 0;
 }
 
 int Delay::process_2(jack_nframes_t nframes, void *arg){
 	
-	sample_t *return_L, *return_R;
-	return_L = (sample_t*)jack_port_get_buffer(this->port[2], nframes);
-	return_R = (sample_t*)jack_port_get_buffer(this->port[3], nframes);
-	
-	sample_t *p_in_L, *p_in_R;
-	p_in_L = (sample_t*)jack_port_get_buffer(this->private_port[2], nframes);
-	p_in_R = (sample_t*)jack_port_get_buffer(this->private_port[3], nframes);
+	for(Voice_array::iterator itr = this->voice_.begin(); itr != this->voice_.end(); itr++){
 		
-	float fl = this->params[2];
-	float fr = this->params[3];
-	
-	if(!this->is_bypassed){
-		for(jack_nframes_t i = 0; i < nframes; i++){
-					
-			this->buffer_L->write(p_in_L[i] + fl*return_L[i]);
-			this->buffer_R->write(p_in_R[i] + fr*return_R[i]);
+		sample_t *rtrn;
+		rtrn = (sample_t*)jack_port_get_buffer((*itr)->get_port(PORT_AI, 0), nframes);
+
+		sample_t *p_in;
+		p_in = (sample_t*)jack_port_get_buffer(((Delay_Voice*)*itr)->get_p_return(), nframes);
+			
+		float f = (*itr)->get_param(DELAY_FEEDB);
+
+		if(!this->is_bypassed){
+			for(jack_nframes_t i = 0; i < nframes; i++){
+				
+				//write clear input + feedbackloop to buffer
+				((Delay_Voice*)*itr)->get_buffer()->write(p_in[i] + f*rtrn[i]);
+			}
 		}
 	}
 	return 0;
@@ -164,58 +257,42 @@ int Delay::process_2(jack_nframes_t nframes, void *arg){
 
 int Delay::bypass(jack_nframes_t nframes, void *arg){
 
-	sample_t *in_L, *in_R;	
-	in_L = (sample_t*)jack_port_get_buffer(this->port[0], nframes);
-	in_R = (sample_t*)jack_port_get_buffer(this->port[1], nframes);
-	
-	sample_t *out_L, *out_R;
-	out_L = (sample_t*)jack_port_get_buffer(this->port[4], nframes);
-	out_R = (sample_t*)jack_port_get_buffer(this->port[5], nframes);
+	for(Voice_array::iterator itr = this->voice_.begin(); itr != this->voice_.end(); itr++){
 		
-	sample_t *send_L, *send_R;
-	send_L = (sample_t*)jack_port_get_buffer(this->port[6], nframes);
-	send_R = (sample_t*)jack_port_get_buffer(this->port[7], nframes);
-	
-	sample_t *p_out_L, *p_out_R;
-	p_out_L = (sample_t*)jack_port_get_buffer(this->private_port[0], nframes);
-	p_out_R = (sample_t*)jack_port_get_buffer(this->private_port[1], nframes);
-	
-	memcpy(out_L, in_L, sizeof(sample_t) * nframes);
-	memcpy(out_R, in_R, sizeof(sample_t) * nframes);
-	
-	memset(send_L, 0.0, sizeof(sample_t) * nframes);
-	memset(send_R, 0.0, sizeof(sample_t) * nframes);
-	memset(p_out_L, 0.0, sizeof(sample_t) * nframes);
-	memset(p_out_R, 0.0, sizeof(sample_t) * nframes);
-	
+		sample_t *in;	
+		in = 	(sample_t*)jack_port_get_buffer((*itr)->get_port(PORT_AI, 0), nframes);
+		
+		sample_t *out;
+		out = 	(sample_t*)jack_port_get_buffer((*itr)->get_port(PORT_AO, 0), nframes);
+			
+		sample_t *send;
+		send = 	(sample_t*)jack_port_get_buffer((*itr)->get_port(PORT_AO, 0), nframes);
+		
+		sample_t *p_out;
+		p_out = (sample_t*)jack_port_get_buffer(((Delay_Voice*)*itr)->get_p_send(), nframes);
+		
+		/*
+		*	Copy input to output and set sends to 0
+		*/
+		memcpy(out, in, sizeof(sample_t) * nframes);
+		
+		memset(send, 0.0f, sizeof(sample_t) * nframes);
+		memset(p_out, 0.0f, sizeof(sample_t) * nframes);
+		
+	}
 	return 0;
 }
 
-int Delay::set_param(int param, float var){
+void Delay::add_voice(){
 	
-	if(param == 0){
-		
-		this->buffer_L->set_length((int)var, jack_get_sample_rate(this->client));
-		this->params[0] = var;
-		return 0;
-	}else if(param == 1){
-		
-		this->buffer_R->set_length((int)var, jack_get_sample_rate(this->client));
-		this->params[1] = var;
-		return 0;
-	}else{
-		
-		return this->Module::set_param(param, var);
-	}
+	idx = this->voice_.size();
+	Module_voice *mod = new Delay_voice(this->client_, this->client_2_, idx);
+	this->voice_.push_back(mod);
 }
 
-int Delay::set_param_list(int size, float *params){
+const char* Delay::get_param_name(int p) const{
 	
-	if(!this->Module::set_param_list(size, params)){
-		
-		this->buffer_L->set_length((int)this->params[0], jack_get_sample_rate(this->client));
-		this->buffer_R->set_length((int)this->params[1], jack_get_sample_rate(this->client));
-		return 0;
-	}
-	return 1;
+	if(p < this->get_voice(0)->get_param_count())
+		return delay_param_names[p];
+	return "NULL";
 }

@@ -6,6 +6,9 @@
 #include "../core/Utility.h"
 #include "../core/Modules.h"
 
+/*
+*	LFO default param values
+*/
 #define L_TYPE WAVE_SIN
 #define L_FREQ 440.0
 #define L_SPLR 48000
@@ -16,6 +19,24 @@
 
 #define L_PAR1 1.0
 #define L_PAR2 1.0
+
+/*
+*	LFO's params count and param's index
+*/
+#define LFO_PARAMS_COUNT 8
+
+#define LFO_TYPE 0
+#define LFO_FREQ 1
+#define LFO_SAMPLERATE 2
+
+#define LFO_RAMP 3
+#define LFO_PHASE 4
+#define LFO_SIGN 5
+
+#define LFO_VAR1 6
+#define LFO_VAR2 7
+
+static const char* lfo_param_names[] = {"Waveform", "Frequency", "Samplerate", "Ramp", "Phase", "Sign", "Param-1", "Param-2"};
 
 static int RandSeed = 48172;
 
@@ -57,6 +78,8 @@ class LFO : public Module{
 		
 		int set_param(int param, float var);
 		int set_param_list(int size, float *params);
+		
+		const char* get_param_name(int p) const;
 		
 	protected:
 	

@@ -75,6 +75,7 @@ class Filter_Comb{
 		*	sr : samplerate
 		*/
 		Filter_Comb(float f, float d, float fb, int sr);
+		Filter_Comb(float d, float fb, int s, int sr, int n);
 		~Filter_Comb();
 		
 		/*

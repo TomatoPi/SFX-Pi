@@ -1,17 +1,17 @@
 #include "LFO.h"
 
-LFO::LFO(const char *server): Module(server, MLFO, 8, 0, 1, 0, 0, "out"){
+LFO::LFO(const char *server): Module(server, MLFO, LFO_PARAMS_COUNT, 0, 1, 0, 0, "out"){
 		
 	this->update_type(L_TYPE);
-	this->params[1] = L_FREQ;
-	this->params[2] = jack_get_sample_rate(this->client);
+	this->params[LFO_FREQ] = L_FREQ;
+	this->params[LFO_SAMPLERATE] = jack_get_sample_rate(this->client);
 	
-	this->params[3] = L_RAMP;
-	this->params[4] = L_PHASE;
-	this->params[5] = L_SIGN;
+	this->params[LFO_RAMP] = L_RAMP;
+	this->params[LFO_PHASE] = L_PHASE;
+	this->params[LFO_SIGN] = L_SIGN;
 	
-	this->params[6] = L_PAR1;
-	this->params[7] = L_PAR2;
+	this->params[LFO_VAR1] = L_PAR1;
+	this->params[LFO_VAR2] = L_PAR2;
 	
 	if (jack_activate (this->client)) {
 		fprintf (stderr, "Echec de l'activation du client\n");
@@ -23,18 +23,15 @@ int LFO::process(jack_nframes_t nframes, void *arg){
 	
 	sample_t *out = (sample_t*)jack_port_get_buffer(this->port[0], nframes);
 	
-	if( (int)(this->waveform_bak) != (int)(this->params[0]) )
-		this->update_type( static_cast<LFO_Wave>((int)(this->params[0])) );
-	
-	float f = this->params[1]; 		//LFO frequency
-	float sr = this->params[2];		//Client Samplerate
+	float f = this->params[LFO_FREQ]; 		//LFO frequency
+	float sr = this->params[LFO_SAMPLERATE];		//Client Samplerate
 		
-	float ramp = this->params[3];		//Current LFO value
-	float phase = this->params[4];		//LFO Phase
-	int s = (this->params[5] < 0)? -1: 1;	//LFO sign
+	float ramp = this->params[LFO_RAMP];		//Current LFO value
+	float phase = this->params[LFO_PHASE];		//LFO Phase
+	int s = (this->params[LFO_SIGN] < 0)? -1: 1;	//LFO sign
 		
-	float p1 = this->params[6];		//waveshape param 1
-	float p2 = this->params[7];		//waveshape param 2
+	float p1 = this->params[LFO_VAR1];		//waveshape param 1
+	float p2 = this->params[LFO_VAR2];		//waveshape param 2
 	
 	for(jack_nframes_t i = 0; i < nframes; i++){
 		
@@ -44,7 +41,7 @@ int LFO::process(jack_nframes_t nframes, void *arg){
 		out[i] = (*(this->waveform))(ramp, s, p1, p2);
 	}
 	
-	this->params[3] = ramp;
+	this->params[LFO_RAMP] = ramp;
 	return 0;
 }
 
@@ -57,7 +54,7 @@ int LFO::bypass(jack_nframes_t nframes, void *arg){
 
 void LFO::update_type(LFO_Wave type){
 	
-	this->params[0] = type;
+	this->params[LFO_TYPE] = type;
 	this->waveform_bak = type;
 	switch(type){
 		case WAVE_SIN:
@@ -89,10 +86,10 @@ void LFO::update_type(LFO_Wave type){
 
 int LFO::set_param(int param, float var){
 	
-	if(param == 0){
+	if(param == LFO_TYPE){
 		
 		this->update_type( static_cast<LFO_Wave>(var) );
-		this->params[0];
+		this->params[LFO_TYPE];
 		return 0;
 	}else{
 		
@@ -104,10 +101,17 @@ int LFO::set_param_list(int size, float *params){
 	
 	if(!this->Module::set_param_list(size, params)){
 		
-		this->update_type( static_cast<LFO_Wave>((int)this->params[0]) );
+		this->update_type( static_cast<LFO_Wave>((int)this->params[LFO_TYPE]) );
 		return 0;
 	}
 	return 1;
+}
+
+const char* LFO::get_param_name(int p) const{
+	
+	if(p < this->params_count)
+		return lfo_param_names[p];
+	return "NULL";
 }
 
 inline sample_t w_sin(float in, float sign, float p1, float p2){

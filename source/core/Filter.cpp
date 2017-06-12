@@ -95,6 +95,27 @@ Filter_Comb::Filter_Comb(float f, float d, float fb, int sr){
 	
 	this->size = spi_scale_comb(f, sr);
 	this->buffer = (sample_t*) calloc(this->size, sizeof(sample_t));
+	this->index = 0;
+	
+	if(this->buffer == NULL){
+		fprintf(stderr, "Memory Error\n");
+		exit(1);
+	}
+	
+	this->damp1 = d;
+	this->damp2 = 1 - d;
+	
+	this->feedback = fb;
+}
+
+Filter_Comb::Filter_Comb(float d, float fb, int s, int sr, int n){
+	
+	memset(this, 0, sizeof(Filter_Comb));
+	
+	this->samplerate = sr;
+	this->size = s;
+	this->buffer = (sample_t*) calloc(s, sizeof(sample_t));
+	this->index = 0;
 	
 	if(this->buffer == NULL){
 		fprintf(stderr, "Memory Error\n");
