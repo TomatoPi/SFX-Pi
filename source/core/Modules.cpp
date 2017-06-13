@@ -141,7 +141,7 @@ int Module_voice::get_param_count() const{
 void Module_voice::set_param_list(int size, float *pl){
 	
 	if(size == this->param_count_){
-		free(this->param_);
+		//free(this->param_);
 		this->param_ = pl;
 	}
 }
@@ -160,7 +160,7 @@ jack_port_t* Module_voice::get_port(int type, int port) const{
 	}
 }
 
-jack_port_t** get_port_array(int type){
+jack_port_t** Module_voice::get_port_array(int type) const{
 	
 	switch(type){
 		case PORT_AI:
@@ -177,7 +177,7 @@ jack_port_t** get_port_array(int type){
 int	Module_voice::get_port_count(int type) const{
 	
 	if(type < PORT_TYPE_COUNT && type > -1) return this->port_count_[type];
-	return NULL;
+	return 0;
 }
 
 /*
@@ -185,7 +185,7 @@ int	Module_voice::get_port_count(int type) const{
 *	Module class stuff
 *	---------------------------------------------------------------------------
 */
-Module::Module(const char *server, MODULE_TYPE type, int pc, int vc): type_(type), param_count_(pc), voice_count_(vc), is_bypassed_(0){
+Module::Module(const char *server, MODULE_TYPE type, int vc): type_(type), is_bypassed_(0){
 
 	jack_options_t options = JackNullOption;
 	jack_status_t status;
@@ -229,9 +229,9 @@ void Module::set_bypass(int state){
 	
 	this->is_bypassed_ = state;
 	if(state){
-		jack_set_process_callback(client, mod_Bypass_Callback, this);
+		jack_set_process_callback(this->client_, mod_Bypass_Callback, this);
 	}else{
-		jack_set_process_callback(client, mod_Process_Callback, this);
+		jack_set_process_callback(this->client_, mod_Process_Callback, this);
 	}
 }
 
@@ -271,7 +271,7 @@ Module_voice* Module::get_voice(int idx) const{
 
 int Module::get_voice_count() const{
 	
-	return this->voice_count_;
+	return this->voice_.size();
 }
 
 void Module::del_voice(int idx){
@@ -314,5 +314,5 @@ void Module::remove_port(int type, int idx){
 */
 jack_client_t* Module::get_client() const{
 
-	return this->client;
+	return this->client_;
 }

@@ -7,36 +7,22 @@
 #include "../core/Modules.h"
 
 /*
-*	LFO default param values
-*/
-#define L_TYPE WAVE_SIN
-#define L_FREQ 440.0
-#define L_SPLR 48000
-
-#define L_RAMP 0.0
-#define L_PHASE 0.0
-#define L_SIGN 1.0
-
-#define L_PAR1 1.0
-#define L_PAR2 1.0
-
-/*
 *	LFO's params count and param's index
 */
-#define LFO_PARAMS_COUNT 8
+#define LFO_PARAMS 7
 
-#define LFO_TYPE 0
-#define LFO_FREQ 1
-#define LFO_SAMPLERATE 2
+#define LFO_TYPE 	0
+#define LFO_FREQ 	1
 
-#define LFO_RAMP 3
-#define LFO_PHASE 4
-#define LFO_SIGN 5
+#define LFO_RAMP 	2
+#define LFO_PHASE 	3
+#define LFO_SIGN 	4
 
-#define LFO_VAR1 6
-#define LFO_VAR2 7
+#define LFO_VAR1 	5
+#define LFO_VAR2 	6
 
-static const char* lfo_param_names[] = {"Waveform", "Frequency", "Samplerate", "Ramp", "Phase", "Sign", "Param-1", "Param-2"};
+static const char* lfo_param_names[] 	= {"Waveform", "Frequency", "Ramp", "Phase", "Sign", "Param-1", "Param-2"};
+static const float lfo_default_params[] = {0, 1.0f, 0.0f, 0.0f, 1, 0.0f, 0.0f};
 
 static int RandSeed = 48172;
 
@@ -57,7 +43,27 @@ typedef enum {
 	WAVE_VAR=4,
 	WAVE_NPH=5,
 	WAVE_WHI=6
-}LFO_Wave;
+}LFO_wave;
+
+
+class LFO_voice : public Module_voice{
+	
+	public :
+	
+		LFO_voice(jack_client_t *client, int idx);
+		
+		void set_param(int param, float var);
+		void set_param_list(int size, float *pl);
+		
+	    sample_t (*waveform_)(float, float, float, float); // waveform generator function
+		int get_sr() const;
+		
+		void update_type(LFO_wave type);
+		
+	protected :
+	
+		int samplerate_;
+};
 
 /*
 *	LFO Module
@@ -66,37 +72,30 @@ class LFO : public Module{
 	
 	public:
 		
-		LFO(const char *server);
+		LFO(const char *server, int vc);
 		
 		int process(jack_nframes_t nframes, void *arg);
 		int bypass(jack_nframes_t nframes, void *arg);
-  
-		/*
-		*	Setup waveform function
-		*/
-		void update_type(LFO_Wave type);
 		
-		int set_param(int param, float var);
-		int set_param_list(int size, float *params);
+		void add_voice();
+		void sync();
 		
 		const char* get_param_name(int p) const;
 		
 	protected:
-	
-	    	sample_t (*waveform)(float, float, float, float); // waveform generator function		
+			
 	/*
 		LFO_Wave type;
 		float f; 		//LFO frequency
 		int sr;			//Client Samplerate
 		
 		float ramp;		//Current LFO value
-		float phase;		//LFO Phase
+		float phase;	//LFO Phase
 		float sign;		//LFO sign
 		
 		float p1;		//waveshape param 1
 		float p2;		//waveshape param 2
 	*/
-		int waveform_bak;
 };
 
 

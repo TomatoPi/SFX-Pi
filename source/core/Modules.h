@@ -18,7 +18,7 @@
 #define PORT_MI 2
 #define PORT_MO 3
 
-static const float PARAM_NOT_FOUNT = 859457.0f;
+static const float PARAM_NOT_FOUND = 859457.0f;
 
 /*
 *   Function for register class member callback functions
@@ -103,7 +103,7 @@ class Module{
 		*	pc 		: number of module's parameter
 		*	vc		: unmber of module voices
 		*/
-		Module(const char *server, MODULE_TYPE type,int pc, int vc);
+		Module(const char *server, MODULE_TYPE type, int vc);
 		~Module();
 		
 		virtual int process(jack_nframes_t nframes, void *arg){}; 	// Client's callback function

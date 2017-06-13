@@ -30,12 +30,12 @@ int delay_Process_Callback(jack_nframes_t nframes, void *u);
 /*
 *
 */
-class Delay_Voice : public Module_voice{
+class Delay_voice : public Module_voice{
 	
 	public :
 		
-		Delay_Voice(jack_client_t *client, jack_client_t *client_2, int idx);
-		~Delay_Voice();
+		Delay_voice(jack_client_t *client, jack_client_t *client_2, int idx);
+		~Delay_voice();
 		
 		void set_param(int param, float var);
 		void set_param_list(int size, float *pl);

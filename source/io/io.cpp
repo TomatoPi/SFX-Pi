@@ -16,8 +16,9 @@ void io_get_potentiometer(int *potar_tab){
 	}
 }
 
-IO_Accessor::IO_Accessor(Module *target, int target_param, int potentiometer, float min, float max, IO_CURVE curve, int is_db, int is_inv):
+IO_Accessor::IO_Accessor(Module *target, int target_voice, int target_param, int potentiometer, float min, float max, IO_CURVE curve, int is_db, int is_inv):
 	target(target),
+	target_voice(target_voice),
 	target_param(target_param),
 	potentiometer(potentiometer),
 	min(min),
@@ -47,7 +48,7 @@ IO_Accessor::IO_Accessor(Module *target, int target_param, int potentiometer, fl
 	}
 
 	this->state = this->potentiometer >= 0 && this->potentiometer < SPI_POTAR_COUNT;
-	this->state = target_param < target->get_voice(0)->get_param_count();
+	this->state = target_param < target->get_voice(target_voice)->get_param_count();
 }
 
 int IO_Accessor::update(int *potar_tab){
@@ -61,9 +62,9 @@ int IO_Accessor::update(int *potar_tab){
 			if(this->is_inv)value = SPI_MAX - value;
 
 			if(is_db){
-				this->target->get_voice(0)->set_param( this->target_param, spi_dbtorms( (((*this->curve)((float)value/(float)SPI_MAX))*(this->max - this->min)) + this->min ) );
+				this->target->get_voice(this->target_voice)->set_param( this->target_param, spi_dbtorms( (((*this->curve)((float)value/(float)SPI_MAX))*(this->max - this->min)) + this->min ) );
 			}else{
-				this->target->get_voice(0)->set_param( this->target_param, (((*this->curve)((float)value/(float)SPI_MAX))*(this->max - this->min)) + this->min );
+				this->target->get_voice(this->target_voice)->set_param( this->target_param, (((*this->curve)((float)value/(float)SPI_MAX))*(this->max - this->min)) + this->min );
 			}
 			return 1;
 		}
@@ -74,7 +75,7 @@ int IO_Accessor::update(int *potar_tab){
 
 void IO_Accessor::set_target(Module *target, int param){
 	
-	if(param >= target->get_voice(0)->get_param_count()){
+	if(param >= target->get_voice(this->target_voice)->get_param_count()){
 		
 		this->state = 0;
 	}else{

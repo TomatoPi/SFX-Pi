@@ -18,21 +18,19 @@ int main(int argc, char *argv[]){
 	io_init_spi();
 	io_init_screen();
 	
-	main_add_module(MDRIVE);
+	main_add_module(MDRIVE, 2);
 	int drive = MAIN_COUNT_MODULE;
 	float drivep[] = {0, 1, 20.0, 1, 8.0, 0.26, 10.0, 1, 10.0, 0.6, 440, 1200, 3.0, 0.75, 5.0};
 	MAIN_LIST_MODULE[drive]->get_module()->get_voice(0)->set_param_list(15, drivep);
-	main_add_connection(-1, 0, drive, 0);
-	main_add_accessor(drive, 2, 0, 10.0, 60.0, CURVE_LIN,1, 0);
-	main_add_accessor(drive, 6, 0, 10.0, 40.0, CURVE_LIN, 1, 1);
+	main_add_connection(-1, 0, 0, drive, 0, 0);
+	main_add_accessor(drive, 0, 2, 0, 10.0, 60.0, CURVE_LIN, 1, 0);
+	main_add_accessor(drive, 0, 6, 0, 10.0, 40.0, CURVE_LIN, 1, 1);
 	
-	main_add_module(MDRIVE);
-	int hard = MAIN_COUNT_MODULE;
 	float hardp[] = {0, 1, 20.0, 0, 0.0, 0.0, 10.0, 1, 5.0, 0.4, 200, 1200, 8.0, 1.5, 1.0};
-	MAIN_LIST_MODULE[hard]->get_module()->get_voice(0)->set_param_list(15, hardp);
-	main_add_connection(-1, 0, hard, 1);
-	main_add_accessor(hard, 2, 1, 10.0, 60.0, CURVE_LIN,1, 0);
-	main_add_accessor(hard, 6, 1, 10.0, 40.0, CURVE_LIN, 1, 0);
+	MAIN_LIST_MODULE[drive]->get_module()->get_voice(1)->set_param_list(15, hardp);
+	main_add_connection(-1, 0, 0, drive, 1, 0);
+	main_add_accessor(drive, 1, 2, 1, 10.0, 60.0, CURVE_LIN, 1, 0);
+	main_add_accessor(drive, 1, 6, 1, 10.0, 40.0, CURVE_LIN, 1, 0);
 	
 /*	main_add_module(MDELAY);
 	int delay = MAIN_COUNT_MODULE;
@@ -64,8 +62,8 @@ int main(int argc, char *argv[]){
 //	main_add_accessor(rev, 5, 4, 0.0f, 1.0f, 0, 0);
 //	main_add_accessor(rev, 7, 5, 0.0f, 1.0f, 0, 0);
 	*/
-	main_add_connection(drive, 2, -1, 0);
-	main_add_connection(hard, 3, -1, 1);
+	main_add_connection(drive, 0, 0, -1, 0, 0);
+	main_add_connection(drive, 1, 0, -1, 0, 1);
 	/*
 	main_add_connection(MAIN_LIST_MODULE[rev], 2, NULL, 0);
 	main_add_connection(MAIN_LIST_MODULE[rev], 3, NULL, 1);
@@ -156,7 +154,7 @@ int Module_Node::connection_get(int i) const{
 *	Main Fuctions
 *	---------------------------------------------------------------------------
 */
-int main_add_module(MODULE_TYPE mod){
+int main_add_module(MODULE_TYPE mod, int v){
 	
 	while(MAIN_LIST_MODULE.find(MAIN_COUNT_MODULE) != MAIN_LIST_MODULE.end()) MAIN_COUNT_MODULE++;
 	
@@ -165,18 +163,18 @@ int main_add_module(MODULE_TYPE mod){
 	Module *newmod;
 	switch(mod){
 		case MDRIVE:
-			newmod = new Drive(SERVER_NAME, 1);
+			newmod = new Drive(SERVER_NAME, v);
 			fprintf (stderr, "new Drive\n");
 			break;
 		case MDELAY:
-			newmod = new Delay(SERVER_NAME, 2);
+			newmod = new Delay(SERVER_NAME, v);
 			fprintf (stderr, "new Delay\n");
 			break;
-	/*	case MLFO:
-			newmod = new LFO(SERVER_NAME);
+		case MLFO:
+			newmod = new LFO(SERVER_NAME, v);
 			fprintf (stderr, "new LFO\n");
 			break;
-		case MRINGM:
+	/*	case MRINGM:
 			newmod = new Ringmod(SERVER_NAME);
 			fprintf (stderr, "new Ringmod\n");
 			break;
@@ -210,7 +208,7 @@ int main_del_module(int idx){
 	return 0;
 }
 
-const char* get_source_name(Module *source, int is, Module *target){
+const char* get_source_name(Module *source, int v, int is, Module *target){
 	
 	const char *from;
 	if(source == NULL){
@@ -227,8 +225,8 @@ const char* get_source_name(Module *source, int is, Module *target){
 	}else{
 		fprintf (stderr, "Module source --- ");
 		
-		if(source->get_voice(0)->get_port(PORT_AO, is) != NULL){
-			from = jack_port_name(source->get_voice(0)->get_port(PORT_AO, is));
+		if(source->get_voice(v)->get_port(PORT_AO, is) != NULL){
+			from = jack_port_name(source->get_voice(v)->get_port(PORT_AO, is));
 		}else{
 			fprintf (stderr, "\n***Failed get source port***\n");
 			return NULL;
@@ -237,7 +235,7 @@ const char* get_source_name(Module *source, int is, Module *target){
 	return from;
 }
 	
-const char* get_target_name(Module *target, int id, Module *source){
+const char* get_target_name(Module *target, int v, int id, Module *source){
 	
 	const char *to;
 	if(target == NULL){
@@ -254,8 +252,8 @@ const char* get_target_name(Module *target, int id, Module *source){
 	}else{
 		fprintf (stderr, "Module destination\n");
 		
-		if(target->get_voice(0)->get_port(PORT_AI, id) != NULL){
-			to = jack_port_name(target->get_voice(0)->get_port(PORT_AI, id));
+		if(target->get_voice(v)->get_port(PORT_AI, id) != NULL){
+			to = jack_port_name(target->get_voice(v)->get_port(PORT_AI, id));
 		}else{
 			fprintf (stderr, "***Failed get destination port***\n");
 			return NULL;
@@ -264,7 +262,7 @@ const char* get_target_name(Module *target, int id, Module *source){
 	return to;
 }
 
-int main_add_connection(int source_idx, int is, int target_idx, int id){
+int main_add_connection(int source_idx, int source_v, int is, int target_idx, int target_v, int id){
 	
 	if(MAIN_LIST_MODULE.find(source_idx) == MAIN_LIST_MODULE.end() && source_idx != -1)return 1;
 	if(MAIN_LIST_MODULE.find(target_idx) == MAIN_LIST_MODULE.end() && target_idx != -1)return 1;
@@ -272,8 +270,8 @@ int main_add_connection(int source_idx, int is, int target_idx, int id){
 	Module *source = (source_idx == -1)?NULL:MAIN_LIST_MODULE[source_idx]->get_module();
 	Module *target = (target_idx == -1)?NULL:MAIN_LIST_MODULE[target_idx]->get_module();
 	
-	const char *source_port = get_source_name(source, is, target);
-	const char *target_port = get_target_name(target, id, source);
+	const char *source_port = get_source_name(source, source_v, is, target);
+	const char *target_port = get_target_name(target, target_v, id, source);
 	
 	if(source_port == NULL && target_port == NULL)
 		return 1;
@@ -298,7 +296,7 @@ int main_add_connection(int source_idx, int is, int target_idx, int id){
 	return 0;
 }
 
-int main_del_connection(int source_idx, int is, int target_idx, int id){
+int main_del_connection(int source_idx, int source_v, int is, int target_idx, int target_v, int id){
 
 	if(MAIN_LIST_MODULE.find(source_idx) == MAIN_LIST_MODULE.end() && source_idx != -1)return 1;
 	if(MAIN_LIST_MODULE.find(target_idx) == MAIN_LIST_MODULE.end() && target_idx != -1)return 1;
@@ -306,8 +304,8 @@ int main_del_connection(int source_idx, int is, int target_idx, int id){
 	Module *source = (source_idx == -1)?NULL:MAIN_LIST_MODULE[source_idx]->get_module();
 	Module *target = (target_idx == -1)?NULL:MAIN_LIST_MODULE[target_idx]->get_module();
 	
-	const char *source_port = get_source_name(source, is, target);
-	const char *target_port = get_target_name(target, id, source);
+	const char *source_port = get_source_name(source, source_v, is, target);
+	const char *target_port = get_target_name(target, target_v, id, source);
 	
 	if(source_port == NULL && target_port == NULL)
 		return 1;
@@ -331,7 +329,7 @@ int main_del_connection(int source_idx, int is, int target_idx, int id){
 	return 0;
 }
 
-int main_add_accessor(int target, int param_idx, int potentiometer, float min, float max, IO_CURVE curve, int is_db, int is_inv){
+int main_add_accessor(int target, int target_voice, int param_idx, int potentiometer, float min, float max, IO_CURVE curve, int is_db, int is_inv){
 	
 	fprintf (stderr, "Add new accessor --- ");
 	
@@ -340,14 +338,14 @@ int main_add_accessor(int target, int param_idx, int potentiometer, float min, f
 	   	return 1;
 	}
 	
-	if(MAIN_LIST_MODULE[target]->get_module()->get_voice(0)->get_param_count() <= param_idx){
+	if(MAIN_LIST_MODULE[target]->get_module()->get_voice(target_voice)->get_param_count() <= param_idx){
 		fprintf (stderr, "\nParam target not found\n");
 		return 1;
 	}
 	
 	fprintf (stderr, "Idx : %d -- Target : %d.%d -- Pot : %d -- Min : %f -- Max : %f\n", 0, target, param_idx, potentiometer, min, max);
 	
-	MAIN_LIST_MODULE[target]->accessor_add( new IO_Accessor(MAIN_LIST_MODULE[target]->get_module(), param_idx, potentiometer, min, max, curve, is_db, is_inv));
+	MAIN_LIST_MODULE[target]->accessor_add( new IO_Accessor(MAIN_LIST_MODULE[target]->get_module(), target_voice, param_idx, potentiometer, min, max, curve, is_db, is_inv));
 	
 	return 0;
 }

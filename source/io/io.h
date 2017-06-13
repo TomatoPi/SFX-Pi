@@ -41,7 +41,7 @@ class IO_Accessor{
  
 	public :
 	
-		IO_Accessor(Module *target, int target_param, int potentiometer, float min, float max, IO_CURVE curve, int is_db, int is_inv);
+		IO_Accessor(Module *target, int target_voice, int target_param, int potentiometer, float min, float max, IO_CURVE curve, int is_db, int is_inv);
 		
 		int update(int *potar_tab);
 		
@@ -54,6 +54,7 @@ class IO_Accessor{
 	
 		float (*curve)(float value);
 		Module *target;
+		int target_voice;
 		int target_param;
 		
 		int potentiometer;

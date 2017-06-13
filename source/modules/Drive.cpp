@@ -51,11 +51,11 @@ Filter_3EQ* Drive_voice::get_filter() const{
 *	Distortion effect constructor
 *	EQ creation
 */
-Drive::Drive(const char *server, int vc): Module(server, MDRIVE, DRIVE_PARAMS, vc){
+Drive::Drive(const char *server, int vc): Module(server, MDRIVE, vc){
 
 	for(int i = 0; i < vc; i++){
 		
-		Module_voice *mod = new Drive_voice(this->client_, i);
+		Drive_voice *mod = new Drive_voice(this->client_, i);
 		this->voice_.push_back(mod);
 	}
 	
@@ -103,7 +103,7 @@ int Drive::process(jack_nframes_t nframes, void *arg){
 			
 		for(jack_nframes_t i = 0; i < nframes; i++){									//For each sample
 			
-			sample_t l = (Drive_voice*)(*itr)->get_filter()->compute(in[i], gl, gm, gh);	//Compute 3bands EQ
+			sample_t l = ((Drive_voice*)*itr)->get_filter()->compute(in[i], gl, gm, gh);	//Compute 3bands EQ
 			
 			if(l>0){ 																	//if positive
 				if(isp){																	//soft-clipping or hard-clipping
@@ -130,7 +130,7 @@ int Drive::process(jack_nframes_t nframes, void *arg){
 void Drive::add_voice(){
 	
 	int idx = this->voice_.size();
-	Module_voice *mod = new Drive_voice(this->client_, idx);
+	Drive_voice *mod = new Drive_voice(this->client_, idx);
 	this->voice_.push_back(mod);
 }
 
@@ -144,7 +144,7 @@ int Drive::bypass(jack_nframes_t nframes, void *arg){
 
 const char* Drive::get_param_name(int p) const{
 	
-	if(p < ->get_voice(0)->get_param_count())
+	if(p < this->get_voice(0)->get_param_count())
 		return drive_param_names[p];
 	return "NULL";
 }
