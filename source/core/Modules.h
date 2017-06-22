@@ -66,17 +66,21 @@ class Module_voice{
 		Module_voice(jack_client_t *client, int pc, int ai, int ao, int mi, int mo);
 		~Module_voice();
 		
-		void 	set_param(int param, float var);	// Set param_[] at param value to var
-		float 	get_param(int param) const;			// Return param_[]'s value at param
-		int 	get_param_count() const;			// Return total number of params
-		
-		void 	set_param_list(int size, float *pl);			// Change all param's in a single row
+		virtual void set_param(int param, float var);		// Set param_[] at param value to var
+		virtual void set_param_list(int size, float *pl);	// Change all param's in a single row
+		float 	get_param(int param) const;					// Return param_[]'s value at param
+		int 	get_param_count() const;					// Return total number of params
+	
 		
 		jack_port_t* 	get_port(int type, int port) const;	// Return port at [type][idx]
 		jack_port_t** 	get_port_array(int type) const;		// Return array of ports
 		int				get_port_count(int type) const;		// Return number of port for given type
 	
+		int is_ready() const;	// Return true if voice fully constructed
+		
 	protected :
+	
+		int is_ready_;
 		
 		jack_port_t **port_audio_in_, **port_audio_out_,  **port_midi_in_,  **port_midi_out_;
 		int			port_count_[PORT_TYPE_COUNT];	// Number of ports, same order as port_

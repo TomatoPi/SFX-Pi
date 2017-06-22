@@ -15,70 +15,99 @@ static int MAIN_POTAR_VALUES[SPI_POTAR_COUNT] = {};
 int main(int argc, char *argv[]){
 	
 	fprintf (stderr, "\nBienvenu dans le fantastique et magnifique software Space-FX\n\n-----------------v0.2\n");
+	MAIN_SCREEN = new IO_screen();
+	IO_Potentiometer* MAIN_POTAR_TAB[SPI_POTAR_COUNT];
 	io_init_spi();
-	io_init_screen();
+	io_init_potar_tab(MAIN_POTAR_TAB);
 	
 	main_add_module(MDRIVE, 2);
 	int drive = MAIN_COUNT_MODULE;
 	float drivep[] = {0, 1, 20.0, 1, 8.0, 0.26, 10.0, 1, 10.0, 0.6, 440, 1200, 3.0, 0.75, 5.0};
+	float hardp[] = {0, 1, 20.0, 0, 0.0, 0.0, 10.0, 1, 5.0, 0.4, 200, 1200, 8.0, 1.5, 1.0};
 	MAIN_LIST_MODULE[drive]->get_module()->get_voice(0)->set_param_list(15, drivep);
+	MAIN_LIST_MODULE[drive]->get_module()->get_voice(1)->set_param_list(15, hardp);
 	main_add_connection(-1, 0, 0, drive, 0, 0);
+	main_add_connection(-1, 0, 0, drive, 1, 0);
 	main_add_accessor(drive, 0, 2, 0, 10.0, 60.0, CURVE_LIN, 1, 0);
 	main_add_accessor(drive, 0, 6, 0, 10.0, 40.0, CURVE_LIN, 1, 1);
-	
-	float hardp[] = {0, 1, 20.0, 0, 0.0, 0.0, 10.0, 1, 5.0, 0.4, 200, 1200, 8.0, 1.5, 1.0};
-	MAIN_LIST_MODULE[drive]->get_module()->get_voice(1)->set_param_list(15, hardp);
-	main_add_connection(-1, 0, 0, drive, 1, 0);
 	main_add_accessor(drive, 1, 2, 1, 10.0, 60.0, CURVE_LIN, 1, 0);
 	main_add_accessor(drive, 1, 6, 1, 10.0, 40.0, CURVE_LIN, 1, 0);
+	char n[20];
+	strcpy(n, "Disto-1");
+	MAIN_POTAR_TAB[0]->set_name(n);
+	MAIN_POTAR_TAB[0]->set_plage(10, 60);
+	strcpy(n, "Disto-2");
+	MAIN_POTAR_TAB[1]->set_name(n);
+	MAIN_POTAR_TAB[1]->set_plage(10, 60);
 	
-/*	main_add_module(MDELAY);
+	main_add_module(MDELAY, 2);
 	int delay = MAIN_COUNT_MODULE;
-	float delayp[] = {5000.0, 250.0, 180.0, 0.75, 0.8, 0.5};
-	MAIN_LIST_MODULE[delay]->set_param_list(6, delayp);
-//	main_add_accessor(delay, 1, 2, 30.0, 700.0, 0, 0);
-//	main_add_accessor(delay, 2, 2, 50.0, 1000.0, 0, 0);
-	main_add_accessor(delay, 3, 2, 0.0, 1.0, 0, 0);
-	main_add_accessor(delay, 4, 2, 0.0, 1.0, 0, 0);
-//	main_add_accessor(delay, 5, 3, 0.0, 1.0, 0, 0);
+	float delayr[] = {166, 0.6f, 0.4f};
+	float delayl[] = {250, 0.6f, 0.4f};
+	((Delay_voice*)MAIN_LIST_MODULE[delay]->get_module()->get_voice(0))->set_param_list(3, delayr);
+	((Delay_voice*)MAIN_LIST_MODULE[delay]->get_module()->get_voice(1))->set_param_list(3, delayl);
+	main_add_connection(drive, 0, 0, delay, 0, 0);
+	main_add_connection(drive, 1, 0, delay, 1, 0);
+	main_add_accessor(delay, 0, 0, 2, 100, 500, CURVE_LIN, 0, 0);
+	main_add_accessor(delay, 1, 0, 2, 150, 750, CURVE_LIN, 0, 0);
+	main_add_accessor(delay, 0, 1, 3, 0.0f, 0.9f, CURVE_LIN, 0, 0);
+	main_add_accessor(delay, 1, 1, 3, 0.0f, 0.9f, CURVE_LIN, 0, 0);
+	strcpy(n, "Delay-T");
+	MAIN_POTAR_TAB[2]->set_name(n);
+	MAIN_POTAR_TAB[2]->set_plage(100, 500);
+	strcpy(n, "Delay-F");
+	MAIN_POTAR_TAB[3]->set_name(n);
+	MAIN_POTAR_TAB[3]->set_plage(0, 90);
 	
-	main_add_connection(MAIN_LIST_MODULE[drive], 2, MAIN_LIST_MODULE[delay], 0);
-	main_add_connection(MAIN_LIST_MODULE[hard], 3, MAIN_LIST_MODULE[delay], 1);
-	
-	main_add_module(MTONE);
-	int tone = MAIN_COUNT_MODULE;
-	float tonep[] = {700.0, 3000.0, 0.05, 1.0, 0.5};
-	MAIN_LIST_MODULE[tone]->set_param_list(5, tonep);
-	
-	main_add_connection(MAIN_LIST_MODULE[delay], 6, MAIN_LIST_MODULE[tone], 0);
-	main_add_connection(MAIN_LIST_MODULE[delay], 7, MAIN_LIST_MODULE[tone], 1);
-	
-	main_add_connection(MAIN_LIST_MODULE[tone], 2, MAIN_LIST_MODULE[delay], 2);
-	main_add_connection(MAIN_LIST_MODULE[tone], 3, MAIN_LIST_MODULE[delay], 3);
-*/
-/*	main_add_module(MREV);
+	main_add_module(MREV, 2);
 	int rev = MAIN_COUNT_MODULE;
-//	main_add_accessor(rev, 4, 3, 100.0f, 1000000.0f, 0, 0);
-//	main_add_accessor(rev, 5, 4, 0.0f, 1.0f, 0, 0);
-//	main_add_accessor(rev, 7, 5, 0.0f, 1.0f, 0, 0);
-	*/
-	main_add_connection(drive, 0, 0, -1, 0, 0);
-	main_add_connection(drive, 1, 0, -1, 0, 1);
-	/*
-	main_add_connection(MAIN_LIST_MODULE[rev], 2, NULL, 0);
-	main_add_connection(MAIN_LIST_MODULE[rev], 3, NULL, 1);
-	*/
+	float reverb[] = {0.7f, 0.4f, 1.0f, 0.0f, 0.6f};
+	MAIN_LIST_MODULE[rev]->get_module()->get_voice(0)->set_param_list(5, reverb);
+	MAIN_LIST_MODULE[rev]->get_module()->get_voice(1)->set_param_list(5, reverb);
+	main_add_connection(delay, 0, 1, rev, 0, 0);
+	main_add_connection(delay, 1, 1, rev, 1, 0);
+	main_add_connection(rev, 0, 0, delay, 0, 1);
+	main_add_connection(rev, 1, 0, delay, 1, 1);
+	main_add_accessor(rev, 0, 0, 4, 0.0f, 0.9f, CURVE_LIN, 0, 0);
+	main_add_accessor(rev, 1, 0, 4, 0.0f, 0.9f, CURVE_LIN, 0, 0);
+	main_add_accessor(rev, 0, 4, 5, 0.0f, 0.9f, CURVE_LIN, 0, 0);
+	main_add_accessor(rev, 1, 4, 5, 0.0f, 0.9f, CURVE_LIN, 0, 0);
+	strcpy(n, "R-Room");
+	MAIN_POTAR_TAB[4]->set_name(n);
+	MAIN_POTAR_TAB[4]->set_plage(0, 90);
+	strcpy(n, "R-Feed");
+	MAIN_POTAR_TAB[5]->set_name(n);
+	MAIN_POTAR_TAB[5]->set_plage(0, 90);
+
+	main_add_connection(delay, 0, 0, -1, 0, 0);
+	main_add_connection(delay, 1, 0, -1, 0, 1);
+
 	/*
 	*	---------------------Main Loop-------------------------------
 	*/
 	while(1){
 	
-		io_get_potentiometer(MAIN_POTAR_VALUES);
+		/*
+		*	Read potar values and store values in MAIN_POTAR_VALUES
+		*/
+		io_update_potar_tab(MAIN_POTAR_TAB, MAIN_POTAR_VALUES);
 		
+		/*
+		*	Update each accesor for each module
+		*/
 		for(Module_Node_List::iterator itr = MAIN_LIST_MODULE.begin(); itr != MAIN_LIST_MODULE.end(); itr++){
 			
 			itr->second->accessor_update(MAIN_POTAR_VALUES);
 		}
+		
+		/*
+		*	Render screen
+		*/
+		MAIN_SCREEN->update();
+		
+		/*
+		*	Pause main loop for 50ms ( 20Hz )
+		*/
 		usleep(50000);
 	}
 }
@@ -174,18 +203,18 @@ int main_add_module(MODULE_TYPE mod, int v){
 			newmod = new LFO(SERVER_NAME, v);
 			fprintf (stderr, "new LFO\n");
 			break;
-	/*	case MRINGM:
-			newmod = new Ringmod(SERVER_NAME);
+		case MRINGM:
+			newmod = new Ringmod(SERVER_NAME, v);
 			fprintf (stderr, "new Ringmod\n");
 			break;
 		case MTONE:
-			newmod = new Tonestack(SERVER_NAME);
+			newmod = new Tonestack(SERVER_NAME, v);
 			fprintf (stderr, "new Tonestack\n");
 			break;
 		case MREV:
-			newmod = new Reverb(SERVER_NAME);
+			newmod = new Reverb(SERVER_NAME, v);
 			fprintf (stderr, "new Reverb\n");
-			break;*/
+			break;
 		default:
 			newmod = NULL;
 			break;
@@ -345,7 +374,7 @@ int main_add_accessor(int target, int target_voice, int param_idx, int potentiom
 	
 	fprintf (stderr, "Idx : %d -- Target : %d.%d -- Pot : %d -- Min : %f -- Max : %f\n", 0, target, param_idx, potentiometer, min, max);
 	
-	MAIN_LIST_MODULE[target]->accessor_add( new IO_Accessor(MAIN_LIST_MODULE[target]->get_module(), target_voice, param_idx, potentiometer, min, max, curve, is_db, is_inv));
+	MAIN_LIST_MODULE[target]->accessor_add( new IO_Accessor(MAIN_LIST_MODULE[target]->get_module(), MAIN_LIST_MODULE[target]->get_module()->get_voice(target_voice), param_idx, potentiometer, min, max, curve, is_db, is_inv));
 	
 	return 0;
 }

@@ -54,8 +54,8 @@ class Drive_voice : public Module_voice{
 		Drive_voice(jack_client_t *client, int idx);
 		~Drive_voice();
 		
-		void set_param(int param, float var);
-		void set_param_list(int size, float *pl);
+		virtual void set_param(int param, float var);
+		virtual void set_param_list(int size, float *pl);
 		
 		Filter_3EQ* get_filter() const;
 		

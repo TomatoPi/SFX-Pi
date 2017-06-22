@@ -8,17 +8,81 @@ void io_init_spi(){
 	mcp3004Setup (SPI_BASE, SPI_CHAN1);
 }
 
-void io_get_potentiometer(int *potar_tab){
+inline float io_map(float val, float fmin, float fmax, float tmin, float tmax){
 	
-	for(int i = 0; i < SPI_POTAR_COUNT; i++){
+	return ( ( ((val-fmin)/(fmax-fmin))*(tmax-tmin) ) + tmin );
+}
+
+/*
+*	---------------------------------------------------------------------------
+*	IO Potentiometer stuff
+*	---------------------------------------------------------------------------
+*/
+IO_Potentiometer::IO_Potentiometer(int idx, char* name, float min, float max): idx_(idx), min_(min), max_(max){
+	
+	this->value_ = analogRead(SPI_BASE + idx);
+	stpcpy(this->name_, name);
+}
+
+void IO_Potentiometer::set_name(char* name){
+	
+	strcpy(this->name_, name);
+}
+
+void IO_Potentiometer::set_plage(float min, float max){
+	
+	this->min_ = min;
+	this->max_ = max;
+	this->update();
+}
+
+void IO_Potentiometer::update(){
+	
+	float value = analogRead(SPI_BASE + this->idx_);
+	float diff = (float)value - (float)this->value_;
+	if( (diff > SPI_HYSTERESIS * SPI_MAX && diff > 0) || (diff < -SPI_HYSTERESIS * SPI_MAX && diff < 0)){
+	
+		this->value_ = value;
+		float display = io_map((float)value, 0.0f, SPI_MAX, this->min_, this->max_);
 		
-		potar_tab[i] = analogRead(SPI_BASE + i);
+		char p[BUF_SIZE] = {};
+		sprintf(p, "%s %d", this->name_, (int)display);
+		MAIN_SCREEN->print(p, 1);
 	}
 }
 
-IO_Accessor::IO_Accessor(Module *target, int target_voice, int target_param, int potentiometer, float min, float max, IO_CURVE curve, int is_db, int is_inv):
+float IO_Potentiometer::get_value() const{
+	
+	return this->value_;
+}
+
+void io_init_potar_tab(IO_Potentiometer **pot){
+	
+	for(int i = 0; i < SPI_POTAR_COUNT; i++){
+		
+		char n[BUF_SIZE];
+		sprintf(n, "Potar-%d", i);
+		pot[i] = new IO_Potentiometer(i, n, 0, 999);
+	}
+}
+
+void io_update_potar_tab(IO_Potentiometer **pot, int *tab){
+	
+	for(int i = 0; i < SPI_POTAR_COUNT; i++){
+		
+		tab[i] = analogRead(SPI_BASE + i);
+		pot[i]->update();
+	}
+}
+
+/*
+*	---------------------------------------------------------------------------
+*	IO Accessor stuff
+*	---------------------------------------------------------------------------
+*/
+IO_Accessor::IO_Accessor(Module *module, Module_voice *target, int target_param, int potentiometer, float min, float max, IO_CURVE curve, int is_db, int is_inv):
+	module_(module),
 	target(target),
-	target_voice(target_voice),
 	target_param(target_param),
 	potentiometer(potentiometer),
 	min(min),
@@ -48,41 +112,30 @@ IO_Accessor::IO_Accessor(Module *target, int target_voice, int target_param, int
 	}
 
 	this->state = this->potentiometer >= 0 && this->potentiometer < SPI_POTAR_COUNT;
-	this->state = target_param < target->get_voice(target_voice)->get_param_count();
+	this->state = target_param < target->get_param_count();
 }
 
 int IO_Accessor::update(int *potar_tab){
 	
-	if(this->state){
+	if(this->state && this->target != NULL){
 		
 		int value = potar_tab[this->potentiometer];
-		if( ((float)value > (float)this->value * (1.0f + SPI_HYSTERESIS)) || ((float)value  < (float)this->value * (1.0f - SPI_HYSTERESIS)) ){
+		float diff = (float)value - (float)this->value;
+		if( (diff > SPI_HYSTERESIS * SPI_MAX && diff > 0) || (diff < -SPI_HYSTERESIS * SPI_MAX && diff < 0)){
 			
 			this->value = value;
 			if(this->is_inv)value = SPI_MAX - value;
+			
+			float param = (((*this->curve)((float)value/SPI_MAX))*(this->max - this->min)) + this->min;
 
-			if(is_db){
-				this->target->get_voice(this->target_voice)->set_param( this->target_param, spi_dbtorms( (((*this->curve)((float)value/(float)SPI_MAX))*(this->max - this->min)) + this->min ) );
-			}else{
-				this->target->get_voice(this->target_voice)->set_param( this->target_param, (((*this->curve)((float)value/(float)SPI_MAX))*(this->max - this->min)) + this->min );
-			}
+			if(is_db) param = spi_dbtorms(param);
+			
+			this->target->set_param(this->target_param, param);
 			return 1;
 		}
 		return 0;
 	}
 	return -1;
-}
-
-void IO_Accessor::set_target(Module *target, int param){
-	
-	if(param >= target->get_voice(this->target_voice)->get_param_count()){
-		
-		this->state = 0;
-	}else{
-		
-		this->target = target;
-		this->target_param = param;
-	}
 }
 
 int IO_Accessor::is_dead() const{
@@ -110,23 +163,56 @@ inline float curveihan(float v){
 	return 1 - curve_han(v);
 }
 
-void io_init_screen(){
+/*
+*	---------------------------------------------------------------------------
+*	Screen stuff
+*	---------------------------------------------------------------------------
+*/
 
-	int i=0;
-	int cport_nr=16; /* /dev/ttyUSB0 */
-	int bdrate=57600; /* 9600 baud */
+IO_screen::IO_screen():time_(time(NULL)), fix_(-1){
+	
+	char str_send[BUF_SIZE]; 				/* send data buffer */
+	strcpy(str_send, "Space-Fx");
 
-	char mode[]={'8','N','1',0}; // 8 data bits, no parity, 1 stop bit
-	char str_send[BUF_SIZE]; // send data buffer
-	strcpy(str_send, "Space-Fx!");
-
-	if(RS232_OpenComport(cport_nr, bdrate, mode)){
-		printf("Can not open comport\n");
+	if(RS232_OpenComport(io_screen_port, io_screen_bdrate, io_screen_mode)){
+		printf("Can\'t open comport\n");
 		return;
 	}
+	
+	usleep(2000000);  			/* waits 2000ms for stable condition */
+	
+	this->print(str_send, 2); 	/* sends string on serial */
+}
 
-	usleep(2000000);  /* waits 2000ms for stable condition */
+void IO_screen::print(const char* text, int t){
+	
+	/*
+	*	Clear the buffer and write text
+	*/
+	char buffer[BUF_SIZE] = {};
+	
+	fprintf(stderr, "Received message : [%s] -- ", text);
+	sprintf(buffer, "%s!", text);
+	fprintf(stderr, "Message : [%s]\n", buffer);
+	
+	/*
+	*	Send data
+	*/
+	RS232_cputs(io_screen_port, buffer);
+	
+	/*
+	*	Set timer
+	*/
+	//this->time_ = time(NULL);
+	//this->fix_ = t;
+}
 
-	RS232_cputs(cport_nr, str_send); // sends string on serial
-
+void IO_screen::update(){
+	
+	if( difftime(time(NULL), this->time_) > this->fix_ && this->fix_ != -1){
+		
+		RS232_cputs(io_screen_port, io_screen_default);
+		this->time_ = time(NULL);
+		this->fix_ = -1;
+	}
 }

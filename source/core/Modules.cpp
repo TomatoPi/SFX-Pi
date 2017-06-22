@@ -91,17 +91,23 @@ const char* mod_tton(MODULE_TYPE type){
 *	---------------------------------------------------------------------------
 */
 Module_voice::Module_voice(jack_client_t *client, int pc, int ai, int ao, int mi, int mo):
-	param_count_(pc)
+	param_count_(pc),
+	is_ready_(0)
 {
 	this->port_count_[PORT_AI] = ai;
 	this->port_count_[PORT_AO] = ao;
 	this->port_count_[PORT_MI] = mi;
 	this->port_count_[PORT_MO] = mo;
 	
-	this->port_audio_in_ 	= (jack_port_t**) calloc(this->port_count_[PORT_AI], sizeof(jack_port_t*));
-	this->port_audio_out_ 	= (jack_port_t**) calloc(this->port_count_[PORT_AO], sizeof(jack_port_t*));
-	this->port_midi_in_ 	= (jack_port_t**) calloc(this->port_count_[PORT_MI], sizeof(jack_port_t*));
-	this->port_midi_out_ 	= (jack_port_t**) calloc(this->port_count_[PORT_MO], sizeof(jack_port_t*));
+	this->port_audio_in_ 	= (jack_port_t**) malloc(this->port_count_[PORT_AI] * sizeof(jack_port_t*));
+	this->port_audio_out_ 	= (jack_port_t**) malloc(this->port_count_[PORT_AO] * sizeof(jack_port_t*));
+	this->port_midi_in_ 	= (jack_port_t**) malloc(this->port_count_[PORT_MI] * sizeof(jack_port_t*));
+	this->port_midi_out_ 	= (jack_port_t**) malloc(this->port_count_[PORT_MO] * sizeof(jack_port_t*));
+	
+	if(this->port_audio_in_ == NULL || this->port_audio_out_ == NULL || this->port_midi_in_ == NULL || port_midi_out_ == NULL){
+		fprintf(stderr, "Cannot allocate port array \n");
+		exit(1);		
+	}
 	
 	this->param_ = (float*) calloc(pc, sizeof(float));
 	if(this->param_ == NULL){
@@ -144,6 +150,11 @@ void Module_voice::set_param_list(int size, float *pl){
 		//free(this->param_);
 		this->param_ = pl;
 	}
+}
+
+int Module_voice::is_ready() const{
+	
+	return this->is_ready_;
 }
 
 jack_port_t* Module_voice::get_port(int type, int port) const{
@@ -265,7 +276,10 @@ int Module::get_param_count() const{
 */
 Module_voice* Module::get_voice(int idx) const{
 	
-	if(idx < this->voice_.size()) return this->voice_[idx];
+	if(idx < this->voice_.size()){
+		
+		return this->voice_[idx];
+	}
 	return NULL;
 }
 

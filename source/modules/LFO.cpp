@@ -12,6 +12,8 @@ LFO_voice::LFO_voice(jack_client_t *client, int idx):Module_voice(client, LFO_PA
 	char n[10];
 	sprintf(n, "Out_%d", idx);
 	register_port(client, this->port_audio_out_, PORT_AO, 1, n);
+	
+	this->is_ready_ = 1;
 }
 
 
@@ -93,27 +95,30 @@ int LFO::process(jack_nframes_t nframes, void *arg){
 	
 	for(Voice_array::iterator itr = this->voice_.begin(); itr != this->voice_.end(); itr++){
 		
-		sample_t *out = (sample_t*)jack_port_get_buffer((*itr)->get_port(PORT_AO, 0), nframes);
-		
-		float f 	= (*itr)->get_param(LFO_FREQ); 	//LFO frequency
-		float sr 	= ((LFO_voice*)*itr)->get_sr();	//Client Samplerate
+		if(!!(*itr)->is_ready()){
 			
-		float ramp 	= (*itr)->get_param(LFO_RAMP);				//Current LFO value
-		float phase = (*itr)->get_param(LFO_PHASE);				//LFO Phase
-		int s 		= ((*itr)->get_param(LFO_SIGN) < 0)? -1: 1;	//LFO sign
+			sample_t *out = (sample_t*)jack_port_get_buffer((*itr)->get_port(PORT_AO, 0), nframes);
 			
-		float p1 = (*itr)->get_param(LFO_VAR1);		//waveshape param 1
-		float p2 = (*itr)->get_param(LFO_VAR2);		//waveshape param 2
-		
-		for(jack_nframes_t i = 0; i < nframes; i++){
+			float f 	= (*itr)->get_param(LFO_FREQ); 	//LFO frequency
+			float sr 	= ((LFO_voice*)*itr)->get_sr();	//Client Samplerate
+				
+			float ramp 	= (*itr)->get_param(LFO_RAMP);				//Current LFO value
+			float phase = (*itr)->get_param(LFO_PHASE);				//LFO Phase
+			int s 		= ((*itr)->get_param(LFO_SIGN) < 0)? -1: 1;	//LFO sign
+				
+			float p1 = (*itr)->get_param(LFO_VAR1);		//waveshape param 1
+			float p2 = (*itr)->get_param(LFO_VAR2);		//waveshape param 2
 			
-			ramp += f/sr;
-			ramp = fmod(ramp, 1.0);	
+			for(jack_nframes_t i = 0; i < nframes; i++){
+				
+				ramp += f/sr;
+				ramp = fmod(ramp, 1.0);	
+				
+				out[i] = (*(((LFO_voice*)*itr)->waveform_))(ramp, s, p1, p2);
+			}
 			
-			out[i] = (*(((LFO_voice*)*itr)->waveform_))(ramp, s, p1, p2);
+			(*itr)->set_param(LFO_RAMP, ramp);
 		}
-		
-		(*itr)->set_param(LFO_RAMP, ramp);
 	}
 	return 0;
 }
@@ -129,7 +134,9 @@ void LFO::sync(){
 	
 	for(Voice_array::iterator itr = this->voice_.begin(); itr != this->voice_.end(); itr++){
 		
-		(*itr)->set_param(LFO_RAMP, 0.0f);
+		if(!!(*itr)->is_ready()){
+			(*itr)->set_param(LFO_RAMP, 0.0f);
+		}
 	}
 }
 
@@ -137,8 +144,10 @@ int LFO::bypass(jack_nframes_t nframes, void *arg){
 	
 	for(Voice_array::iterator itr = this->voice_.begin(); itr != this->voice_.end(); itr++){
 		
-		sample_t *out = (sample_t*)jack_port_get_buffer((*itr)->get_port(PORT_AO, 0), nframes);
-		memset(out, 0.0f, sizeof(sample_t) * nframes);
+		if(!!(*itr)->is_ready()){
+			sample_t *out = (sample_t*)jack_port_get_buffer((*itr)->get_port(PORT_AO, 0), nframes);
+			memset(out, 0.0f, sizeof(sample_t) * nframes);
+		}
 	}
 	return 0;
 }

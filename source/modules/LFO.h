@@ -52,8 +52,8 @@ class LFO_voice : public Module_voice{
 	
 		LFO_voice(jack_client_t *client, int idx);
 		
-		void set_param(int param, float var);
-		void set_param_list(int size, float *pl);
+		virtual void set_param(int param, float var);
+		virtual void set_param_list(int size, float *pl);
 		
 	    sample_t (*waveform_)(float, float, float, float); // waveform generator function
 		int get_sr() const;

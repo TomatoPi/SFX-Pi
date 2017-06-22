@@ -9,20 +9,46 @@
 #include <unistd.h>
 #include "../core/rs232.h"
 
+#include <time.h>
+
 #include "../core/Utility.h"
 #include "../core/Modules.h"
 
 #define SPI_BASE 100
 #define SPI_CHAN1 0
 #define SPI_PMAX 8
-#define SPI_MAX 1023
+#define SPI_MAX 1023.0f
 #define SPI_HYSTERESIS 0.01f
-#define SPI_POTAR_COUNT 8
+#define SPI_POTAR_COUNT 6
 
 #define BUF_SIZE 128
 
 void io_init_spi();
-void io_get_potentiometer(int *potar_tab);
+
+float io_map(float val, float fmin, float fmax, float tmin, float tmax); // remap val from [fmin;fmax] to [tmin;tmax]
+
+class IO_Potentiometer{
+	
+	public :
+		
+		IO_Potentiometer(int idx, char* name, float min, float max);
+		
+		void set_name(char* name);
+		void set_plage(float min, float max);
+		
+		void update();
+		
+		float 	get_value() const;
+		
+	private :
+		
+		char 	name_[40];
+		int 	idx_;
+		
+		float 	min_, max_;
+		
+		int 	value_;
+};
 
 typedef enum{
 	
@@ -41,20 +67,17 @@ class IO_Accessor{
  
 	public :
 	
-		IO_Accessor(Module *target, int target_voice, int target_param, int potentiometer, float min, float max, IO_CURVE curve, int is_db, int is_inv);
+		IO_Accessor(Module *module, Module_voice *target, int target_param, int potentiometer, float min, float max, IO_CURVE curve, int is_db, int is_inv);
 		
 		int update(int *potar_tab);
-		
-		void set_target(Module *target, int target_param);
-		int get_target() const;
 		
 		int is_dead() const;
 	
 	private :
+		Module *module_;
 	
 		float (*curve)(float value);
-		Module *target;
-		int target_voice;
+		Module_voice *target;
 		int target_param;
 		
 		int potentiometer;
@@ -65,21 +88,30 @@ class IO_Accessor{
 		int state;
 };
 
-class Screen{
+class IO_screen{
 	
 	public :
 	
-		Screen();
+		IO_screen();
+		
+		void print(const char* text, int t);
+		void update();
 		
 	private :
 	
+		time_t 	time_;	/* Used to store last screen modification time */
+		int 	fix_;	/* Store delay before screen reinitialisation */
 };
 
-static int io_screen_port = 16;
-static int io_screen_bdrate = 57600;
-static char io_screen_mode[]={'8','N','1',0};
+static IO_screen *MAIN_SCREEN;
 
-void io_init_screen();
-void io_print(char *text, int time);
+void io_init_potar_tab(IO_Potentiometer **pot);
+void io_update_potar_tab(IO_Potentiometer **pot, int *tab);
+
+static int 		io_screen_port 	= 16; 				/* /dev/ttyUSB0 */
+static int 		io_screen_bdrate = 57600;			/* 9600 baud */
+static char 	io_screen_mode[]={'8','N','1',0};	/* 8 data bits, no parity, 1 stop bit */
+
+static const char* io_screen_default = "Space-Fx--!";
 
 #endif

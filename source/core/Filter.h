@@ -65,7 +65,7 @@ float spi_scale_frequency(float f, int sr);
 /*
 *	Comb filter class
 */
-class Filter_Comb{
+class Filter_comb{
 	
 	public :
 		
@@ -74,9 +74,9 @@ class Filter_Comb{
 		*	f : Firt peak frequency
 		*	sr : samplerate
 		*/
-		Filter_Comb(float f, float d, float fb, int sr);
-		Filter_Comb(float d, float fb, int s, int sr, int n);
-		~Filter_Comb();
+		Filter_comb(float f, float d, float fb, int sr);
+		Filter_comb(float d, float fb, int s, int sr, int n);
+		~Filter_comb();
 		
 		/*
 		*	Compute comb filtering on given sample
@@ -114,7 +114,7 @@ int spi_scale_comb(float f, int sr);
 /*
 *	Allpass filter class
 */
-class Filter_Allpass{
+class Filter_allpass{
 	
 	public :
 		
@@ -123,8 +123,8 @@ class Filter_Allpass{
 		*	f : feedback
 		*	s : size
 		*/
-		Filter_Allpass(float f, int s);
-		~Filter_Allpass();
+		Filter_allpass(float f, int s);
+		~Filter_allpass();
 		
 		/*
 		*	Compute allpass filtering on the given sample

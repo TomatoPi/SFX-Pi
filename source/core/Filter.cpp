@@ -87,9 +87,9 @@ inline float spi_scale_frequency(float f, int sr){
 	return 2.0f * sin(M_PI * (f / (float)sr));
 }
 
-Filter_Comb::Filter_Comb(float f, float d, float fb, int sr){
+Filter_comb::Filter_comb(float f, float d, float fb, int sr){
 	
-	memset(this, 0, sizeof(Filter_Comb));
+	memset(this, 0, sizeof(Filter_comb));
 	
 	this->samplerate = sr;
 	
@@ -108,9 +108,9 @@ Filter_Comb::Filter_Comb(float f, float d, float fb, int sr){
 	this->feedback = fb;
 }
 
-Filter_Comb::Filter_Comb(float d, float fb, int s, int sr, int n){
+Filter_comb::Filter_comb(float d, float fb, int s, int sr, int n){
 	
-	memset(this, 0, sizeof(Filter_Comb));
+	memset(this, 0, sizeof(Filter_comb));
 	
 	this->samplerate = sr;
 	this->size = s;
@@ -128,12 +128,12 @@ Filter_Comb::Filter_Comb(float d, float fb, int s, int sr, int n){
 	this->feedback = fb;
 }
 
-Filter_Comb::~Filter_Comb(){
+Filter_comb::~Filter_comb(){
 	
 	free(this->buffer);
 }
 
-sample_t Filter_Comb::compute(sample_t sample){
+sample_t Filter_comb::compute(sample_t sample){
 	
 	sample_t out;
 	int idx = this->index;
@@ -148,49 +148,49 @@ sample_t Filter_Comb::compute(sample_t sample){
 	return out;
 }
 
-void Filter_Comb::set_size(int s){
+void Filter_comb::set_size(int s){
 	
 	sample_t *bak = (sample_t*)realloc(this->buffer, s * sizeof(sample_t));
 	if(bak != NULL){
-		free(this->buffer);
+		//free(this->buffer);
 		this->buffer = bak;
 		this->size = s;
 		this->index = 0;
 	}
 }
 
-void Filter_Comb::set_freq(float f){
+void Filter_comb::set_freq(float f){
 	
 	this->set_size(spi_scale_comb(f, this->samplerate));
 }
 
-void Filter_Comb::set_damp(float d){
+void Filter_comb::set_damp(float d){
 	
 	this->damp1 = d;
 	this->damp2 = 1 - d;
 }
 
-void Filter_Comb::set_feedback(float f){
+void Filter_comb::set_feedback(float f){
 	
 	this->feedback = f;
 }
 
-int Filter_Comb::get_size() const{
+int Filter_comb::get_size() const{
 	
 	return this->size;
 }
 
-float Filter_Comb::get_freq() const{
+float Filter_comb::get_freq() const{
 	
 	return (float)this->samplerate / (float)this->size;
 }
 
-float Filter_Comb::get_damp() const{
+float Filter_comb::get_damp() const{
 	
 	return this->damp1;
 }
 
-float Filter_Comb::get_feed() const{
+float Filter_comb::get_feed() const{
 	
 	return this->feedback;
 }
@@ -200,9 +200,9 @@ inline int spi_scale_comb(float f, int sr){
 	return (int)((float)sr / f);
 }
 
-Filter_Allpass::Filter_Allpass(float f, int s){
+Filter_allpass::Filter_allpass(float f, int s){
 	
-	memset(this, 0, sizeof(Filter_Allpass));
+	memset(this, 0, sizeof(Filter_allpass));
 	
 	this->feedback = f;
 	this->size = s;
@@ -216,12 +216,12 @@ Filter_Allpass::Filter_Allpass(float f, int s){
 }
 
 
-Filter_Allpass::~Filter_Allpass(){
+Filter_allpass::~Filter_allpass(){
 	
 	free(this->buffer);
 }
 
-sample_t Filter_Allpass::compute(sample_t sample){
+sample_t Filter_allpass::compute(sample_t sample){
 	
 	sample_t out;
 	sample_t bout;
@@ -236,28 +236,28 @@ sample_t Filter_Allpass::compute(sample_t sample){
 	return out;
 }
 
-void Filter_Allpass::set_size(int s){
+void Filter_allpass::set_size(int s){
 	
 	sample_t *bak = (sample_t*)realloc(this->buffer, s * sizeof(sample_t));
 	if(bak != NULL){
-		free(this->buffer);
+		//free(this->buffer);
 		this->buffer = bak;
 		this->size = s;
 		this->index = 0;
 	}
 }
 
-void Filter_Allpass::set_feedback(float f){
+void Filter_allpass::set_feedback(float f){
 	
 	this->feedback = f;
 }
 
-int Filter_Allpass::get_size() const{
+int Filter_allpass::get_size() const{
 	
 	return this->size;
 }
 
-float Filter_Allpass::get_feedback() const{
+float Filter_allpass::get_feedback() const{
 	
 	return this->feedback;
 }

@@ -10,6 +10,8 @@ Drive_voice::Drive_voice(jack_client_t *client, int idx): Module_voice(client, D
 	register_port(client, this->port_audio_in_, PORT_AI, 1, n);
 	sprintf(n, "Out_%d", idx);
 	register_port(client, this->port_audio_out_, PORT_AO, 1, n);
+	
+	this->is_ready_ = 1;
 }
 
 Drive_voice::~Drive_voice(){
@@ -76,51 +78,54 @@ int Drive::process(jack_nframes_t nframes, void *arg){
 	
 	for(Voice_array::iterator itr = this->voice_.begin(); itr != this->voice_.end(); itr++){ //For each voice
 		
-		sample_t *in, *out;	
-		in  = (sample_t*)jack_port_get_buffer((*itr)->get_port(PORT_AI, 0), nframes);	// Collecting input buffer
-		out = (sample_t*)jack_port_get_buffer((*itr)->get_port(PORT_AO, 0), nframes);	// Collecting output buffer
+		if(!!(*itr)->is_ready()){
+			
+			sample_t *in, *out;	
+			in  = (sample_t*)jack_port_get_buffer((*itr)->get_port(PORT_AI, 0), nframes);	// Collecting input buffer
+			out = (sample_t*)jack_port_get_buffer((*itr)->get_port(PORT_AO, 0), nframes);	// Collecting output buffer
 
-		float gp, sp, shp, gn, sn, shn;			// Collecting drive settings
-		int is_abs, isp, isn;
-		
-		is_abs = (int)!!(*itr)->get_param(DRIVE_ABS);
-		int n = ((int)!!(*itr)->get_param(DRIVE_ASM))?0:4;
-		
-		gp = 		(*itr)->get_param(DRIVE_GAIN_P);
-		isp = (int)!!(*itr)->get_param(DRIVE_TYPE_P);
-		sp = 		(*itr)->get_param(DRIVE_SOFT_P);
-		shp = 		(*itr)->get_param(DRIVE_SHAPE_P);
-		
-		gn = 		(*itr)->get_param(DRIVE_GAIN_P +n);
-		isn = (int)!!(*itr)->get_param(DRIVE_TYPE_P +n);
-		sn = 		(*itr)->get_param(DRIVE_SOFT_P +n);
-		shn = 		(*itr)->get_param(DRIVE_SHAPE_P +n);
-		
-		float gl, gm, gh;
-		gl = (*itr)->get_param(DRIVE_F_GBASS);
-		gm = (*itr)->get_param(DRIVE_F_GMID);
-		gh = (*itr)->get_param(DRIVE_F_GHIGH);
+			float gp, sp, shp, gn, sn, shn;			// Collecting drive settings
+			int is_abs, isp, isn;
 			
-		for(jack_nframes_t i = 0; i < nframes; i++){									//For each sample
+			is_abs = (int)!!(*itr)->get_param(DRIVE_ABS);
+			int n = ((int)!!(*itr)->get_param(DRIVE_ASM))?0:4;
 			
-			sample_t l = ((Drive_voice*)*itr)->get_filter()->compute(in[i], gl, gm, gh);	//Compute 3bands EQ
+			gp = 		(*itr)->get_param(DRIVE_GAIN_P);
+			isp = (int)!!(*itr)->get_param(DRIVE_TYPE_P);
+			sp = 		(*itr)->get_param(DRIVE_SOFT_P);
+			shp = 		(*itr)->get_param(DRIVE_SHAPE_P);
 			
-			if(l>0){ 																	//if positive
-				if(isp){																	//soft-clipping or hard-clipping
-					out[i] = spi_soft(l*gp, 1.0, sp, shp);										//soft-clipping
-				}else{																		//else
-					out[i] = spi_clip(l*gp, -1.0, 1.0);											//hard-clipping
-				}																
-			}else{																		//if negative	
-				if(isn){                                      								//soft-clipping or hard-clipping
-					out[i] = spi_soft(l*gn, 1.0, sn, shn);          							//soft-clipping
-				}else{                                                              		//else
-					out[i] = spi_clip(l*gn, -1.0, 1.0);                         				//hard-clipping
+			gn = 		(*itr)->get_param(DRIVE_GAIN_P +n);
+			isn = (int)!!(*itr)->get_param(DRIVE_TYPE_P +n);
+			sn = 		(*itr)->get_param(DRIVE_SOFT_P +n);
+			shn = 		(*itr)->get_param(DRIVE_SHAPE_P +n);
+			
+			float gl, gm, gh;
+			gl = (*itr)->get_param(DRIVE_F_GBASS);
+			gm = (*itr)->get_param(DRIVE_F_GMID);
+			gh = (*itr)->get_param(DRIVE_F_GHIGH);
+				
+			for(jack_nframes_t i = 0; i < nframes; i++){									//For each sample
+				
+				sample_t l = ((Drive_voice*)*itr)->get_filter()->compute(in[i], gl, gm, gh);	//Compute 3bands EQ
+				
+				if(l>0){ 																	//if positive
+					if(isp){																	//soft-clipping or hard-clipping
+						out[i] = spi_soft(l*gp, 1.0, sp, shp);										//soft-clipping
+					}else{																		//else
+						out[i] = spi_clip(l*gp, -1.0, 1.0);											//hard-clipping
+					}																
+				}else{																		//if negative	
+					if(isn){                                      								//soft-clipping or hard-clipping
+						out[i] = spi_soft(l*gn, 1.0, sn, shn);          							//soft-clipping
+					}else{                                                              		//else
+						out[i] = spi_clip(l*gn, -1.0, 1.0);                         				//hard-clipping
+					}
 				}
-			}
-			
-			if(is_abs){							//if absolute value mode is true, full-wave rectification
-				out[i] = spi_abs(out[i]);
+				
+				if(is_abs){							//if absolute value mode is true, full-wave rectification
+					out[i] = spi_abs(out[i]);
+				}
 			}
 		}
 	}
@@ -138,7 +143,9 @@ int Drive::bypass(jack_nframes_t nframes, void *arg){
 	
 	for(Voice_array::iterator itr = this->voice_.begin(); itr != this->voice_.end(); itr++){
 		
-		mod_generic_bypass_callback(nframes, (*itr)->get_port(PORT_AI, 0), (*itr)->get_port(PORT_AO, 0));
+		if(!!(*itr)->is_ready()){
+			mod_generic_bypass_callback(nframes, (*itr)->get_port(PORT_AI, 0), (*itr)->get_port(PORT_AO, 0));
+		}
 	}
 }
 

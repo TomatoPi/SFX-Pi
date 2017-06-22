@@ -44,7 +44,7 @@ void Buffer_S::set_size(int s){
 	
 	sample_t *bak = (sample_t*)realloc(this->buffer, s * sizeof(sample_t));
 	if(bak != NULL){
-		free(this->buffer);
+		//free(this->buffer);
 		this->buffer = bak;
 		this->size = s;
 		this->write_i = 0;

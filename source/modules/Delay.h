@@ -37,13 +37,15 @@ class Delay_voice : public Module_voice{
 		Delay_voice(jack_client_t *client, jack_client_t *client_2, int idx);
 		~Delay_voice();
 		
-		void set_param(int param, float var);
-		void set_param_list(int size, float *pl);
+		virtual void set_param(int param, float var);
+		virtual void set_param_list(int size, float *pl);
 		
 		jack_port_t* get_p_send() const;
 		jack_port_t* get_p_return() const;
 		
 		Buffer_S* get_buffer() const;
+		
+		void connect(jack_client_t *client);
 		
 	protected :
 	
@@ -75,7 +77,7 @@ class Delay : public Module{
 	protected:
 	
 		jack_client_t *client_2_;
-		char *name_2_;
+		char* name_2_;
 	
 		/*
 		* Params are :
