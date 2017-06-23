@@ -125,6 +125,8 @@ class Module{
 		virtual const char* get_param_name(int p) const{};	//	Used for user-interface, return name for param at i ex : "Gain"
 		
 		jack_client_t* 	get_client() const;
+		
+		int 	get_type();		//	Return code type
 	
 	protected:
 	

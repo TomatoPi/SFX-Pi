@@ -1,6 +1,7 @@
 #include "main.h"
 
 const char *SERVER_NAME = "Space_Fx";
+const string VERSION = "0.5";
 
 static Module_Node_List MAIN_LIST_MODULE;
 static int MAIN_COUNT_MODULE = 0;
@@ -19,6 +20,8 @@ int main(int argc, char *argv[]){
 	IO_Potentiometer* MAIN_POTAR_TAB[SPI_POTAR_COUNT];
 	io_init_spi();
 	io_init_potar_tab(MAIN_POTAR_TAB);
+	
+	save_presset(string("Test"), VERSION, MAIN_LIST_MODULE);
 	
 	main_add_module(MDRIVE, 2);
 	int drive = MAIN_COUNT_MODULE;
@@ -82,6 +85,7 @@ int main(int argc, char *argv[]){
 	main_add_connection(delay, 0, 0, -1, 0, 0);
 	main_add_connection(delay, 1, 0, -1, 0, 1);
 
+	save_presset(string("Test2"), VERSION, MAIN_LIST_MODULE);
 	/*
 	*	---------------------Main Loop-------------------------------
 	*/
@@ -97,7 +101,7 @@ int main(int argc, char *argv[]){
 		*/
 		for(Module_Node_List::iterator itr = MAIN_LIST_MODULE.begin(); itr != MAIN_LIST_MODULE.end(); itr++){
 			
-			itr->second->accessor_update(MAIN_POTAR_VALUES);
+			(*itr)->accessor_update(MAIN_POTAR_VALUES);
 		}
 		
 		/*
@@ -114,78 +118,12 @@ int main(int argc, char *argv[]){
 
 /*
 *	---------------------------------------------------------------------------
-*	Module Node Stuff
-*	---------------------------------------------------------------------------
-*/
-
-Module_Node::Module_Node(Module *mod):_mod(mod){
-	
-}
-
-Module_Node::~Module_Node(){
-	
-	delete this->_mod;
-	
-	for (IO_Accessor_List::iterator it = this->_io_accessor_list.begin() ; it != this->_io_accessor_list.end(); it++){
-		delete (*it);
-	} 
-	this->_io_accessor_list.clear();
-	this->_connection_list.clear();
-}
-
-Module* Module_Node::get_module() const{
-	
-	return this->_mod;
-}
-
-void Module_Node::accessor_add(IO_Accessor *accessor){
-	
-	this->_io_accessor_list.push_back(accessor);
-}
-
-void Module_Node::accessor_remove(int i){
-	
-	this->_io_accessor_list.erase(this->_io_accessor_list.begin() +i);
-}
-
-IO_Accessor* Module_Node::accessor_get(int i) const{
-	
-	if(i >= this->_io_accessor_list.size())return NULL;
-	return this->_io_accessor_list.at(i);
-}
-
-void Module_Node::accessor_update(int *potar_tab){
-	
-	for (IO_Accessor_List::iterator it = this->_io_accessor_list.begin() ; it != this->_io_accessor_list.end(); it++){
-		
-		if( !!(*it)->update(potar_tab) && (*it)->is_dead() ) this->_io_accessor_list.erase(it);
-	}
-}
-
-void Module_Node::connection_add(int i){
-	
-	this->_connection_list.push_back(i);
-}
-
-void Module_Node::connection_remove(int i){
-	
-	this->_connection_list.erase(this->_connection_list.begin() +i);
-}
-
-int Module_Node::connection_get(int i) const{
-	
-	if(i >= this->_connection_list.size())return 0;
-	return this->_connection_list.at(i);
-}
-
-/*
-*	---------------------------------------------------------------------------
 *	Main Fuctions
 *	---------------------------------------------------------------------------
 */
 int main_add_module(MODULE_TYPE mod, int v){
 	
-	while(MAIN_LIST_MODULE.find(MAIN_COUNT_MODULE) != MAIN_LIST_MODULE.end()) MAIN_COUNT_MODULE++;
+	while(MAIN_COUNT_MODULE < MAIN_LIST_MODULE.size()) MAIN_COUNT_MODULE++;
 	
 	fprintf (stderr, "Add module --- ");
 	
@@ -222,7 +160,7 @@ int main_add_module(MODULE_TYPE mod, int v){
 	
 	if(newmod==NULL) return 1;
 	
-	MAIN_LIST_MODULE.insert(make_pair(MAIN_COUNT_MODULE, new Module_Node(newmod)));
+	MAIN_LIST_MODULE.push_back(new Module_Node(newmod));
 	fprintf (stderr, "Added new module : %d\n", MAIN_COUNT_MODULE);
 	
 	return 0;
@@ -230,7 +168,7 @@ int main_add_module(MODULE_TYPE mod, int v){
 
 int main_del_module(int idx){
 	
-	if(MAIN_LIST_MODULE.find(idx) == MAIN_LIST_MODULE.end())
+	if(MAIN_COUNT_MODULE >= MAIN_LIST_MODULE.size())
 		return 1;
 	
 	MAIN_LIST_MODULE.erase(MAIN_LIST_MODULE.begin());
@@ -291,10 +229,10 @@ const char* get_target_name(Module *target, int v, int id, Module *source){
 	return to;
 }
 
-int main_add_connection(int source_idx, int source_v, int is, int target_idx, int target_v, int id){
+int main_add_connection(short source_idx, short source_v, short is, short target_idx, short target_v, short id){
 	
-	if(MAIN_LIST_MODULE.find(source_idx) == MAIN_LIST_MODULE.end() && source_idx != -1)return 1;
-	if(MAIN_LIST_MODULE.find(target_idx) == MAIN_LIST_MODULE.end() && target_idx != -1)return 1;
+	if(source_idx >= MAIN_LIST_MODULE.size() && source_idx != -1)return 1;
+	if(target_idx >= MAIN_LIST_MODULE.size() && target_idx != -1)return 1;
 	
 	Module *source = (source_idx == -1)?NULL:MAIN_LIST_MODULE[source_idx]->get_module();
 	Module *target = (target_idx == -1)?NULL:MAIN_LIST_MODULE[target_idx]->get_module();
@@ -310,25 +248,26 @@ int main_add_connection(int source_idx, int source_v, int is, int target_idx, in
 			fprintf (stderr, "cannot connect input ports\n");
 			return 1;
 		}
-		MAIN_LIST_MODULE[target_idx]->connection_add(-1*(id));
+		Connection c = { source_idx, source_v, is, target_idx, target_v, id};
+		MAIN_LIST_MODULE[target_idx]->connection_add(c);
 	}else{
 		if (jack_connect (source->get_client(), source_port, target_port)) {
 			fprintf (stderr, "cannot connect input ports\n");
 			return 1;
-		}
-		if(target_idx == -1)MAIN_LIST_MODULE[source_idx]->connection_add( -1 * (is*1000000 + id) );
-		else				MAIN_LIST_MODULE[source_idx]->connection_add( is*1000000 + target_idx*1000 + id);
+		}	
+		Connection c = { source_idx, source_v, is, target_idx, target_v, id};
+		MAIN_LIST_MODULE[source_idx]->connection_add(c);
 	}
 	
 	fprintf (stderr, "New connection made\n");
-	
+
 	return 0;
 }
 
-int main_del_connection(int source_idx, int source_v, int is, int target_idx, int target_v, int id){
+int main_del_connection(short source_idx, short source_v, short is, short target_idx, short target_v, short id){
 
-	if(MAIN_LIST_MODULE.find(source_idx) == MAIN_LIST_MODULE.end() && source_idx != -1)return 1;
-	if(MAIN_LIST_MODULE.find(target_idx) == MAIN_LIST_MODULE.end() && target_idx != -1)return 1;
+	if(source_idx >= MAIN_LIST_MODULE.size() && source_idx != -1)return 1;
+	if(target_idx >= MAIN_LIST_MODULE.size() && target_idx != -1)return 1;
 	
 	Module *source = (source_idx == -1)?NULL:MAIN_LIST_MODULE[source_idx]->get_module();
 	Module *target = (target_idx == -1)?NULL:MAIN_LIST_MODULE[target_idx]->get_module();
@@ -344,14 +283,11 @@ int main_del_connection(int source_idx, int source_v, int is, int target_idx, in
 			fprintf (stderr, "cannot connect input ports\n");
 			return 1;
 		}
-		MAIN_LIST_MODULE[target_idx]->connection_remove(-1*(id));
 	}else{
 		if (jack_disconnect (source->get_client(), source_port, target_port)) {
 			fprintf (stderr, "cannot connect input ports\n");
 			return 1;
 		}
-		if(target_idx == -1)MAIN_LIST_MODULE[source_idx]->connection_remove( -1 * (is*1000000 + id) );
-		else				MAIN_LIST_MODULE[source_idx]->connection_remove( is*1000000 + target_idx*1000 + id);
 	}
 	fprintf (stderr, "Connection removed\n");
 	
@@ -362,7 +298,7 @@ int main_add_accessor(int target, int target_voice, int param_idx, int potentiom
 	
 	fprintf (stderr, "Add new accessor --- ");
 	
-	if(MAIN_LIST_MODULE.find(target) == MAIN_LIST_MODULE.end()){
+	if(target >= MAIN_LIST_MODULE.size()){
 		fprintf (stderr, "\nTarget not found\n");
 	   	return 1;
 	}
@@ -374,7 +310,7 @@ int main_add_accessor(int target, int target_voice, int param_idx, int potentiom
 	
 	fprintf (stderr, "Idx : %d -- Target : %d.%d -- Pot : %d -- Min : %f -- Max : %f\n", 0, target, param_idx, potentiometer, min, max);
 	
-	MAIN_LIST_MODULE[target]->accessor_add( new IO_Accessor(MAIN_LIST_MODULE[target]->get_module(), MAIN_LIST_MODULE[target]->get_module()->get_voice(target_voice), param_idx, potentiometer, min, max, curve, is_db, is_inv));
+	MAIN_LIST_MODULE[target]->accessor_add( new IO_Accessor(MAIN_LIST_MODULE[target]->get_module(), MAIN_LIST_MODULE[target]->get_module()->get_voice(target_voice), target, target_voice, param_idx, potentiometer, min, max, curve, is_db, is_inv));
 	
 	return 0;
 }

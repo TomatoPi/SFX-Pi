@@ -22,66 +22,7 @@ using namespace std;
 
 #include "./io/io.h"
 
-/*
-*	Each Module_Node contains an IO_Accessor_List
-*/
-typedef std::vector<IO_Accessor*> IO_Accessor_List;
-
-/*
-*	Contain list of all connection for a Module_Node
-*	source_port_index * 1,000,000 + target Module_node_index * 1,000 + target_port_index
-*/
-typedef std::vector<int> Connection_List;
-
-/*
-*	Class used to store Module and its accessors and connections
-*/
-class Module_Node{
-	
-	public :
-		
-		/*
-		*	Main constructor called with pointer to the module
-		*/
-		Module_Node(Module* mod);
-		~Module_Node();
-		
-		/*
-		*	Return pointer to the module
-		*/
-		Module* 		get_module() const;
-		
-		/*
-		*	Add, remove or get the accessor at index i
-		*/
-		void 			accessor_add(IO_Accessor *accessor);
-		void 			accessor_remove(int i);
-		IO_Accessor* 	accessor_get(int i) const;
-		/*
-		*	Update the io_accessor list with the given value table
-		*/
-		void			accessor_update(int *potar_tab);
-		
-		/*
-		*	Manage connections
-		*	Add : Add a connection, format = XXX,XXX,XXX --> Source_port_index,Target_index,Target_port_index
-		*	Remove and get : i : index of  the connection
-		*/
-		void			connection_add(int i);
-		void			connection_remove(int i);
-		int 			connection_get(int i) const;
-		
-	private :
-		
-		Module *_mod;
-		IO_Accessor_List _io_accessor_list;
-		Connection_List _connection_list;
-};
-
-/*
-*	Main map for store modules nodes
-*/
-typedef std::unordered_map<int, Module_Node*> Module_Node_List;
+#include "./presset/Presset.h"
 
 /*
 *	Main function used to create new module
@@ -108,8 +49,8 @@ const char* get_target_name(Module *target, int v, int id, Module *source);
 *	source_idx = -1 for System_Capture ports
 *	target_idx = -1 for System_Playback ports
 */
-int main_add_connection(int source_idx, int source_v, int is, int target_idx, int target_v, int id);
-int main_del_connection(int source_idx, int source_v, int is, int target_idx, int target_v, int id);
+int main_add_connection(short source_idx, short source_v, short is, short target_idx, short target_v, short id);
+int main_del_connection(short source_idx, short source_v, short is, short target_idx, short target_v, short id);
 
 /*
 *	Create a link between a potentiometer and param[param_idx] of module[target]

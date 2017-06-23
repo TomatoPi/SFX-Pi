@@ -7,7 +7,8 @@
 #include <wiringShift.h>
 #include <mcp3004.h>
 #include <unistd.h>
-#include "../core/rs232.h"
+#include "rs232.h"
+#include "mcp23017.h"
 
 #include <time.h>
 
@@ -52,6 +53,21 @@ class IO_Potentiometer{
 
 typedef enum{
 	
+	BTOGGLE=0,
+	BMOMENT=1
+}IO_PUSH_TYPE;
+
+class IO_Button{
+	
+	public :
+	
+	private :
+	
+	
+};
+
+typedef enum{
+	
 	CURVE_LIN=0,
 	CURVE_SIG=1,
 	CURVE_HAN=2,
@@ -67,17 +83,30 @@ class IO_Accessor{
  
 	public :
 	
-		IO_Accessor(Module *module, Module_voice *target, int target_param, int potentiometer, float min, float max, IO_CURVE curve, int is_db, int is_inv);
+		IO_Accessor(Module *module, Module_voice *target, int target_idx, int target_voice, int target_param, int potentiometer, float min, float max, IO_CURVE curve, int is_db, int is_inv);
 		
 		int update(int *potar_tab);
 		
 		int is_dead() const;
+		
+		int 	get_target_idx() const;
+		int 	get_target_voice() const;
+		int 	get_target_param() const;
+		int 	get_potar() const;
+		float 	get_min() const;
+		float 	get_max() const;
+		int 	get_curve() const;
+		int 	get_db() const;
+		int 	get_inv() const;
 	
 	private :
 		Module *module_;
 	
 		float (*curve)(float value);
+		IO_CURVE curve_type;
 		Module_voice *target;
+		int target_idx;
+		int target_voice;
 		int target_param;
 		
 		int potentiometer;

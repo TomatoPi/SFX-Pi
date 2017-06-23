@@ -330,3 +330,8 @@ jack_client_t* Module::get_client() const{
 
 	return this->client_;
 }
+
+int Module::get_type(){
+	
+	return static_cast<int>(this->type_);
+}

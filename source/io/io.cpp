@@ -80,9 +80,12 @@ void io_update_potar_tab(IO_Potentiometer **pot, int *tab){
 *	IO Accessor stuff
 *	---------------------------------------------------------------------------
 */
-IO_Accessor::IO_Accessor(Module *module, Module_voice *target, int target_param, int potentiometer, float min, float max, IO_CURVE curve, int is_db, int is_inv):
+IO_Accessor::IO_Accessor(Module *module, Module_voice *target, int target_idx, int target_voice, int target_param, int potentiometer, float min, float max, IO_CURVE curve, int is_db, int is_inv):
 	module_(module),
+	curve_type(curve),
 	target(target),
+	target_idx(target_idx),
+	target_voice(target_voice),
 	target_param(target_param),
 	potentiometer(potentiometer),
 	min(min),
@@ -141,6 +144,51 @@ int IO_Accessor::update(int *potar_tab){
 int IO_Accessor::is_dead() const{
 	
 	return !this->state;
+}
+
+int IO_Accessor::get_target_idx() const{
+	
+	return this->target_idx;
+}
+
+int IO_Accessor::get_target_voice() const{
+	
+	return this->target_voice;
+}
+
+int IO_Accessor::get_target_param() const{
+	
+	return this->target_param;
+}
+
+int IO_Accessor::get_potar() const{
+	
+	return this->potentiometer;
+}
+
+float IO_Accessor::get_min() const{
+	
+	return this->min;
+}
+
+float IO_Accessor::get_max() const{
+	
+	return this->max;
+}
+
+int IO_Accessor::get_curve() const{
+	
+	return static_cast<int>(this->curve_type);
+}
+
+int IO_Accessor::get_db() const{
+	
+	return this->is_db;
+}
+
+int IO_Accessor::get_inv() const{
+	
+	return this->is_inv;
 }
 
 inline float curve_lin(float v){
