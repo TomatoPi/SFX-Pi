@@ -80,6 +80,8 @@ const char* mod_tton(MODULE_TYPE type){
 			return "Tonestack";
 		case MREV:
 			return "Reverb";
+		case MCHORUS:
+			return "Chorus";
 		default:
 			return "Module";
 	}

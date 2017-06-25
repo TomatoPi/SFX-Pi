@@ -2,6 +2,9 @@
 #define DEF_LFO_H
 
 #include <jack/jack.h>
+#include <iostream>
+
+using namespace std;
 
 #include "../core/Utility.h"
 #include "../core/Modules.h"
@@ -9,20 +12,19 @@
 /*
 *	LFO's params count and param's index
 */
-#define LFO_PARAMS 7
+#define LFO_PARAMS  6
 
 #define LFO_TYPE 	0
 #define LFO_FREQ 	1
 
-#define LFO_RAMP 	2
-#define LFO_PHASE 	3
-#define LFO_SIGN 	4
+#define LFO_PHASE 	2
+#define LFO_SIGN 	3
 
-#define LFO_VAR1 	5
-#define LFO_VAR2 	6
+#define LFO_VAR1 	4
+#define LFO_VAR2 	5
 
-static const char* lfo_param_names[] 	= {"Waveform", "Frequency", "Ramp", "Phase", "Sign", "Param-1", "Param-2"};
-static const float lfo_default_params[] = {0, 1.0f, 0.0f, 0.0f, 1, 0.0f, 0.0f};
+static const char* lfo_param_names[LFO_PARAMS] 	  = {"Waveform", "Frequency", "Phase", "Sign", "Param-1", "Param-2"};
+static const float lfo_default_params[LFO_PARAMS] = {0, 1.0f, 0.0f, 1, 0.0f, 0.0f};
 
 static int RandSeed = 48172;
 
@@ -36,6 +38,7 @@ static int RandSeed = 48172;
 *	N-Phase
 */
 typedef enum {
+	
 	WAVE_SIN=0,
 	WAVE_SQR=1,
 	WAVE_TRI=2,
@@ -55,14 +58,19 @@ class LFO_voice : public Module_voice{
 		virtual void set_param(int param, float var);
 		virtual void set_param_list(int size, float *pl);
 		
-	    sample_t (*waveform_)(float, float, float, float); // waveform generator function
+		sample_t compute();
+		
 		int get_sr() const;
 		
 		void update_type(LFO_wave type);
+		void reset();
 		
 	protected :
 	
+	    sample_t (*waveform_)(float, float, float, float); // waveform generator function
+	
 		int samplerate_;
+		float ramp_;
 };
 
 /*

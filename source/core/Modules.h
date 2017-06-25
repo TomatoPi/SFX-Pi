@@ -48,7 +48,13 @@ int mod_generic_bypass_callback(jack_nframes_t nframes, jack_port_t *port_in, ja
 */
 typedef enum{
 	
-	MDRIVE, MDELAY, MLFO, MRINGM, MTONE, MREV
+	MDRIVE	=0, 
+	MDELAY	=1, 
+	MLFO	=2, 
+	MRINGM	=3, 
+	MTONE	=4, 
+	MREV	=5,
+	MCHORUS	=6
 }MODULE_TYPE;
 
 /*

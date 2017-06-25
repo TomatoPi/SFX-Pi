@@ -4,7 +4,7 @@
 *	LFO voice
 *	---------------------------------------------------------------------------
 */
-LFO_voice::LFO_voice(jack_client_t *client, int idx):Module_voice(client, LFO_PARAMS, 0, 1, 0, 0){
+LFO_voice::LFO_voice(jack_client_t *client, int idx): Module_voice(client, LFO_PARAMS, 0, 1, 0, 0){
 	
 	this->samplerate_ = jack_get_sample_rate(client);
 	this->set_param_list(LFO_PARAMS, (float*)lfo_default_params);
@@ -12,6 +12,8 @@ LFO_voice::LFO_voice(jack_client_t *client, int idx):Module_voice(client, LFO_PA
 	char n[10];
 	sprintf(n, "Out_%d", idx);
 	register_port(client, this->port_audio_out_, PORT_AO, 1, n);
+	
+	this->ramp_ = 0.0f;
 	
 	this->is_ready_ = 1;
 }
@@ -22,7 +24,7 @@ void LFO_voice::set_param(int param, float var){
 	if(param == LFO_TYPE){
 		
 		this->update_type( static_cast<LFO_wave>(var) );
-		this->param_[LFO_TYPE];
+		this->param_[LFO_TYPE] = static_cast<int>(var);
 	}else{
 		
 		this->Module_voice::set_param(param, var);
@@ -32,9 +34,20 @@ void LFO_voice::set_param(int param, float var){
 void LFO_voice::set_param_list(int size, float *pl){
 	
 	if(size == this->param_count_){
+		
 		this->Module_voice::set_param_list(size, pl);
 		this->update_type( static_cast<LFO_wave>((int)this->param_[LFO_TYPE]) );
 	}
+}
+
+sample_t LFO_voice::compute(){
+	
+	this->ramp_ += this->param_[LFO_FREQ]/this->samplerate_;
+	this->ramp_ = fmod(this->ramp_, 1.0);
+	
+	int s = (this->param_[LFO_SIGN] < 0)? -1: 1;
+	
+	return (*(this->waveform_))(this->ramp_, s, this->param_[LFO_VAR1], this->param_[LFO_VAR2]);
 }
 
 int LFO_voice::get_sr() const{
@@ -44,10 +57,14 @@ int LFO_voice::get_sr() const{
 
 void LFO_voice::update_type(LFO_wave type){
 	
-	this->param_[LFO_TYPE] = type;
+	cout << "10" << endl;
+	cout << "11" << endl;
+	this->param_[0];//= static_cast<int>(type);
+	cout << "12" << endl;
 	switch(type){
 		case WAVE_SIN:
 			this->waveform_ = w_sin;
+			cout << "14" << endl;
 			break;
 		case WAVE_SQR:
 			this->waveform_ = w_sqr;
@@ -71,6 +88,12 @@ void LFO_voice::update_type(LFO_wave type){
 			this->waveform_ = w_sin;
 			break;
 	}
+	cout << "13" << endl;
+}
+
+void LFO_voice::reset(){
+	
+	this->ramp_ = this->param_[LFO_PHASE];
 }
 
 /*
@@ -80,15 +103,22 @@ void LFO_voice::update_type(LFO_wave type){
 */
 LFO::LFO(const char *server, int vc): Module(server, MLFO, vc){
 	
+	cout << "LFO constructor" << endl;
 	for(int i = 0; i < vc; i++){
 		
-		this->voice_.push_back(new LFO_voice(this->client_, i));
+		cout << "1" << endl;
+		LFO_voice* v = new LFO_voice(this->client_, i);
+		cout << "2" << endl;
+		this->voice_.push_back(v);
+		cout << "New voice added " << i << endl;
 	}
 	
+	cout << "Active client" << endl;
 	if (jack_activate (this->client_)) {
 		fprintf (stderr, "Echec de l'activation du client\n");
 		exit (1);
 	}
+	cout << "Constructor end " << endl;
 }
 
 int LFO::process(jack_nframes_t nframes, void *arg){
@@ -99,25 +129,10 @@ int LFO::process(jack_nframes_t nframes, void *arg){
 			
 			sample_t *out = (sample_t*)jack_port_get_buffer((*itr)->get_port(PORT_AO, 0), nframes);
 			
-			float f 	= (*itr)->get_param(LFO_FREQ); 	//LFO frequency
-			float sr 	= ((LFO_voice*)*itr)->get_sr();	//Client Samplerate
-				
-			float ramp 	= (*itr)->get_param(LFO_RAMP);				//Current LFO value
-			float phase = (*itr)->get_param(LFO_PHASE);				//LFO Phase
-			int s 		= ((*itr)->get_param(LFO_SIGN) < 0)? -1: 1;	//LFO sign
-				
-			float p1 = (*itr)->get_param(LFO_VAR1);		//waveshape param 1
-			float p2 = (*itr)->get_param(LFO_VAR2);		//waveshape param 2
-			
 			for(jack_nframes_t i = 0; i < nframes; i++){
 				
-				ramp += f/sr;
-				ramp = fmod(ramp, 1.0);	
-				
-				out[i] = (*(((LFO_voice*)*itr)->waveform_))(ramp, s, p1, p2);
+				out[i] = ((LFO_voice*)*itr)->compute();
 			}
-			
-			(*itr)->set_param(LFO_RAMP, ramp);
 		}
 	}
 	return 0;
@@ -135,7 +150,7 @@ void LFO::sync(){
 	for(Voice_array::iterator itr = this->voice_.begin(); itr != this->voice_.end(); itr++){
 		
 		if(!!(*itr)->is_ready()){
-			(*itr)->set_param(LFO_RAMP, 0.0f);
+			((LFO_voice*)*itr)->reset();
 		}
 	}
 }
@@ -154,7 +169,7 @@ int LFO::bypass(jack_nframes_t nframes, void *arg){
 
 const char* LFO::get_param_name(int p) const{
 	
-	if(p < this->get_voice(0)->get_param_count())
+	if(p < LFO_PARAMS)
 		return lfo_param_names[p];
 	return "NULL";
 }

@@ -4,7 +4,6 @@
 #include "../core/Modules.h"
 #include "../core/Utility.h"
 #include "../core/Buffer.h"
-#include "../core/Filter.h"
 
 /*
 *	Default values for delay

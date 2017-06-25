@@ -1,6 +1,5 @@
 #include "main.h"
 
-const char *SERVER_NAME = "Space_Fx";
 const string VERSION = "0.5";
 
 static Module_Node_List MAIN_LIST_MODULE;
@@ -21,8 +20,12 @@ int main(int argc, char *argv[]){
 	io_init_spi();
 	io_init_potar_tab(MAIN_POTAR_TAB);
 	
-	save_presset(string("Test"), VERSION, MAIN_LIST_MODULE);
+	MAIN_LIST_MODULE.add_module(MLFO, 2);
 	
+	save_presset(string("Test") , VERSION, MAIN_LIST_MODULE);
+	load_presset(string("Test2"), VERSION, &MAIN_LIST_MODULE);
+	save_presset(string("Test3"), VERSION, MAIN_LIST_MODULE);
+	/*
 	main_add_module(MDRIVE, 2);
 	int drive = MAIN_COUNT_MODULE;
 	float drivep[] = {0, 1, 20.0, 1, 8.0, 0.26, 10.0, 1, 10.0, 0.6, 440, 1200, 3.0, 0.75, 5.0};
@@ -84,8 +87,8 @@ int main(int argc, char *argv[]){
 
 	main_add_connection(delay, 0, 0, -1, 0, 0);
 	main_add_connection(delay, 1, 0, -1, 0, 1);
-
-	save_presset(string("Test2"), VERSION, MAIN_LIST_MODULE);
+	*/
+	
 	/*
 	*	---------------------Main Loop-------------------------------
 	*/
@@ -99,7 +102,7 @@ int main(int argc, char *argv[]){
 		/*
 		*	Update each accesor for each module
 		*/
-		for(Module_Node_List::iterator itr = MAIN_LIST_MODULE.begin(); itr != MAIN_LIST_MODULE.end(); itr++){
+		for(Module_List::iterator itr = MAIN_LIST_MODULE.list_.begin(); itr != MAIN_LIST_MODULE.list_.end(); itr++){
 			
 			(*itr)->accessor_update(MAIN_POTAR_VALUES);
 		}
@@ -114,203 +117,4 @@ int main(int argc, char *argv[]){
 		*/
 		usleep(50000);
 	}
-}
-
-/*
-*	---------------------------------------------------------------------------
-*	Main Fuctions
-*	---------------------------------------------------------------------------
-*/
-int main_add_module(MODULE_TYPE mod, int v){
-	
-	while(MAIN_COUNT_MODULE < MAIN_LIST_MODULE.size()) MAIN_COUNT_MODULE++;
-	
-	fprintf (stderr, "Add module --- ");
-	
-	Module *newmod;
-	switch(mod){
-		case MDRIVE:
-			newmod = new Drive(SERVER_NAME, v);
-			fprintf (stderr, "new Drive\n");
-			break;
-		case MDELAY:
-			newmod = new Delay(SERVER_NAME, v);
-			fprintf (stderr, "new Delay\n");
-			break;
-		case MLFO:
-			newmod = new LFO(SERVER_NAME, v);
-			fprintf (stderr, "new LFO\n");
-			break;
-		case MRINGM:
-			newmod = new Ringmod(SERVER_NAME, v);
-			fprintf (stderr, "new Ringmod\n");
-			break;
-		case MTONE:
-			newmod = new Tonestack(SERVER_NAME, v);
-			fprintf (stderr, "new Tonestack\n");
-			break;
-		case MREV:
-			newmod = new Reverb(SERVER_NAME, v);
-			fprintf (stderr, "new Reverb\n");
-			break;
-		default:
-			newmod = NULL;
-			break;
-	}
-	
-	if(newmod==NULL) return 1;
-	
-	MAIN_LIST_MODULE.push_back(new Module_Node(newmod));
-	fprintf (stderr, "Added new module : %d\n", MAIN_COUNT_MODULE);
-	
-	return 0;
-}
-
-int main_del_module(int idx){
-	
-	if(MAIN_COUNT_MODULE >= MAIN_LIST_MODULE.size())
-		return 1;
-	
-	MAIN_LIST_MODULE.erase(MAIN_LIST_MODULE.begin());
-	return 0;
-}
-
-const char* get_source_name(Module *source, int v, int is, Module *target){
-	
-	const char *from;
-	if(source == NULL){
-		fprintf (stderr, "Capture source --- ");
-		
-		const char **port;
-		port = jack_get_ports (target->get_client(), NULL, NULL, JackPortIsPhysical|JackPortIsOutput);
-		if (port == NULL) {
-			fprintf(stderr, "no physical capture ports\n");
-			exit (1);
-		}
-		from = port[(is==0)?0:1];
-		free(port);
-	}else{
-		fprintf (stderr, "Module source --- ");
-		
-		if(source->get_voice(v)->get_port(PORT_AO, is) != NULL){
-			from = jack_port_name(source->get_voice(v)->get_port(PORT_AO, is));
-		}else{
-			fprintf (stderr, "\n***Failed get source port***\n");
-			return NULL;
-		}
-	}
-	return from;
-}
-	
-const char* get_target_name(Module *target, int v, int id, Module *source){
-	
-	const char *to;
-	if(target == NULL){
-		fprintf (stderr, "Playback destination\n");
-		
-		const char **port;
-		port = jack_get_ports (source->get_client(), NULL, NULL, JackPortIsPhysical|JackPortIsInput);
-		if (port == NULL) {
-			fprintf(stderr, "no physical playback ports\n");
-			exit (1);
-		}
-		to = port[(id==0)?0:1];
-		free(port);
-	}else{
-		fprintf (stderr, "Module destination\n");
-		
-		if(target->get_voice(v)->get_port(PORT_AI, id) != NULL){
-			to = jack_port_name(target->get_voice(v)->get_port(PORT_AI, id));
-		}else{
-			fprintf (stderr, "***Failed get destination port***\n");
-			return NULL;
-		}
-	}
-	return to;
-}
-
-int main_add_connection(short source_idx, short source_v, short is, short target_idx, short target_v, short id){
-	
-	if(source_idx >= MAIN_LIST_MODULE.size() && source_idx != -1)return 1;
-	if(target_idx >= MAIN_LIST_MODULE.size() && target_idx != -1)return 1;
-	
-	Module *source = (source_idx == -1)?NULL:MAIN_LIST_MODULE[source_idx]->get_module();
-	Module *target = (target_idx == -1)?NULL:MAIN_LIST_MODULE[target_idx]->get_module();
-	
-	const char *source_port = get_source_name(source, source_v, is, target);
-	const char *target_port = get_target_name(target, target_v, id, source);
-	
-	if(source_port == NULL && target_port == NULL)
-		return 1;
-	
-	if(source == NULL){
-		if (jack_connect (target->get_client(), source_port, target_port)) {
-			fprintf (stderr, "cannot connect input ports\n");
-			return 1;
-		}
-		Connection c = { source_idx, source_v, is, target_idx, target_v, id};
-		MAIN_LIST_MODULE[target_idx]->connection_add(c);
-	}else{
-		if (jack_connect (source->get_client(), source_port, target_port)) {
-			fprintf (stderr, "cannot connect input ports\n");
-			return 1;
-		}	
-		Connection c = { source_idx, source_v, is, target_idx, target_v, id};
-		MAIN_LIST_MODULE[source_idx]->connection_add(c);
-	}
-	
-	fprintf (stderr, "New connection made\n");
-
-	return 0;
-}
-
-int main_del_connection(short source_idx, short source_v, short is, short target_idx, short target_v, short id){
-
-	if(source_idx >= MAIN_LIST_MODULE.size() && source_idx != -1)return 1;
-	if(target_idx >= MAIN_LIST_MODULE.size() && target_idx != -1)return 1;
-	
-	Module *source = (source_idx == -1)?NULL:MAIN_LIST_MODULE[source_idx]->get_module();
-	Module *target = (target_idx == -1)?NULL:MAIN_LIST_MODULE[target_idx]->get_module();
-	
-	const char *source_port = get_source_name(source, source_v, is, target);
-	const char *target_port = get_target_name(target, target_v, id, source);
-	
-	if(source_port == NULL && target_port == NULL)
-		return 1;
-	
-	if(source == NULL){
-		if (jack_disconnect (target->get_client(), source_port, target_port)) {
-			fprintf (stderr, "cannot connect input ports\n");
-			return 1;
-		}
-	}else{
-		if (jack_disconnect (source->get_client(), source_port, target_port)) {
-			fprintf (stderr, "cannot connect input ports\n");
-			return 1;
-		}
-	}
-	fprintf (stderr, "Connection removed\n");
-	
-	return 0;
-}
-
-int main_add_accessor(int target, int target_voice, int param_idx, int potentiometer, float min, float max, IO_CURVE curve, int is_db, int is_inv){
-	
-	fprintf (stderr, "Add new accessor --- ");
-	
-	if(target >= MAIN_LIST_MODULE.size()){
-		fprintf (stderr, "\nTarget not found\n");
-	   	return 1;
-	}
-	
-	if(MAIN_LIST_MODULE[target]->get_module()->get_voice(target_voice)->get_param_count() <= param_idx){
-		fprintf (stderr, "\nParam target not found\n");
-		return 1;
-	}
-	
-	fprintf (stderr, "Idx : %d -- Target : %d.%d -- Pot : %d -- Min : %f -- Max : %f\n", 0, target, param_idx, potentiometer, min, max);
-	
-	MAIN_LIST_MODULE[target]->accessor_add( new IO_Accessor(MAIN_LIST_MODULE[target]->get_module(), MAIN_LIST_MODULE[target]->get_module()->get_voice(target_voice), target, target_voice, param_idx, potentiometer, min, max, curve, is_db, is_inv));
-	
-	return 0;
 }
