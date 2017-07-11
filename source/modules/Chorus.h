@@ -5,57 +5,42 @@
 #include "../core/Buffer.h"
 #include "../core/Utility.h"
 
-/*
-*	Default values for chorus
-*/
-static const float default_chorus_values[] = {0.1, 1.0};
-static const char* chorus_params_name[] = {"Depth", "Drywet"};
-
 #define CHORUS_SIZE 3
 
 /*
 *	Chorus param's count and adresses
 */
-#define CHORUS_PARAMS 2
 
 #define CHORUS_DEPTH  0
 #define CHORUS_DRYWET 1
 
-
-class Chorus_voice : public Module_voice{
-	
-	public :
-	
-		Chorus_voice(jack_client_t *client, int idx);
-		~Chorus_voice();
-		
-		virtual void set_param(int param, float var);
-		virtual void set_param_list(int size, float *pl);
-		
-		Buffer_M* get_buffer() const;
-	
-	private :
-	
-		int samplerate_;
-		Buffer_M *buffer_;
-};
+/*
+*	Default values for chorus
+*/
+static const int    CHORUS_PARAMS_COUNT = 2;
+static const float  CHORUS_DEFAULT_PARAMS[CHORUS_PARAMS_COUNT] = {0.1, 1.0};
+static const string CHORUS_PARAM_NAMES[CHORUS_PARAMS_COUNT] = {"Depth", "Drywet"};
+static const int    CHORUS_DELAYS_LENGTH[CHORUS_SIZE] = {7, 15, 18};
 
 class Chorus : public Module{
 	
 	public :
 	
-		Chorus(const char* server, int vc);
+		Chorus(const char* server);
+        ~Chorus();
 		
-		int process(jack_nframes_t nframes, void *arg);
-		int bypass(jack_nframes_t nframes, void *arg);
-		
-		void add_voice();
-		
-		const char* get_param_name(int p) const;
-		
-	private :
+		virtual int process(jack_nframes_t nframes, void *arg);
+		virtual int bypass(jack_nframes_t nframes, void *arg);
 	
-		
+	protected :
+    
+        virtual void change_param(int idx, float value); /**< @see set_param(int idx, float value) */
+        virtual void change_param(const float *values);        /**< @see set_param(float *values) */
+    
+        virtual string return_param_name(int idx);       /**< @see get_param_name(int idx) */
+	
+		int samplerate_;    /**< Current semplerate */
+		Buffer_M *buffer_;  /**< Choru's buffer */
 };
 
 #endif

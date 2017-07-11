@@ -99,18 +99,22 @@ sample_t Buffer_S::read(float speed){
 */
 Buffer_M::Buffer_M(int length, int samplerate, int count, int *delay):Buffer(length, samplerate){
 	
-	fprintf (stderr, "1\n");
 	int max = 0;
-	fprintf (stderr, "2\n");
-	for(int i = 0; i < count; i++) max = (max < delay[i])?delay[i]:max;	
-	fprintf (stderr, "3\n");
+	for(int i = 0; i < count; i++) max = (max < delay[i])?delay[i]:max;
 	if(max > length)this->set_length(max, samplerate);
 	
-	fprintf (stderr, "4\n");
 	this->count_ = count;
-	fprintf (stderr, "5\n");
 	this->read_i_ = (float*)calloc(count, sizeof(float));
-	for(int i = 0; i < count; i++) this->read_i_[i] = (this->size_ - spi_mstos(delay[i], samplerate)) % this->size_;
+    
+    cout << "Created buffer of : " << size_ << " samples and with : " << count_ << "Readers" << endl;
+    
+	for(int i = 0; i < count; i++){
+        
+        this->read_i_[i] = (this->size_ - spi_mstos(delay[i], samplerate)) % this->size_;
+        cout << " R : " << read_i_[i];
+    }
+    
+    cout << endl << "Buffer created" << endl;
 }
 
 void Buffer_M::set_length(int l, int sr){
@@ -179,9 +183,3 @@ int Buffer_M::get_reader_count() const{
 	
 	return this->count_;
 }
-
-/*
-*	---------------------------------------------------------------------------
-*	Multitap variable speed buffer
-*	---------------------------------------------------------------------------
-*/

@@ -83,14 +83,13 @@ class IO_Accessor{
  
 	public :
 	
-		IO_Accessor(Module *module, Module_voice *target, int target_idx, int target_voice, int target_param, int potentiometer, float min, float max, IO_CURVE curve, int is_db, int is_inv);
+		IO_Accessor(Module *module, int target_idx, int target_param, int potentiometer, float min, float max, IO_CURVE curve, int is_db, int is_inv);
 		
 		int update(int *potar_tab);
 		
 		int is_dead() const;
 		
 		int 	get_target_idx() const;
-		int 	get_target_voice() const;
 		int 	get_target_param() const;
 		int 	get_potar() const;
 		float 	get_min() const;
@@ -104,9 +103,7 @@ class IO_Accessor{
 	
 		float (*curve)(float value);
 		IO_CURVE curve_type;
-		Module_voice *target;
 		int target_idx;
-		int target_voice;
 		int target_param;
 		
 		int potentiometer;

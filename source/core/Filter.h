@@ -74,6 +74,7 @@ class Filter_comb{
 		*	f : Firt peak frequency
 		*	sr : samplerate
 		*/
+        Filter_comb();
 		Filter_comb(float f, float d, float fb, int sr);
 		Filter_comb(float d, float fb, int s, int sr, int n);
 		~Filter_comb();
@@ -123,6 +124,7 @@ class Filter_allpass{
 		*	f : feedback
 		*	s : size
 		*/
+        Filter_allpass();
 		Filter_allpass(float f, int s);
 		~Filter_allpass();
 		

@@ -80,12 +80,10 @@ void io_update_potar_tab(IO_Potentiometer **pot, int *tab){
 *	IO Accessor stuff
 *	---------------------------------------------------------------------------
 */
-IO_Accessor::IO_Accessor(Module *module, Module_voice *target, int target_idx, int target_voice, int target_param, int potentiometer, float min, float max, IO_CURVE curve, int is_db, int is_inv):
+IO_Accessor::IO_Accessor(Module *module, int target_idx, int target_param, int potentiometer, float min, float max, IO_CURVE curve, int is_db, int is_inv):
 	module_(module),
 	curve_type(curve),
-	target(target),
 	target_idx(target_idx),
-	target_voice(target_voice),
 	target_param(target_param),
 	potentiometer(potentiometer),
 	min(min),
@@ -115,12 +113,12 @@ IO_Accessor::IO_Accessor(Module *module, Module_voice *target, int target_idx, i
 	}
 
 	this->state = this->potentiometer >= 0 && this->potentiometer < SPI_POTAR_COUNT;
-	this->state = target_param < target->get_param_count();
+	this->state = target_param < module_->get_param_count();
 }
 
 int IO_Accessor::update(int *potar_tab){
 	
-	if(this->state && this->target != NULL){
+	if(this->state && this->module_ != NULL){
 		
 		int value = potar_tab[this->potentiometer];
 		float diff = (float)value - (float)this->value;
@@ -133,7 +131,7 @@ int IO_Accessor::update(int *potar_tab){
 
 			if(is_db) param = spi_dbtorms(param);
 			
-			this->target->set_param(this->target_param, param);
+			this->module_->set_param(this->target_param, param);
 			return 1;
 		}
 		return 0;
@@ -149,11 +147,6 @@ int IO_Accessor::is_dead() const{
 int IO_Accessor::get_target_idx() const{
 	
 	return this->target_idx;
-}
-
-int IO_Accessor::get_target_voice() const{
-	
-	return this->target_voice;
 }
 
 int IO_Accessor::get_target_param() const{

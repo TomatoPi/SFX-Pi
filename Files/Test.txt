@@ -1,1 +1,3 @@
-Preset 0.5 Test 0
+Preset 1.0 Test 1
+Module 2 6
+    Params 6 0 1 0 1 0 0

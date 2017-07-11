@@ -87,6 +87,10 @@ inline float spi_scale_frequency(float f, int sr){
 	return 2.0f * sin(M_PI * (f / (float)sr));
 }
 
+Filter_comb::Filter_comb(){
+    
+}
+
 Filter_comb::Filter_comb(float f, float d, float fb, int sr){
 	
 	memset(this, 0, sizeof(Filter_comb));
@@ -198,6 +202,10 @@ float Filter_comb::get_feed() const{
 inline int spi_scale_comb(float f, int sr){
 	
 	return (int)((float)sr / f);
+}
+
+Filter_allpass::Filter_allpass(){
+    
 }
 
 Filter_allpass::Filter_allpass(float f, int s){

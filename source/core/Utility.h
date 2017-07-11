@@ -4,9 +4,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <iostream>
 
 #include <math.h>
 #include <jack/jack.h>
+
+using namespace std;
 
 /*
 * Very small amount

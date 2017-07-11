@@ -9,38 +9,26 @@
 
 #define RING_DEPTH 0
 
-static const char* ringmod_param_names[] = {"Depth"};
-static const float ringmod_default_params[] = {1.0f};
+static const int    RINGMOD_PARAMS_COUNT = 1;
+static const string RINGMOD_PARAM_NAMES[RINGMOD_PARAMS_COUNT] = {"Depth"};
+static const float  RINGMOD_DEFAULT_PARAMS[RINGMOD_PARAMS_COUNT] = {1.0f};
 
-class Ringmod_voice : public Module_voice{
-	
-	public :
-		
-		Ringmod_voice(jack_client_t *client, int idx);
-		
-		virtual void set_param(int param, float var);
-		virtual void set_param_list(int size, float *pl);
-};
 
 class Ringmod : public Module{
 
 	public:
 	
-		Ringmod(const char *server, int vc);
+		Ringmod(const char *server);
 		
-		int process(jack_nframes_t nframes, void *arg);
-		int bypass(jack_nframes_t nframes, void *arg);
-		
-		void add_voice();
-		
-		const char* get_param_name(int p) const;
-		
-	private :
-		/*
-		*	RingMod / Tremolo unique parameters are :
-		*	
-		*	float : depth
-		*/
+        virtual int process(jack_nframes_t nframes, void *arg);
+		virtual int bypass(jack_nframes_t nframes, void *arg);
+	
+	protected :
+    
+        virtual void change_param(int idx, float value); /**< @see set_param(int idx, float value) */
+        virtual void change_param(const float *values);        /**< @see set_param(float *values) */
+    
+        virtual string return_param_name(int idx);       /**< @see get_param_name(int idx) */
 };
 
 #endif

@@ -12,8 +12,6 @@ using namespace std;
 /*
 *	LFO's params count and param's index
 */
-#define LFO_PARAMS  6
-
 #define LFO_TYPE 	0
 #define LFO_FREQ 	1
 
@@ -23,13 +21,14 @@ using namespace std;
 #define LFO_VAR1 	4
 #define LFO_VAR2 	5
 
-static const char* lfo_param_names[LFO_PARAMS] 	  = {"Waveform", "Frequency", "Phase", "Sign", "Param-1", "Param-2"};
-static const float lfo_default_params[LFO_PARAMS] = {0, 1.0f, 0.0f, 1, 0.0f, 0.0f};
+static const int    LFO_PARAMS_COUNT = 6;
+static const string LFO_PARAM_NAMES[LFO_PARAMS_COUNT] 	 = {"Waveform", "Frequency", "Phase", "Sign", "Param-1", "Param-2"};
+static const float  LFO_DEFAULT_PARAMS[LFO_PARAMS_COUNT] = {0, 1.0f, 0.0f, 1, 0.0f, 0.0f};
 
 static int RandSeed = 48172;
 
-/*
-*	List of possible LFO waveshape
+/**
+*	List of possible LFO waveshape.
 *	Sinus
 *	Square
 *	Triangular
@@ -48,31 +47,6 @@ typedef enum {
 	WAVE_WHI=6
 }LFO_wave;
 
-
-class LFO_voice : public Module_voice{
-	
-	public :
-	
-		LFO_voice(jack_client_t *client, int idx);
-		
-		virtual void set_param(int param, float var);
-		virtual void set_param_list(int size, float *pl);
-		
-		sample_t compute();
-		
-		int get_sr() const;
-		
-		void update_type(LFO_wave type);
-		void reset();
-		
-	protected :
-	
-	    sample_t (*waveform_)(float, float, float, float); // waveform generator function
-	
-		int samplerate_;
-		float ramp_;
-};
-
 /*
 *	LFO Module
 */
@@ -80,33 +54,27 @@ class LFO : public Module{
 	
 	public:
 		
-		LFO(const char *server, int vc);
-		
-		int process(jack_nframes_t nframes, void *arg);
-		int bypass(jack_nframes_t nframes, void *arg);
-		
-		void add_voice();
-		void sync();
-		
-		const char* get_param_name(int p) const;
-		
-	protected:
-			
-	/*
-		LFO_Wave type;
-		float f; 		//LFO frequency
-		int sr;			//Client Samplerate
-		
-		float ramp;		//Current LFO value
-		float phase;	//LFO Phase
-		float sign;		//LFO sign
-		
-		float p1;		//waveshape param 1
-		float p2;		//waveshape param 2
-	*/
+		LFO(const char *server);
+
+        virtual int process(jack_nframes_t nframes, void *arg);
+		virtual int bypass(jack_nframes_t nframes, void *arg);
+        
+        void sync();
+	
+	protected :
+    
+        virtual void change_param(int idx, float value); /**< @see set_param(int idx, float value) */
+        virtual void change_param(const float *values);        /**< @see set_param(float *values) */
+    
+        virtual string return_param_name(int idx);       /**< @see get_param_name(int idx) */
+        
+        void update_type(LFO_wave type);
+        
+        sample_t (*waveform_)(float, float, float, float);  /**< waveform generator function */
+        
+        int samplerate_;
+		float ramp_;
 };
-
-
 
 /*
 *	Waveform functions, see wiki

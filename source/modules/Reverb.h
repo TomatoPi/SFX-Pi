@@ -14,8 +14,6 @@
 #define R_DRY 0.5f
 #define R_WIDTH 1.0f
 
-#define REVERB_PARAMS 5
-
 #define REV_ROOM 0
 #define REV_DAMP 1
 #define REV_WET  2
@@ -35,60 +33,41 @@
 static const int combsize[COMBCOUNT] = {1116, 1188, 1277, 1356, 1422, 1491, 1557, 1617};
 static const int allpsize[ALLPCOUNT] = {556, 441, 341, 225};
 
-static const char* reverb_param_names[] = {"Roomsize", "Damp", "Wet", "Dry", "Allpf"};
-static const float reverb_default_params[] = {0.5f, 0.5f, 1.0f, 0.0f, 0.5f};
+static const int    REVERB_PARAMS_COUNT = 5;
+static const string REVERB_PARAM_NAMES[REVERB_PARAMS_COUNT] = {"Roomsize", "Damp", "Wet", "Dry", "Allpf"};
+static const float  REVERB_DEFAULT_PARAMS[REVERB_PARAMS_COUNT] = {0.5f, 0.5f, 1.0f, 0.0f, 0.5f};
 
-class Reverb_voice : public Module_voice{
+
+class Reverb : public Module{
 	
-	public :
-	
-		Reverb_voice(jack_client_t *client, int idx);
-		~Reverb_voice();
-	
-		virtual void set_param(int param, float var);
-		virtual void set_param_list(int size, float *pl);
-	
-		Filter_comb* 	get_comb(int idx) const;
-		Filter_allpass* get_allp(int idx) const;
+	public:
 		
-		void update();
-		
+		Reverb(const char *server);
+
+        virtual int process(jack_nframes_t nframes, void *arg);
+		virtual int bypass(jack_nframes_t nframes, void *arg);
+	
 	protected :
-		
-		Filter_comb *comb_[COMBCOUNT];
-		Filter_allpass *allp_[ALLPCOUNT];
+    
+        virtual void change_param(int idx, float value); /**< @see set_param(int idx, float value) */
+        virtual void change_param(const float *values);        /**< @see set_param(float *values) */
+    
+        virtual string return_param_name(int idx);       /**< @see get_param_name(int idx) */
+    
+		void update();          /**< Update and scale reverb parameters */
+        
+        int samplerate_;
+	
+		float const gain_;
+	
+		Filter_comb     comb_[COMBCOUNT];
+		Filter_allpass  allp_[ALLPCOUNT];
 		
 		float room_;
 		float damp_;
 		float wet_;
 		float dry_;
 		float allpf_;
-};
-
-class Reverb : public Module{
-	
-	public:
-		
-		Reverb(const char *server, int vc);
-	
-		int process(jack_nframes_t nframes, void *arg);
-		int bypass(jack_nframes_t nframes, void *arg);
-		
-		void add_voice();
-		
-		const char* get_param_name(int p) const;
-	
-	protected:
-	
-		float gain_ = 0.015f;
-	
-		/*
-		*	gain
-		*
-		*	dry
-		*	wet1
-		*	wet2
-		*/
 };
 
 #endif

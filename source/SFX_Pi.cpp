@@ -1,6 +1,6 @@
 #include "main.h"
 
-const string VERSION = "0.5";
+const string VERSION = "1.0";
 
 static Module_Node_List MAIN_LIST_MODULE;
 static int MAIN_COUNT_MODULE = 0;
@@ -20,7 +20,7 @@ int main(int argc, char *argv[]){
 	io_init_spi();
 	io_init_potar_tab(MAIN_POTAR_TAB);
 	
-	MAIN_LIST_MODULE.add_module(MLFO, 2);
+	MAIN_LIST_MODULE.add_module(MOD_LFO);
 	
 	save_presset(string("Test") , VERSION, MAIN_LIST_MODULE);
 	load_presset(string("Test2"), VERSION, &MAIN_LIST_MODULE);
