@@ -44,7 +44,8 @@ Module::Module(const char *server, MODULE_TYPE type, int pc, int ai, int ao, int
     ao_(ao),
     mi_(mi),
     mo_(mo),
-    param_c_(pc)
+    param_c_(pc),
+    bank_idx_(0)
 {
     
     /*
@@ -74,7 +75,7 @@ Module::Module(const char *server, MODULE_TYPE type, int pc, int ai, int ao, int
 	
     //cout << "Client is ok! -- ";
 	this->client_ = client;
-	this->name_ = name;
+	this->name_ = jack_get_client_name(client);
 	
 	// Register callback function
     //cout << "Register callback -- ";
@@ -157,6 +158,12 @@ Module::~Module(){
     delete midi_in_;
     delete midi_out_;
     
+    for(ModBank::iterator itr = bank_.begin(); itr != bank_.end(); itr++){
+    
+        delete *(itr);
+    }
+    bank_.clear();
+    
     jack_client_close(client_);
 }
 
@@ -186,14 +193,37 @@ MODULE_TYPE Module::get_type(){
     return type_;
 }
 
+char* Module::get_name(){
+    
+    return name_;
+}
+
 void Module::set_param(int idx, float value){
     
-    if (idx < param_c_) this->change_param(idx, value);
+    if (idx < param_c_){
+        
+        param_[idx] = value;
+        
+        if(bank_.size() != 0){
+            bank_.at(bank_idx_)[idx] = value;
+        }
+        
+        this->change_param(idx, value);
+    }
 }
 
 void Module::set_param(int count, const float *values){
     
-    if (count == param_c_) this->change_param(values);
+    if (count == param_c_){
+        
+        memcpy(param_, values, sizeof(float) * param_c_);
+        
+        if(bank_.size() != 0){
+            memcpy(bank_.at(bank_idx_), values, sizeof(float) * param_c_);
+        }
+        
+        this->change_param(values);
+    }
 }
 
 int Module::get_param_count() const{
@@ -209,13 +239,106 @@ float Module::get_param(int idx) const{
     return 0;
 }
 
+void Module::add_bank(int size, const float *bank){
+    
+    if(size == param_c_){
+        
+        float *newbank = new float[param_c_];
+        memcpy(newbank, bank, sizeof(float) * param_c_);
+        
+        if(bank_.size() == 0){
+            
+            bank_.push_back(newbank);
+            this->set_bank(0);
+        }else{
+            
+            bank_.push_back(newbank);
+        }
+    }
+}
+
+void Module::add_bank(){
+    
+    this->new_bank();
+}
+
+void Module::remove_bank(){
+    
+    this->remove_bank(bank_idx_);
+}
+
+void Module::remove_bank(int idx){
+    
+    if(idx > 0 && idx < bank_.size()){
+        
+        delete bank_.at(idx);
+        bank_.erase(bank_.begin() + idx);
+        
+        if(bank_idx_ >= bank_.size()) bank_idx_ = 0;
+        if(bank_.size() == 0) bank_idx_ = -1;
+    }
+}
+
+bool Module::next_bank(){
+    
+    bool cycle = false;
+    
+    if(bank_.size() != 0){
+        
+        this->set_bank(++bank_idx_%bank_.size());
+        cycle = bank_idx_ == 0;
+    }
+    
+    return cycle;
+}
+
+bool Module::prev_bank(){
+    
+    bool cycle = false;
+    
+    if(bank_.size() > 0){
+        
+        this->set_bank((--bank_idx_ < 0)? bank_idx_ = bank_.size() -1 : bank_idx_);
+        cycle = bank_idx_ == bank_.size() - 1;
+    }
+    
+    return cycle;
+}
+
+bool Module::set_bank(int idx){
+    
+    if(idx < bank_.size()){
+        
+        bank_idx_ = idx;        
+        this->set_param(param_c_, bank_.at(idx));
+        
+        return true;
+    }
+    return false;
+}
+
+int Module::get_bank(){
+    
+    return bank_idx_;
+}
+
 string Module::get_param_name(int idx){
     
     if (idx < param_c_){
         
         return this->return_param_name(idx);
     }else{
-        return string("");
+        return string("NONE");
+    }
+}
+
+string Module::get_formated_param(int idx){
+    
+    if (idx < param_c_){
+        
+        return this->return_formated_param(idx);
+    }else{
+        return string("NONE");
     }
 }
 

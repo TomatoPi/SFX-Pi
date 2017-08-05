@@ -99,7 +99,7 @@ int Reverb::bypass(jack_nframes_t nframes, void *arg){
 
 void  Reverb::change_param(int idx, float value){
     
-    param_[idx] = value;
+    //param_[idx] = value;
 		
     switch(idx){
         
@@ -137,7 +137,7 @@ void  Reverb::change_param(int idx, float value){
 
 void  Reverb::change_param(const float *values){
     
-    memcpy(param_, values, sizeof(sample_t) * param_c_);
+    //memcpy(param_, values, sizeof(sample_t) * param_c_);
     
     room_ = (param_[REV_ROOM] * scaleroom) + offsetroom;
     damp_  = param_[REV_DAMP] * scaledamp;
@@ -148,10 +148,58 @@ void  Reverb::change_param(const float *values){
     this->update();
 }
 
+void Reverb::new_bank(){
+    
+    this->add_bank(REVERB_PARAMS_COUNT, REVERB_DEFAULT_PARAMS);
+}
+
 string  Reverb::return_param_name(int idx){
     
     return REVERB_PARAM_NAMES[idx];
 }
+
+string Reverb::return_formated_param(int idx){
+    
+    string n = REVERB_PARAM_NAMES[idx];
+    
+    switch (idx){
+        
+        case REV_ROOM :
+        
+            n += "    ";
+            n += f_ftos( param_[idx] );
+            break;
+        
+        case REV_DAMP :
+            
+            n += "    ";
+            n += f_ftos( param_[idx] );
+            break;
+            
+        case REV_WET :
+            
+            n += "     ";
+            n += f_ftos( param_[idx] );
+            break;
+        
+        case REV_DRY :
+            
+            n += "     ";
+            n += f_ftos( param_[idx] );
+            break;
+        
+        case REV_ALL :
+            
+            n += "   ";
+            n += f_ftos( param_[idx] );
+            break;
+        
+        default :
+            break;
+    }
+    
+    return n;
+} 
 
 void Reverb::update(){
 	

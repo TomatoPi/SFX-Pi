@@ -160,7 +160,7 @@ int Delay::bypass(jack_nframes_t nframes, void *arg){
 
 void Delay::change_param(int idx, float value){
     
-    param_[idx] = value;
+    //param_[idx] = value;
     
     if (idx == DELAY_DELAY) {
         
@@ -170,12 +170,47 @@ void Delay::change_param(int idx, float value){
 
 void Delay::change_param(const float *values){
     
-    memcpy(param_, values, sizeof(float) * param_c_);
+    //memcpy(param_, values, sizeof(float) * param_c_);
     
     buffer_.set_length(param_[DELAY_DELAY], samplerate_);
+}
+
+void Delay::new_bank(){
+    
+    this->add_bank(DELAY_PARAMS_COUNT, DELAY_DEFAULT_PARAMS);
 }
 
 string Delay::return_param_name(int idx){
     
     return DELAY_PARAM_NAMES[idx];
 }
+
+string Delay::return_formated_param(int idx){
+    
+    string n = DELAY_PARAM_NAMES[idx];
+    
+    switch (idx){
+        
+        case DELAY_DELAY :
+        
+            n += "  ";
+            break;
+        
+        case DELAY_FEEDB :
+            
+            n += "  ";
+            break;
+            
+        case DELAY_DRYWET :
+            
+            n += " ";
+            break;
+           
+        default :
+            break;
+    }
+    
+    n += f_ftos( param_[idx] );
+    
+    return n;
+} 

@@ -44,7 +44,7 @@ int Tonestack::bypass(jack_nframes_t nframes, void *arg){
 
 void Tonestack::change_param(int idx, float value){
     
-    param_[idx] = value;
+    //param_[idx] = value;
     
     if(idx == TONE_FLOW){
 		
@@ -57,11 +57,59 @@ void Tonestack::change_param(int idx, float value){
 
 void Tonestack::change_param(const float *values){
     
-    memcpy(param_, values, param_c_);
+    //memcpy(param_, values, param_c_);
     filter_.set_freq(param_[TONE_FLOW], param_[TONE_FHIGH]);
+}
+
+void Tonestack::new_bank(){
+    
+    this->add_bank(TONE_PARAMS_COUNT, TONE_DEFAULT_PARAM);
 }
 
 string Tonestack::return_param_name(int idx){
     
     return TONE_PARAM_NAMES[idx];
 }
+
+string Tonestack::return_formated_param(int idx){
+    
+    string n = TONE_PARAM_NAMES[idx];
+    
+    switch (idx){
+        
+        case TONE_FLOW :
+        
+            n += "  ";
+            n += f_ftos( param_[idx] );
+            break;
+        
+        case TONE_FHIGH :
+        
+            n += " ";
+            n += f_ftos( param_[idx] );
+            break;
+        
+        case TONE_GL :
+        
+            n += " ";
+            n += f_ftos( param_[idx] );
+            break;
+        
+        case TONE_GM :
+        
+            n += " ";
+            n += f_ftos( param_[idx] );
+            break;
+        
+        case TONE_GH :
+        
+            n += " ";
+            n += f_ftos( param_[idx] );
+            break;
+        
+        default :
+            break;
+    }
+    
+    return n;
+} 

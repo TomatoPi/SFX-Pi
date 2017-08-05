@@ -17,7 +17,7 @@
 */
 static const int    DELAY_PARAMS_COUNT = 3;
 static const float  DELAY_DEFAULT_PARAMS[DELAY_PARAMS_COUNT] = {200, 0.5f, 0.5f};
-static const string DELAY_PARAM_NAMES[DELAY_PARAMS_COUNT] = {"Delay", "Feedback", "Dry-Wet"};
+static const string DELAY_PARAM_NAMES[DELAY_PARAMS_COUNT] = {"Delay", "Feedb", "DryWet"};
 
 /*
 *	Functuion for register write callback
@@ -64,7 +64,10 @@ class Delay : public Module{
         virtual void change_param(const float *values);        /**< @see set_param(float *values) */
     
         virtual string return_param_name(int idx);       /**< @see get_param_name(int idx) */
-	
+        virtual string return_formated_param(int idx);   /**< @see get_formated_param(int idx) */
+  
+        virtual void new_bank();    /**< @see add_bank() */
+    
 		jack_client_t *client_2_;
 		char* name_2_;
 	

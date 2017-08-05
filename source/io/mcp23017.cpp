@@ -10,11 +10,13 @@ using namespace std;
  *****************************************************************/
 mcp23017::mcp23017(void){
 	
+    
     this->i2cFileName = "/dev/i2c-0";
     this->deviceAddress= 0;
 	this->i2cDescriptor = -1;
 	cout << " Opening I2C Device" << endl;
 	this->openI2C();
+    
 }
 
 /*******************************************************************
@@ -106,6 +108,16 @@ int mcp23017::writeReg(unsigned char reg_addr, unsigned char data){
         perror("Write to I2C Device failed");
 
     return retVal;
+}
+
+int mcp23017::writeReg(unsigned char reg_addr, unsigned char mask, unsigned char data){
+    
+    // Get curent register value
+    unsigned char reg_val = 0;
+    this->readReg( reg_addr, reg_val );
+    
+    // Only change bits specified by mask and send new register value
+    return this->writeReg( reg_addr, (reg_val & (~mask)) | ( data & mask ) );
 }
 
 /********************************************************************

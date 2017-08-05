@@ -77,7 +77,7 @@ int Drive::bypass(jack_nframes_t nframes, void *arg){
 
 void Drive::change_param(int idx, float value){
     
-	param_[idx] = value;
+	//param_[idx] = value;
     
     if (idx == DRIVE_F_BASS) {
 		
@@ -86,16 +86,126 @@ void Drive::change_param(int idx, float value){
 		
 		filter_.set_hf(value);
 	}
+    
+    this->update();
 }
 
 void Drive::change_param(const float *values){
     
-    memcpy(param_, values, sizeof(float) * param_c_);
+    //memcpy(param_, values, sizeof(float) * param_c_);
     
     filter_.set_freq(param_[DRIVE_F_BASS], param_[DRIVE_F_HIGH]);
+
+    this->update();
+}
+
+void Drive::new_bank(){
+    
+    this->add_bank(DRIVE_PARAM_COUNT, DRIVE_DEFAULT_PARAMS);
 }
 
 string Drive::return_param_name(int idx){
     
     return DRIVE_PARAM_NAMES[idx];
+}
+
+string Drive::return_formated_param(int idx){
+    
+    string n = DRIVE_PARAM_NAMES[idx];
+    
+    switch (idx){
+        
+        case DRIVE_ABS :
+        
+            n += (!!param_[idx])?"  Y":"  N";
+            break;
+        
+        case DRIVE_ASM :
+        
+            n += (!!param_[idx])?" Y":" N";
+            break;
+            
+        case DRIVE_GAIN_P :
+            
+            n += " ";
+            n += f_ftos( param_[idx] );
+            break;
+           
+        case DRIVE_TYPE_P :
+            
+            n += (!!param_[idx])?" Soft":" Hard";
+            break;
+            
+        case DRIVE_SOFT_P :
+            
+            n += " ";
+            n += f_ftos( param_[idx] );
+            break;
+           
+        case DRIVE_SHAPE_P :
+            
+            n += f_ftos( param_[idx] );
+            break;
+        
+        case DRIVE_GAIN_N :
+            
+            n += " ";
+            n += f_ftos( param_[idx] );
+            break;
+           
+        case DRIVE_TYPE_N :
+            
+            n += (!!param_[idx])?" Soft":" Hard";
+            break;
+            
+        case DRIVE_SOFT_N :
+            
+            n += " ";
+            n += f_ftos( param_[idx] );
+            break;
+        
+        case DRIVE_SHAPE_N :
+            
+            n += f_ftos( param_[idx] );
+            break;
+        
+        case DRIVE_F_BASS :
+            
+            n += " ";
+            n += f_ftos( param_[idx] );
+            break;
+            
+        case DRIVE_F_HIGH :
+            
+            n += f_ftos( param_[idx] );
+            break;
+        
+        case DRIVE_F_GBASS :
+            
+            n += f_ftos( param_[idx] );
+            break;
+        
+        case DRIVE_F_GMID :
+            
+            n += f_ftos( param_[idx] );
+            break;
+        
+        case DRIVE_F_GHIGH :
+            
+            n += f_ftos( param_[idx] );
+            break;
+        
+        default :
+            break;
+    }
+    
+    return n;
+}
+
+void Drive::update(){
+    
+    param_[DRIVE_ABS] = !!param_[DRIVE_ABS];
+    param_[DRIVE_ASM] = !!param_[DRIVE_ASM];
+    param_[DRIVE_TYPE_P] = !!param_[DRIVE_TYPE_P];
+    param_[DRIVE_TYPE_N] = !!param_[DRIVE_TYPE_N];
 }

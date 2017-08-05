@@ -46,15 +46,39 @@ int Ringmod::bypass(jack_nframes_t nframes, void *arg){
 
 void Ringmod::change_param(int idx, float value){
     
-    param_[idx] = value;
+    //param_[idx] = value;
 }
 
 void Ringmod::change_param(const float *values){
     
-    memcpy(param_, values, sizeof(float) * param_c_);
+    //memcpy(param_, values, sizeof(float) * param_c_);
+}
+
+void Ringmod::new_bank(){
+    
+    this->add_bank(RINGMOD_PARAMS_COUNT, RINGMOD_DEFAULT_PARAMS);
 }
 
 string Ringmod::return_param_name(int idx){
     
     return RINGMOD_PARAM_NAMES[idx];
+}
+
+string Ringmod::return_formated_param(int idx){
+    
+    string n = RINGMOD_PARAM_NAMES[idx];
+    
+    switch (idx){
+        
+        case RING_DEPTH :
+        
+            n += "   ";
+            n += f_ftos( param_[idx] );
+            break;
+        
+        default :
+            break;
+    }
+    
+    return n;
 }

@@ -38,7 +38,10 @@ class Chorus : public Module{
         virtual void change_param(const float *values);        /**< @see set_param(float *values) */
     
         virtual string return_param_name(int idx);       /**< @see get_param_name(int idx) */
-	
+        virtual string return_formated_param(int idx);   /**< @see get_formated_param(int idx) */
+    
+        virtual void new_bank();    /**< @see add_bank() */
+    
 		int samplerate_;    /**< Current semplerate */
 		Buffer_M *buffer_;  /**< Choru's buffer */
 };

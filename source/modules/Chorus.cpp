@@ -54,15 +54,45 @@ int Chorus::bypass(jack_nframes_t nframes, void *arg){
 
 void Chorus::change_param(int idx, float value){
     
-    param_[idx] = value;
+    //param_[idx] = value;
 }
 
 void Chorus::change_param(const float *values){
     
-    memcpy(param_, values, sizeof(float) * param_c_);
+    //memcpy(param_, values, sizeof(float) * param_c_);
+}
+
+void Chorus::new_bank(){
+    
+    this->add_bank(CHORUS_PARAMS_COUNT, CHORUS_DEFAULT_PARAMS);
 }
     
 string Chorus::return_param_name(int idx){
     
     return CHORUS_PARAM_NAMES[idx];
 }
+
+string Chorus::return_formated_param(int idx){
+    
+    string n = CHORUS_PARAM_NAMES[idx];
+    
+    switch (idx){
+        
+        case CHORUS_DEPTH :
+        
+            n += "  ";
+            break;
+        
+        case CHORUS_DRYWET :
+            
+            n += " ";
+            break;
+            
+        default :
+            break;
+    }
+    
+    n += f_ftos( param_[idx] );
+    
+    return n;
+} 

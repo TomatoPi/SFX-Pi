@@ -22,7 +22,7 @@ using namespace std;
 #define LFO_VAR2 	5
 
 static const int    LFO_PARAMS_COUNT = 6;
-static const string LFO_PARAM_NAMES[LFO_PARAMS_COUNT] 	 = {"Waveform", "Frequency", "Phase", "Sign", "Param-1", "Param-2"};
+static const string LFO_PARAM_NAMES[LFO_PARAMS_COUNT] 	 = {"Waveform", "Freq", "Phase", "Sign", "Param1", "Param2"};
 static const float  LFO_DEFAULT_PARAMS[LFO_PARAMS_COUNT] = {0, 1.0f, 0.0f, 1, 0.0f, 0.0f};
 
 static int RandSeed = 48172;
@@ -67,7 +67,10 @@ class LFO : public Module{
         virtual void change_param(const float *values);        /**< @see set_param(float *values) */
     
         virtual string return_param_name(int idx);       /**< @see get_param_name(int idx) */
-        
+        virtual string return_formated_param(int idx);   /**< @see get_formated_param(int idx) */
+
+        virtual void new_bank();    /**< @see add_bank() */
+    
         void update_type(LFO_wave type);
         
         sample_t (*waveform_)(float, float, float, float);  /**< waveform generator function */

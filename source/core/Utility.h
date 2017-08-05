@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <iostream>
+#include <string.h>
 
 #include <math.h>
 #include <jack/jack.h>
@@ -66,5 +67,12 @@ int spi_stoms(int sample, int sr);
 * Return random float between min and max
 */
 float spi_frand(float min, float max);
+
+/**
+* Convert given float in a string of 4 char length
+* @param f number to convert
+* @return number converted in a string 
+*/
+string f_ftos(float f);
 
 #endif

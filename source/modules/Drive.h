@@ -39,10 +39,10 @@
 */
 static const int    DRIVE_PARAM_COUNT = 15;
 static const float  DRIVE_DEFAULT_PARAMS[DRIVE_PARAM_COUNT] = {0, 0, 20, 1, 5, 0.5f, 20, 1, 5, 0.5f, 200, 1000, 0.75f, 3.0f, 7.0f};
-static const string DRIVE_PARAM_NAMES[DRIVE_PARAM_COUNT] = {"Fullwave", "Asymetrical", 
-											"Gain-p", "Soft-Clipping-p", "Softness-p", "Shape-p",
-											"Gain-n", "Soft-Clipping-n", "Softness-n", "Shape-n",
-											"Lowcut", "Highcut", "Lowgain", "Midgain", "Highgain"};
+static const string DRIVE_PARAM_NAMES[DRIVE_PARAM_COUNT] = {"Fullwave", "Asymetric", 
+											"Gain-p", "Type-p", "Soft-p", "Shape-p",
+											"Gain-n", "Type-n", "Soft-n", "Shape-n",
+											"Lowcut", "Highcut", "Lowgain", "Midgain", "Hghgain"};
 
 /**
 * 	Drive, Soft & Hard Clipping effects
@@ -64,7 +64,12 @@ class Drive : public Module{
         virtual void change_param(const float *values);        /**< @see set_param(float *values) */
     
         virtual string return_param_name(int idx);       /**< @see get_param_name(int idx) */
+        virtual string return_formated_param(int idx);   /**< @see get_formated_param(int idx) */
 
+        virtual void new_bank();    /**< @see add_bank() */
+    
+        void update();  /**< Convert boolean params to valid value */
+        
         Filter_3EQ filter_;     /**< Drive's filter @see Filter_3EQ */
 };
 

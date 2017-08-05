@@ -19,12 +19,14 @@ int main(int argc, char *argv[]){
 	IO_Potentiometer* MAIN_POTAR_TAB[SPI_POTAR_COUNT];
 	io_init_spi();
 	io_init_potar_tab(MAIN_POTAR_TAB);
+    
+    io_init_frontPanel(&MAIN_LIST_MODULE, VERSION);
 	
 	MAIN_LIST_MODULE.add_module(MOD_LFO);
 	
-	save_presset(string("Test") , VERSION, MAIN_LIST_MODULE);
-	load_presset(string("Test2"), VERSION, &MAIN_LIST_MODULE);
-	save_presset(string("Test3"), VERSION, MAIN_LIST_MODULE);
+	save_preset(string("Test") , VERSION, MAIN_LIST_MODULE);
+	load_preset(string("Test2"), VERSION, &MAIN_LIST_MODULE);
+	save_preset(string("Test3"), VERSION, MAIN_LIST_MODULE);
 	/*
 	main_add_module(MDRIVE, 2);
 	int drive = MAIN_COUNT_MODULE;
@@ -98,6 +100,11 @@ int main(int argc, char *argv[]){
 		*	Read potar values and store values in MAIN_POTAR_VALUES
 		*/
 		io_update_potar_tab(MAIN_POTAR_TAB, MAIN_POTAR_VALUES);
+        
+        /*
+        *   Check front pannel buttons
+        */
+        io_update_frontPanel();
 		
 		/*
 		*	Update each accesor for each module

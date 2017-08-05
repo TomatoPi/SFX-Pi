@@ -45,24 +45,123 @@ int LFO::bypass(jack_nframes_t nframes, void *arg){
 
 void LFO::change_param(int idx, float value){
     
-    param_[idx] = value;
+    //param_[idx] = value;
     
     if (idx == LFO_TYPE) {
         
         this->update_type(static_cast<LFO_wave>((int)value));
+        param_[LFO_TYPE] = (int)value;
     }
 }
 
 void LFO::change_param(const float *values){
     
-    memcpy(param_, values, sizeof(float) * param_c_);
+    //memcpy(param_, values, sizeof(float) * param_c_);
     
+    param_[LFO_TYPE] = (int)param_[LFO_TYPE];
     this->update_type(static_cast<LFO_wave>((int)param_[LFO_TYPE]));
+}
+
+void LFO::new_bank(){
+    
+    this->add_bank(LFO_PARAMS_COUNT, LFO_DEFAULT_PARAMS);
 }
 
 string LFO::return_param_name(int idx) {
     
     return LFO_PARAM_NAMES[idx];
+}
+
+string LFO::return_formated_param(int idx){
+    
+    string n = string("");
+    
+    if ( idx != LFO_TYPE ){
+        
+        n += LFO_PARAM_NAMES[idx];
+    } 
+    
+    switch (idx){
+        
+        case LFO_TYPE :
+        
+            switch ( static_cast<LFO_wave>((int)param_[LFO_TYPE]) ){
+                
+                case WAVE_SIN:
+                
+                    n += "Sinus";
+                    break;
+                    
+                case WAVE_SQR:
+                    
+                    n += "Square";
+                    break;
+                    
+                case WAVE_TRI:
+                    
+                    n += "Triangle";
+                    break;
+                    
+                case WAVE_SAW:
+                    
+                    n += "Saw";
+                    break;
+                    
+                case WAVE_VAR:
+                    
+                    n += "Varislope";
+                    break;
+                    
+                case WAVE_NPH:
+                
+                    n += "NPhase";
+                    break;
+                    
+                case WAVE_WHI:
+                
+                    n += "White Noise";
+                    break;
+                    
+                default:
+                    break;
+            }
+            break;
+        
+        case LFO_FREQ :
+            
+            n += "   ";
+            n += f_ftos( param_[idx] );
+            break;
+            
+        case LFO_PHASE :
+            
+            n += "  ";
+            n += f_ftos( param_[idx] );
+            break;
+        
+        case LFO_SIGN :
+            
+            n += (param_[idx] < 0)?"    pos":"    neg";
+            break;
+            
+        case LFO_VAR1 :
+            
+            n += " ";
+            n += f_ftos( param_[idx] );
+            break;
+        
+        case LFO_VAR2 :
+            
+            n += " ";
+            n += f_ftos( param_[idx] );
+            break;
+        
+        default :
+            break;
+    }
+    
+    
+    return n;
 }
 
 void LFO::update_type(LFO_wave type){

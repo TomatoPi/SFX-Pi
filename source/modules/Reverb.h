@@ -34,7 +34,7 @@ static const int combsize[COMBCOUNT] = {1116, 1188, 1277, 1356, 1422, 1491, 1557
 static const int allpsize[ALLPCOUNT] = {556, 441, 341, 225};
 
 static const int    REVERB_PARAMS_COUNT = 5;
-static const string REVERB_PARAM_NAMES[REVERB_PARAMS_COUNT] = {"Roomsize", "Damp", "Wet", "Dry", "Allpf"};
+static const string REVERB_PARAM_NAMES[REVERB_PARAMS_COUNT] = {"Room", "Damp", "Wet", "Dry", "Allpf"};
 static const float  REVERB_DEFAULT_PARAMS[REVERB_PARAMS_COUNT] = {0.5f, 0.5f, 1.0f, 0.0f, 0.5f};
 
 
@@ -53,6 +53,9 @@ class Reverb : public Module{
         virtual void change_param(const float *values);        /**< @see set_param(float *values) */
     
         virtual string return_param_name(int idx);       /**< @see get_param_name(int idx) */
+        virtual string return_formated_param(int idx);   /**< @see get_formated_param(int idx) */
+
+        virtual void new_bank();    /**< @see add_bank() */
     
 		void update();          /**< Update and scale reverb parameters */
         

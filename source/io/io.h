@@ -15,6 +15,8 @@
 #include "../core/Utility.h"
 #include "../core/Modules.h"
 
+#include "../presset/Presset.h"
+
 #define SPI_BASE 100
 #define SPI_CHAN1 0
 #define SPI_PMAX 8
@@ -61,57 +63,17 @@ class IO_Button{
 	
 	public :
 	
+        IO_Button();
+        
+        void update();
+        
 	private :
 	
-	
-};
-
-typedef enum{
-	
-	CURVE_LIN=0,
-	CURVE_SIG=1,
-	CURVE_HAN=2,
-	CURVEIHAN=3
-}IO_CURVE;
-
-float curve_lin(float v);	//	Identity tranfer function
-float curve_sig(float v);	//	Tanh transfert function scaled between 0 and 1
-float curve_han(float v);	//	Hanning window function
-float curveihan(float v);	//	1 - Hanning window
-
-class IO_Accessor{
- 
-	public :
-	
-		IO_Accessor(Module *module, int target_idx, int target_param, int potentiometer, float min, float max, IO_CURVE curve, int is_db, int is_inv);
-		
-		int update(int *potar_tab);
-		
-		int is_dead() const;
-		
-		int 	get_target_idx() const;
-		int 	get_target_param() const;
-		int 	get_potar() const;
-		float 	get_min() const;
-		float 	get_max() const;
-		int 	get_curve() const;
-		int 	get_db() const;
-		int 	get_inv() const;
-	
-	private :
-		Module *module_;
-	
-		float (*curve)(float value);
-		IO_CURVE curve_type;
-		int target_idx;
-		int target_param;
-		
-		int potentiometer;
-		int is_db, is_inv;
-		float min, max;
-	
-		int value;
-		int state;
+        string name_;
+        
+        IO_PUSH_TYPE type_;
+        
+        bool status_;
 };
 
 class IO_screen{
@@ -139,5 +101,58 @@ static int 		io_screen_bdrate = 57600;			/* 9600 baud */
 static char 	io_screen_mode[]={'8','N','1',0};	/* 8 data bits, no parity, 1 stop bit */
 
 static const char* io_screen_default = "Space-Fx--!";
+
+/*
+*   ---------------------------------------------------------------------------
+*   ---------------------------------------------------------------------------
+*                                   Front panel
+*   ---------------------------------------------------------------------------
+*   ---------------------------------------------------------------------------
+*/
+
+static mcp23017 *MCP0;
+static mcp23017 *MCP1;
+
+/*
+*   -----------------------------------
+*            Buttons adresses
+*   -----------------------------------
+*/
+#define HEX_UP      0x8     // MCP0 GPIOB 0
+#define HEX_DOWN    0x4     // MCP0 GPIOB 1
+#define HEX_NEXT    0x2     // MCP0 GPIOB 2
+#define HEX_PREV    0x40    // MCP0 GPIOA 3
+#define HEX_ADD     0x80    // MCP0 GPIOA 4
+#define HEX_DEL     0x1     // MCP0 GPIOB 5
+#define HEX_ENTER   0x10    // MCP0 GPIOB 6
+#define HEX_ESC     0x20    // MCP0 GPIOB 7
+#define HEX_OK      0x40    // MCP0 GPIOB 8
+#define HEX_EDIT    0x80    // MCP0 GPIOB 9
+
+#define MASK_ADRRA 0xc0     // mask for select only PREV and ADD values
+#define MASK_ADRRB 0xff     // mask for select others buttons values
+
+#define EDIT_MODE   9       // 
+
+/**
+*   Initialise front panel's buttons.
+*   Set coresponding ports to inputs and reverse their state
+*/
+void io_init_frontPanel(Module_Node_List *Graph, string version);
+/**
+*   Check if a front button has been pushed.
+*/
+void io_update_frontPanel();
+
+void func_button_up(bool s);
+void func_button_down(bool s);
+void func_button_next(bool s);
+void func_button_prev(bool s);
+void func_button_add(bool s);
+void func_button_del(bool s);
+void func_button_enter(bool s);
+void func_button_esc(bool s);
+void func_button_ok(bool s);
+void func_button_edit(bool s);
 
 #endif
