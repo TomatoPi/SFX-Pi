@@ -1,0 +1,11 @@
+#Service de lancement de SFX_Pi the software (TM)
+
+[Unit]
+Description=SFX_Pi_SERVICE
+After=jack.service
+
+[Service]
+ExecStart=/home/sfx_pi/sfx/SFX_Pi
+
+[Install]
+WantedBy=default.target

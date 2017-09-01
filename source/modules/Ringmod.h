@@ -5,13 +5,11 @@
 #include "../core/Modules.h"
 #include "../core/Utility.h"
 
-#define RINGMOD_PARAMS 1
-
-#define RING_DEPTH 0
+#define RING_DEPTH MOD_COUNT + 0
 
 static const int    RINGMOD_PARAMS_COUNT = 1;
-static const string RINGMOD_PARAM_NAMES[RINGMOD_PARAMS_COUNT] = {"Depth"};
-static const float  RINGMOD_DEFAULT_PARAMS[RINGMOD_PARAMS_COUNT] = {1.0f};
+static const string RINGMOD_PARAM_NAMES[MOD_COUNT+RINGMOD_PARAMS_COUNT] = {"Volume", "Depth"};
+static const float  RINGMOD_DEFAULT_PARAMS[MOD_COUNT+RINGMOD_PARAMS_COUNT] = {1, 1.0f};
 
 
 class Ringmod : public Module{
@@ -19,11 +17,11 @@ class Ringmod : public Module{
 	public:
 	
 		Ringmod(const char *server);
-		
-        virtual int process(jack_nframes_t nframes, void *arg);
-		virtual int bypass(jack_nframes_t nframes, void *arg);
+		//virtual int bypass(jack_nframes_t nframes, void *arg);
 	
 	protected :
+		
+        virtual int do_process(jack_nframes_t nframes);
     
         virtual void change_param(int idx, float value); /**< @see set_param(int idx, float value) */
         virtual void change_param(const float *values);        /**< @see set_param(float *values) */

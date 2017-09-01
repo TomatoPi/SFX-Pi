@@ -12,20 +12,21 @@ using namespace std;
 /*
 *	LFO's params count and param's index
 */
-#define LFO_TYPE 	0
-#define LFO_FREQ 	1
+#define LFO_TYPE 	MOD_COUNT + 0
+#define LFO_FREQ 	MOD_COUNT + 1
 
-#define LFO_PHASE 	2
-#define LFO_SIGN 	3
+#define LFO_PHASE 	MOD_COUNT + 2
+#define LFO_SIGN 	MOD_COUNT + 3
 
-#define LFO_VAR1 	4
-#define LFO_VAR2 	5
+#define LFO_VAR1 	MOD_COUNT + 4
+#define LFO_VAR2 	MOD_COUNT + 5
 
-static const int    LFO_PARAMS_COUNT = 6;
-static const string LFO_PARAM_NAMES[LFO_PARAMS_COUNT] 	 = {"Waveform", "Freq", "Phase", "Sign", "Param1", "Param2"};
-static const float  LFO_DEFAULT_PARAMS[LFO_PARAMS_COUNT] = {0, 1.0f, 0.0f, 1, 0.0f, 0.0f};
+#define LFO_PHD     MOD_COUNT + 6
+#define LFO_PHO     MOD_COUNT + 7
 
-static int RandSeed = 48172;
+static const int    LFO_PARAMS_COUNT = 8;
+static const string LFO_PARAM_NAMES[MOD_COUNT+LFO_PARAMS_COUNT] = {"Volume", "Waveform", "Freq", "Phase", "Sign", "Param1", "Param2", "Ph-Dist", "Ph-Fix"};
+static const float  LFO_DEFAULT_PARAMS[MOD_COUNT+LFO_PARAMS_COUNT] = {1, 2, 2.0f, 0.0f, 1, 0.0f, 0.0f, 0.5f, 0.0f};
 
 /**
 *	List of possible LFO waveshape.
@@ -46,6 +47,7 @@ typedef enum {
 	WAVE_NPH=5,
 	WAVE_WHI=6
 }LFO_wave;
+static const int  WAVE_COUNT = 7;
 
 /*
 *	LFO Module
@@ -55,13 +57,13 @@ class LFO : public Module{
 	public:
 		
 		LFO(const char *server);
-
-        virtual int process(jack_nframes_t nframes, void *arg);
-		virtual int bypass(jack_nframes_t nframes, void *arg);
+		//virtual int bypass(jack_nframes_t nframes, void *arg);
         
         void sync();
 	
 	protected :
+
+        virtual int do_process(jack_nframes_t nframes);
     
         virtual void change_param(int idx, float value); /**< @see set_param(int idx, float value) */
         virtual void change_param(const float *values);        /**< @see set_param(float *values) */

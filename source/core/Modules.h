@@ -30,7 +30,8 @@ enum MODULE_PORT_TYPE{
     AUDIO_I,
     AUDIO_O,
     MIDI_I,
-    MIDI_O
+    MIDI_O,
+    MOD
 };
 
 /**
@@ -38,7 +39,9 @@ enum MODULE_PORT_TYPE{
 *   @see Module::process_callback(jack_nframes_t, void*)
 */
 int mod_Process_Callback(jack_nframes_t nframes, void *u);
+/*
 int mod_Bypass_Callback(jack_nframes_t nframes, void *u);
+*/
 
 /**
 *	Enum of all avaiable modules
@@ -51,7 +54,10 @@ typedef enum{
 	MOD_RINGM	=3, 
 	MOD_TONE	=4, 
 	MOD_REV	    =5,
-	MOD_CHORUS	=6
+	MOD_CHORUS	=6,
+    MOD_COMP    =7,
+    MOD_LAST,
+    MOD_FIRST
 }MODULE_TYPE;
 
 /**
@@ -64,6 +70,15 @@ string modtype_to_string(MODULE_TYPE type);
 *   Banks are used to save different sets of param's values for a module
 */
 typedef std::vector<float*> ModBank;
+
+/*
+*   Params shared by all modules
+*/
+#define MOD_COUNT 1
+
+#define MOD_VOLUME 0
+
+class Accessor;
 
 /*
 *	Basic class for all modules
@@ -88,7 +103,7 @@ class Module{
         *   @param ... names of ports in order
         */
 		Module(const char *server, MODULE_TYPE type, int pc, int ai, int ao, int mi, int mo, ...);
-		~Module();
+		virtual ~Module();
 		
         /**
         *   Process callback called by jack when module is active
@@ -97,14 +112,14 @@ class Module{
         *   @param arg pointer to this module, unused
         *   @return 0
         */
-		virtual int process(jack_nframes_t nframes, void *arg){};
+		int process(jack_nframes_t nframes, void *arg);
         /**
         *   Bypass callback called when module is bypassed.
         *   Basically copy input to output_iterator or send 0
         *
         *   @see process(jack_nframes_t nframes, void *arg)
         */
-		virtual int bypass(jack_nframes_t nframes, void *arg){};
+		//virtual int bypass(jack_nframes_t nframes, void *arg){ return 0; };
 	
         /**
         *   Set module status
@@ -149,10 +164,18 @@ class Module{
         *   @param count number of params in given array
         *   @param values params array
         */
-        void set_param(int count,const float *values);
+        void set_param(int count, const float *values);
         
+        /**
+        *   Get number of parameters
+        *   @return number of params
+        */
         int get_param_count() const;
-        
+        /**
+        *   Get given param's value
+        *   @param idx param's index
+        *   @return given param value or 0 if not found
+        */
         float get_param(int idx) const;
         
         /**
@@ -165,7 +188,7 @@ class Module{
         string get_param_name(int idx);
         
         /**
-        *   Get paramne name followed by it value.
+        *   Get parame name followed by it value.
         *   Returned string is maximum 11 caracters long for screen
         *   @param idx param's index
         *   @return formated string or NONE if given param not found
@@ -228,6 +251,7 @@ class Module{
         *   If given index doesn't correspond to a bank, go to bank 0
         *   or default values if there is no bank
         *   @param idx target bank index
+        *   @return true if given bank loaded
         */
         bool set_bank(int idx);
         /**
@@ -236,13 +260,25 @@ class Module{
         */
         int get_bank();
         
+        /**
+        *   Add modulation port
+        */
+        void add_mod();
+        /**
+        *   Remove given modulation port
+        *   @param idx port's index to remove
+        */
+        void del_mod(int idx);
+        
 	protected:
     
-        virtual void change_param(int idx, float value) {}; /**< @see set_param(int idx, float value) */
-        virtual void change_param(const float *values) {};  /**< @see set_param(float *values) */
+        virtual int do_process(jack_nframes_t nframes) { return 0; };
     
-        virtual string return_param_name(int idx) {};       /**< @see get_param_name(int idx) */
-        virtual string return_formated_param(int idx) {};   /**< @see get_formated_param(int idx) */
+        virtual void change_param(int idx, float value) {}; /**< @see set_param(int idx, float value) */
+        virtual void change_param(const float *values)  {}; /**< @see set_param(float *values) */
+    
+        virtual string return_param_name(int idx)     { return string(""); };   /**< @see get_param_name(int idx) */
+        virtual string return_formated_param(int idx) { return string(""); };   /**< @see get_formated_param(int idx) */
     
         virtual void new_bank() {};    /**< @see add_bank() */
     
@@ -262,6 +298,9 @@ class Module{
         
         ModBank bank_;  /**< Vector of avaiable params sets */
         int bank_idx_;  /**< Curent bank index */
+        
+        vector<jack_port_t*> mod_port_; /**< vector of modulation ports */
+        vector<Accessor> mod_acc_;      /**< vector of accessors */
 };
 
 #define SPI_HYSTERESIS 0.01f
@@ -270,10 +309,10 @@ class Module{
 
 typedef enum{
 	
-	CURVE_LIN=0,
-	CURVE_SIG=1,
-	CURVE_HAN=2,
-	CURVEIHAN=3
+	CURVE_LIN,
+	CURVE_SIG,
+	CURVE_HAN,
+	CURVEIHAN
 }IO_CURVE;
 
 float curve_lin(float v);	//	Identity tranfer function
@@ -281,39 +320,64 @@ float curve_sig(float v);	//	Tanh transfert function scaled between 0 and 1
 float curve_han(float v);	//	Hanning window function
 float curveihan(float v);	//	1 - Hanning window
 
-class IO_Accessor{
+/**
+*   Accessor are structure that store values for modify parameters dynamically
+*
+*   It contain a source index : mod port witch accessor is connected to
+*   The targeted param : param that will be modified
+*   The modification plage
+*   A trasfert curve between modulation signal and modulated param
+*/
+class Accessor{
  
 	public :
 	
-		IO_Accessor(Module *module, int target_idx, int target_param, int potentiometer, float min, float max, IO_CURVE curve, int is_db, int is_inv);
-		
-		int update(int *potar_tab);
-		
-		int is_dead() const;
-		
-		int 	get_target_idx() const;
-		int 	get_target_param() const;
-		int 	get_potar() const;
-		float 	get_min() const;
-		float 	get_max() const;
-		int 	get_curve() const;
-		int 	get_db() const;
-		int 	get_inv() const;
+        /**
+        *   Accessor constructor
+        *
+        *   @param source modulation port index
+        *   @param target target param's index
+        *   @param min minimal param's value or offset
+        *   @param max maximum param's value or offset
+        *   @param curve transfert curve between modulation signal and param
+        *   @param isdb true if min and max are in db
+        *   @param isabs true if modulation is relative to param value, or absolute
+        */
+		Accessor(int source, int target, float min, float max, IO_CURVE curve, bool isdb, bool isrelative);
+        
+        /**
+        *   Function that modulate targeted param.
+        *
+        *   @param input param to modulate
+        *   @param mod modulation signal
+        *   @return modulated param
+        */
+        float compute( float input, float mod );
+        
+        /**
+        *   Get current accessor's curve
+        *   @return current accessor curve
+        */
+        IO_CURVE get_curve() const;
+        /**
+        *   Change current transfert curve
+        *   @param new curve
+        */
+        void set_curve( IO_CURVE curve );
 	
+        int source_;
+        int target_;
+        
+        float min_;
+        float max_;
+        
+        bool isdb_;
+        bool isrlt_;
+    
 	private :
-		Module *module_;
-	
-		float (*curve)(float value);
-		IO_CURVE curve_type;
-		int target_idx;
-		int target_param;
-		
-		int potentiometer;
-		int is_db, is_inv;
-		float min, max;
-	
-		int value;
-		int state;
+    
+		float (*curve_func_)(float value);
+        IO_CURVE curve_;
 };
 
 /**
@@ -331,7 +395,7 @@ typedef struct{
 /**
 *	Alias for vector of IO_Accessor pointer
 */
-typedef std::vector<IO_Accessor*> IO_Accessor_List;
+typedef std::vector<Accessor*> IO_Accessor_List;
 
 /**
 *	Alias for vector of Connection
@@ -364,9 +428,9 @@ class Module_Node{
 		/**
 		*	Add, remove or get the accessor at index i
 		*/
-		void 			accessor_add(IO_Accessor *accessor);
+		void 			accessor_add(Accessor *accessor);
 		void 			accessor_remove(int i);
-		IO_Accessor* 	accessor_get(int i) const;
+		Accessor* 	accessor_get(int i) const;
 		IO_Accessor_List* accessor_get_list();
 		/**
 		*	Update the io_accessor list with the given value table
@@ -435,16 +499,8 @@ class Module_Node_List{
 
         Module_List list_;
         int count_;
+        
+        Module_Node begin_, end_;
 };
-
-/*
-*	Return the name of source's port number is, or System Capture port [is] if source is NULL
-*/
-const char* get_source_name(Module *source, int is, Module *target);
-
-/*
-*	Return the name of target's port number is, or System Playback port [is] if target is NULL
-*/
-const char* get_target_name(Module *target, int id, Module *source);
 
 #endif

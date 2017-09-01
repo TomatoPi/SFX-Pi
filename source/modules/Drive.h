@@ -15,31 +15,34 @@
 /*
 *	Drive's params count and param's index
 */
-#define DRIVE_ABS 0
-#define DRIVE_ASM 1
+#define DRIVE_ABS MOD_COUNT + 0
+#define DRIVE_ASM MOD_COUNT + 1
 
-#define DRIVE_GAIN_P 2
-#define DRIVE_TYPE_P 3
-#define DRIVE_SOFT_P 4
-#define DRIVE_SHAPE_P 5
+#define DRIVE_GAIN_P  MOD_COUNT + 2
+#define DRIVE_TYPE_P  MOD_COUNT + 3
+#define DRIVE_SOFT_P  MOD_COUNT + 4
+#define DRIVE_SHAPE_P MOD_COUNT + 5
 
-#define DRIVE_GAIN_N 6
-#define DRIVE_TYPE_N 7
-#define DRIVE_SOFT_N 8
-#define DRIVE_SHAPE_N 9
+#define DRIVE_GAIN_N  MOD_COUNT + 6
+#define DRIVE_TYPE_N  MOD_COUNT + 7
+#define DRIVE_SOFT_N  MOD_COUNT + 8
+#define DRIVE_SHAPE_N MOD_COUNT + 9
 
-#define DRIVE_F_BASS 10
-#define DRIVE_F_HIGH 11
-#define DRIVE_F_GBASS 12
-#define DRIVE_F_GMID 13
-#define DRIVE_F_GHIGH 14
+#define DRIVE_F_BASS  MOD_COUNT + 10
+#define DRIVE_F_HIGH  MOD_COUNT + 11
+#define DRIVE_F_GBASS MOD_COUNT + 12
+#define DRIVE_F_GMID  MOD_COUNT + 13
+#define DRIVE_F_GHIGH MOD_COUNT + 14
 
 /*
 *	Default values for drive module
 */
 static const int    DRIVE_PARAM_COUNT = 15;
-static const float  DRIVE_DEFAULT_PARAMS[DRIVE_PARAM_COUNT] = {0, 0, 20, 1, 5, 0.5f, 20, 1, 5, 0.5f, 200, 1000, 0.75f, 3.0f, 7.0f};
-static const string DRIVE_PARAM_NAMES[DRIVE_PARAM_COUNT] = {"Fullwave", "Asymetric", 
+static const float  DRIVE_DEFAULT_PARAMS[MOD_COUNT+DRIVE_PARAM_COUNT] = {1, 0, 0, 
+                                            198, 1, 22, 0.29f, 
+                                            63, 1, 15, 0.1f, 
+                                            200, 1000, 0.5f, 2.0f, 3.0f};
+static const string DRIVE_PARAM_NAMES[MOD_COUNT+DRIVE_PARAM_COUNT] = {"Volume", "Fullwave", "Asymetric", 
 											"Gain-p", "Type-p", "Soft-p", "Shape-p",
 											"Gain-n", "Type-n", "Soft-n", "Shape-n",
 											"Lowcut", "Highcut", "Lowgain", "Midgain", "Hghgain"};
@@ -54,11 +57,11 @@ class Drive : public Module{
 	public:	
 		
 		Drive(const char *server);
-		
-		virtual int process(jack_nframes_t nframes, void *arg);
-		virtual int bypass(jack_nframes_t nframes, void *arg);
+		//virtual int bypass(jack_nframes_t nframes, void *arg);
 	
 	protected :
+		
+		virtual int do_process(jack_nframes_t nframes);
     
         virtual void change_param(int idx, float value); /**< @see set_param(int idx, float value) */
         virtual void change_param(const float *values);        /**< @see set_param(float *values) */

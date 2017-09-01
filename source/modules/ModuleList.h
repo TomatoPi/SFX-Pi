@@ -8,5 +8,7 @@
 #include "Tonestack.h"
 #include "Reverb.h"
 #include "Chorus.h"
+#include "EndModule.h"
+#include "Compressor.h"
 
 #endif

@@ -14,7 +14,7 @@ Reverb::Reverb(const char *server) : Module(server, MOD_REV, REVERB_PARAMS_COUNT
 		allp_[i] = Filter_allpass(allpf_, allpsize[i]);
 	}
     
-    this->change_param(REVERB_DEFAULT_PARAMS);
+    this->set_param(MOD_COUNT + REVERB_PARAMS_COUNT, REVERB_DEFAULT_PARAMS);
 	
 	if (jack_activate (client_)) {
 		
@@ -22,7 +22,7 @@ Reverb::Reverb(const char *server) : Module(server, MOD_REV, REVERB_PARAMS_COUNT
 	}
 }
 	
-int Reverb::process(jack_nframes_t nframes, void *arg){
+int Reverb::do_process(jack_nframes_t nframes){
 
     sample_t *in;	
     in = (sample_t*)jack_port_get_buffer(audio_in_[0], nframes);
@@ -32,6 +32,8 @@ int Reverb::process(jack_nframes_t nframes, void *arg){
         
     sample_t *rev;
     rev = (sample_t*)jack_port_get_buffer(audio_out_[1], nframes);
+
+    float vol = param_[MOD_VOLUME];
     
     float gain = gain_;
     
@@ -45,7 +47,7 @@ int Reverb::process(jack_nframes_t nframes, void *arg){
         
         for(int k = 0; k < COMBCOUNT; k++){
             
-            rev[i] += comb_[k].compute(input);
+            rev[i] += comb_[k].compute((is_bypassed_)?0:input);
         }
         
         for(int k = 0; k < ALLPCOUNT; k++){
@@ -53,13 +55,14 @@ int Reverb::process(jack_nframes_t nframes, void *arg){
             rev[i] = allp_[k].compute(rev[i]);
         }
         
-        out[i] = rev[i]*wet + in[i]*dry;
+        out[i] = vol * ( rev[i]*wet + in[i]*dry );
 
-	}
+    }
     
 	return 0;
 }
 
+/*
 int Reverb::bypass(jack_nframes_t nframes, void *arg){
 
 	sample_t *in;	
@@ -96,6 +99,7 @@ int Reverb::bypass(jack_nframes_t nframes, void *arg){
     
 	return 0;
 }
+*/
 
 void  Reverb::change_param(int idx, float value){
     
@@ -163,6 +167,12 @@ string Reverb::return_formated_param(int idx){
     string n = REVERB_PARAM_NAMES[idx];
     
     switch (idx){
+        
+        case MOD_VOLUME :
+        
+            n += " ";
+            n += f_ftos( param_[idx] );
+            break;
         
         case REV_ROOM :
         

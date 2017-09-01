@@ -8,16 +8,16 @@
 /*
 *	Delay's params count and param's index
 */
-#define DELAY_DELAY 0
-#define DELAY_FEEDB 1
-#define DELAY_DRYWET 2
+#define DELAY_DELAY  MOD_COUNT + 0
+#define DELAY_FEEDB  MOD_COUNT + 1
+#define DELAY_DRYWET MOD_COUNT + 2
 
 /*
 *	Default values for delay
 */
 static const int    DELAY_PARAMS_COUNT = 3;
-static const float  DELAY_DEFAULT_PARAMS[DELAY_PARAMS_COUNT] = {200, 0.5f, 0.5f};
-static const string DELAY_PARAM_NAMES[DELAY_PARAMS_COUNT] = {"Delay", "Feedb", "DryWet"};
+static const float  DELAY_DEFAULT_PARAMS[MOD_COUNT+DELAY_PARAMS_COUNT] = {1, 333, 0.6f, 0.2f};
+static const string DELAY_PARAM_NAMES[MOD_COUNT+DELAY_PARAMS_COUNT] = {"Volume", "Delay", "Feedb", "DryWet"};
 
 /*
 *	Functuion for register write callback
@@ -54,11 +54,11 @@ class Delay : public Module{
         *   @see process(jack_nframes_t nframes, void *arg)
         */
         int process_2(jack_nframes_t nframes, void *arg);
-        
-		virtual int process(jack_nframes_t nframes, void *arg);
-		virtual int bypass(jack_nframes_t nframes, void *arg);
+		//virtual int bypass(jack_nframes_t nframes, void *arg);
 	
 	protected :
+        
+		virtual int do_process(jack_nframes_t nframes);
     
         virtual void change_param(int idx, float value); /**< @see set_param(int idx, float value) */
         virtual void change_param(const float *values);        /**< @see set_param(float *values) */
@@ -75,7 +75,7 @@ class Delay : public Module{
 	
 		jack_port_t *p_send_, *p_return_;	/**< Private port connected between read client and write client*/
 		
-		Buffer_S buffer_;
+		Buffer_S *buffer_;
 };
 
 #endif

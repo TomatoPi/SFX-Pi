@@ -14,11 +14,11 @@
 #define R_DRY 0.5f
 #define R_WIDTH 1.0f
 
-#define REV_ROOM 0
-#define REV_DAMP 1
-#define REV_WET  2
-#define REV_DRY  3
-#define REV_ALL 4
+#define REV_ROOM MOD_COUNT + 0
+#define REV_DAMP MOD_COUNT + 1
+#define REV_WET  MOD_COUNT + 2
+#define REV_DRY  MOD_COUNT + 3
+#define REV_ALL  MOD_COUNT + 4
 
 #define COMBCOUNT 8
 #define ALLPCOUNT 4
@@ -34,8 +34,8 @@ static const int combsize[COMBCOUNT] = {1116, 1188, 1277, 1356, 1422, 1491, 1557
 static const int allpsize[ALLPCOUNT] = {556, 441, 341, 225};
 
 static const int    REVERB_PARAMS_COUNT = 5;
-static const string REVERB_PARAM_NAMES[REVERB_PARAMS_COUNT] = {"Room", "Damp", "Wet", "Dry", "Allpf"};
-static const float  REVERB_DEFAULT_PARAMS[REVERB_PARAMS_COUNT] = {0.5f, 0.5f, 1.0f, 0.0f, 0.5f};
+static const string REVERB_PARAM_NAMES[MOD_COUNT+REVERB_PARAMS_COUNT] = {"Volume", "Room", "Damp", "Wet", "Dry", "Allpf"};
+static const float  REVERB_DEFAULT_PARAMS[MOD_COUNT+REVERB_PARAMS_COUNT] = {1, 0.5f, 0.5f, 1.0f, 0.0f, 0.5f};
 
 
 class Reverb : public Module{
@@ -43,11 +43,11 @@ class Reverb : public Module{
 	public:
 		
 		Reverb(const char *server);
-
-        virtual int process(jack_nframes_t nframes, void *arg);
-		virtual int bypass(jack_nframes_t nframes, void *arg);
+		//virtual int bypass(jack_nframes_t nframes, void *arg);
 	
 	protected :
+
+        virtual int do_process(jack_nframes_t nframes);
     
         virtual void change_param(int idx, float value); /**< @see set_param(int idx, float value) */
         virtual void change_param(const float *values);        /**< @see set_param(float *values) */

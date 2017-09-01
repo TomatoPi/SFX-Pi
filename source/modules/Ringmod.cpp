@@ -3,7 +3,7 @@ Ringmod::Ringmod(const char *server): Module(server, MOD_RINGM, RINGMOD_PARAMS_C
     2, 1, 0, 0, "In", "Mod", "Out")
 {
 
-    this->change_param(RINGMOD_DEFAULT_PARAMS);
+    this->set_param(MOD_COUNT + RINGMOD_PARAMS_COUNT, RINGMOD_DEFAULT_PARAMS);
     
     if (jack_activate (this->client_)) {
         
@@ -11,7 +11,7 @@ Ringmod::Ringmod(const char *server): Module(server, MOD_RINGM, RINGMOD_PARAMS_C
     }
 }
 
-int Ringmod::process(jack_nframes_t nframes, void *arg){
+int Ringmod::do_process(jack_nframes_t nframes){
 
  
     sample_t *in, *out, *mod;
@@ -22,16 +22,25 @@ int Ringmod::process(jack_nframes_t nframes, void *arg){
     
     out = (sample_t*)jack_port_get_buffer(audio_out_[0], nframes);
     
-    float depth = param_[RING_DEPTH];
-    
-    for(jack_nframes_t i = 0; i < nframes; i++){
+    if ( !is_bypassed_ ){
         
-        out[i] = (in[i] * (1 - depth)) + (in[i] * mod[i] * depth);
+        float vol = param_[MOD_VOLUME];
+        
+        float depth = param_[RING_DEPTH];
+        
+        for(jack_nframes_t i = 0; i < nframes; i++){
+            
+            out[i] = vol * ( (in[i] * (1 - depth)) + (in[i] * mod[i] * depth) );
+        }
+    }else{
+        
+        memcpy( out, in, sizeof(sample_t) * nframes );
     }
   
     return 0;
 }
 
+/*
 int Ringmod::bypass(jack_nframes_t nframes, void *arg){
 
     sample_t *in, *out;
@@ -43,6 +52,7 @@ int Ringmod::bypass(jack_nframes_t nframes, void *arg){
     
     return 0;
 }
+*/
 
 void Ringmod::change_param(int idx, float value){
     
@@ -70,6 +80,12 @@ string Ringmod::return_formated_param(int idx){
     
     switch (idx){
         
+        case MOD_VOLUME :
+        
+            n += " ";
+            n += f_ftos( param_[idx] );
+            break;
+            
         case RING_DEPTH :
         
             n += "   ";

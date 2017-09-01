@@ -1,0 +1,7 @@
+Preset 1.1 DefaultPreset 1
+Module 0 15 1
+    Params 15 0 0 61    1 1   0.5  0   0 0  0   200 1000 0.95 2.12 0.56
+Connection -1 0  0 0
+Connection -1 1  0 0
+Connection  0 0 -1 0
+Connection  0 0 -1 1

@@ -1,4 +1,8 @@
 #include "Filter.h"
+/*
+* Very small amount
+*/
+static const float vsa = (1.0 / 4294967295.0);
 
 Filter_3EQ::Filter_3EQ(float lf, float hf, int sr){
 	
@@ -147,7 +151,7 @@ sample_t Filter_comb::compute(sample_t sample){
 	
 	this->buffer[idx] = sample + (this->store * this->feedback);
 	
-	this->index = (++this->index)%this->size;
+	this->index = ( this->index +1 )%this->size;
 	
 	return out;
 }
@@ -239,7 +243,7 @@ sample_t Filter_allpass::compute(sample_t sample){
 	out = -sample + bout;
 	this->buffer[idx] = sample + (bout * this->feedback);
 	
-	this->index = (++this->index)%this->size;
+	this->index = ( this->index +1 )%this->size;
 	
 	return out;
 }

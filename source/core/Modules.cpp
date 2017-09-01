@@ -9,10 +9,12 @@ int mod_Process_Callback(jack_nframes_t nframes, void *u){
 	return static_cast<Module*>(u)->process(nframes, u);
 }
 
+/*
 int mod_Bypass_Callback(jack_nframes_t nframes, void *u){
 	
 	return static_cast<Module*>(u)->bypass(nframes, u);
 }
+*/
 
 string modtype_to_string(MODULE_TYPE type){
 
@@ -32,8 +34,14 @@ string modtype_to_string(MODULE_TYPE type){
 			return string("Reverb");
 		case MOD_CHORUS:
 			return string("Chorus");
+        case MOD_COMP:
+            return string("Compressor");
+        case MOD_LAST :
+            return string("Playback");
+        case MOD_FIRST :
+            return string("Capture");
 		default:
-			return string("");
+			return string("Mod");
 	}
 }
 
@@ -44,7 +52,7 @@ Module::Module(const char *server, MODULE_TYPE type, int pc, int ai, int ao, int
     ao_(ao),
     mi_(mi),
     mo_(mo),
-    param_c_(pc),
+    param_c_(MOD_COUNT + pc),
     bank_idx_(0)
 {
     
@@ -73,12 +81,12 @@ Module::Module(const char *server, MODULE_TYPE type, int pc, int ai, int ao, int
 		cout << "Unique name " << name << " assigned" << endl;
 	}
 	
-    //cout << "Client is ok! -- ";
+    //cout << "Client is ok! -- " << endl;
 	this->client_ = client;
 	this->name_ = jack_get_client_name(client);
 	
 	// Register callback function
-    //cout << "Register callback -- ";
+    //cout << "Register callback -- " << endl;
 	jack_set_process_callback(client, mod_Process_Callback, this);
     
     /*
@@ -122,18 +130,22 @@ Module::Module(const char *server, MODULE_TYPE type, int pc, int ai, int ao, int
 				case AUDIO_I :
                     //cout << "register audio in : " << n << " idx " << i << endl;
 					audio_in_[i]        = jack_port_register( client, n, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
+                    if ( audio_in_[i] == NULL ) throw string("Failed register audio input port");
 					break;
 				case AUDIO_O :
                     //cout << "register audio out : " << n << " idx " << i-ai << endl;
 					audio_out_[i-ai]    = jack_port_register( client, n, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
+                    if ( audio_out_[i-ai] == NULL ) throw string("Failed register audio output port");
 					break;
 				case MIDI_I :
                     //cout << "register midi in : " << n << " idx " << i-ai-ao << endl;
 					midi_in_[i-ai-ao]   = jack_port_register( client, n, JACK_DEFAULT_MIDI_TYPE, JackPortIsInput, 0);
+                    if ( midi_in_[i-ai-ao] == NULL ) throw string("Failed register midi input port");
 					break;
 				case MIDI_O :
                     //cout << "register midi out : " << n << " idx " << i-ai-ao-mi << endl;
 					midi_out_[i-ai-ao-mi] = jack_port_register( client, n, JACK_DEFAULT_MIDI_TYPE, JackPortIsOutput, 0);
+                    if ( midi_out_[i-ai-ao-mi] == NULL ) throw string("Failed register midi output port");
 					break;
 			}
         }
@@ -146,7 +158,9 @@ Module::Module(const char *server, MODULE_TYPE type, int pc, int ai, int ao, int
     *   Alloc params array ----------------------------------------------------
     */
     //cout << "Alloc param array" << endl;
-    param_ = new float[pc];
+    param_ = new float[pc+MOD_COUNT];
+    
+    //cout << "Module constructor end" << endl;
 }
 
 Module::~Module(){
@@ -167,15 +181,15 @@ Module::~Module(){
     jack_client_close(client_);
 }
 
+int Module::process(jack_nframes_t nframes, void *arg){
+    
+    
+    return this->do_process(nframes);
+}
+
 void Module::set_bypass(bool state){
     
     is_bypassed_ = state;
-    if (is_bypassed_) {
-        
-        jack_set_process_callback(client_, mod_Bypass_Callback, this);
-    }else{
-        jack_set_process_callback(client_, mod_Process_Callback, this);
-    }
 }
 
 bool Module::get_bypass() const{
@@ -254,6 +268,15 @@ void Module::add_bank(int size, const float *bank){
             
             bank_.push_back(newbank);
         }
+        
+        /*
+        cout << "New bank added : [ ";
+        for( int i = 0; i < size; i++){
+            
+            cout << newbank[i] << " - ";
+        }
+        cout << " ]" << endl;
+        */
     }
 }
 
@@ -269,12 +292,12 @@ void Module::remove_bank(){
 
 void Module::remove_bank(int idx){
     
-    if(idx > 0 && idx < bank_.size()){
+    if(idx > 0 && idx < (int)bank_.size()){
         
         delete bank_.at(idx);
         bank_.erase(bank_.begin() + idx);
         
-        if(bank_idx_ >= bank_.size()) bank_idx_ = 0;
+        if(bank_idx_ >= (int)bank_.size()) bank_idx_ = 0;
         if(bank_.size() == 0) bank_idx_ = -1;
     }
 }
@@ -299,7 +322,7 @@ bool Module::prev_bank(){
     if(bank_.size() > 0){
         
         this->set_bank((--bank_idx_ < 0)? bank_idx_ = bank_.size() -1 : bank_idx_);
-        cycle = bank_idx_ == bank_.size() - 1;
+        cycle = bank_idx_ == (int)bank_.size() - 1;
     }
     
     return cycle;
@@ -307,9 +330,9 @@ bool Module::prev_bank(){
 
 bool Module::set_bank(int idx){
     
-    if(idx < bank_.size()){
+    if(idx < (int)bank_.size()){
         
-        bank_idx_ = idx;        
+        bank_idx_ = idx;
         this->set_param(param_c_, bank_.at(idx));
         
         return true;
@@ -358,6 +381,11 @@ jack_port_t* Module::get_port(MODULE_PORT_TYPE type, int idx){
         case MIDI_O :
             if (idx < mo_) return midi_out_[idx];
             break;
+        case MOD :
+            if (idx < mod_port_.size()) return mod_port_[idx];
+            break;
+        default :
+            break;
     }
     return NULL;
 }
@@ -381,6 +409,30 @@ int Module::get_port_count(MODULE_PORT_TYPE type){
         case MIDI_O :
             
             return mo_;
+            
+        case MOD :
+            
+            return mod_port_.size();
     }
     return 0;
+}
+
+void Module::add_mod(){
+    
+    char n[60];
+    sprintf( n, "Mod_%d", mod_port_.size() );
+    
+    jack_port_t* port = jack_port_register( client_, n, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
+    if ( port == NULL ) throw string("Failed register modulation port");
+    
+    mod_port_.push_back(port);
+}
+
+void Module::del_mod(int idx){
+    
+    if ( idx < mod_port_.size() ){
+        
+        jack_port_unregister( client_, mod_port_[idx] );
+        mod_port_.erase( mod_port_.begin() + idx );
+    }
 }

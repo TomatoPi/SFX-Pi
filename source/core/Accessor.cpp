@@ -5,108 +5,82 @@
 *	IO Accessor stuff
 *	---------------------------------------------------------------------------
 */
-IO_Accessor::IO_Accessor(Module *module, int target_idx, int target_param, int potentiometer, float min, float max, IO_CURVE curve, int is_db, int is_inv):
-	module_(module),
-	curve_type(curve),
-	target_idx(target_idx),
-	target_param(target_param),
-	potentiometer(potentiometer),
-	min(min),
-	max(max),
-	is_db(is_db),
-	is_inv(is_inv),
-	value(0),
-	state(1)
+Accessor::Accessor(int source, int target, float min, float max, IO_CURVE curve, bool isdb, bool isrelative):
+	source_(source),
+    target_(target),
+    min_(min),
+    max_(max),
+    isdb_(isdb),
+    isrlt_(isrelative)
 {
+
+    set_curve(curve);
+}
+
+float Accessor::compute( float input, float mod ){
 	
-	switch(curve){
+    
+    float param = ( (*this->curve_func_)( (mod+1.0f)/2.0f ) * (max_ - min_) ) + min_;
+    
+    if ( isrlt_ ){
+        
+        if(isdb_){
+            
+            return input * spi_dbtorms(param);
+        }else{
+            
+            return input + param;
+        }
+        
+    }else{
+        
+        if(isdb_){
+            
+            return spi_dbtorms(param);
+        }else{
+            
+            return param;
+        }
+        
+    }
+}
+
+IO_CURVE Accessor::get_curve() const{
+    
+    return curve_;
+}
+
+void Accessor::set_curve( IO_CURVE curve ){
+    
+    curve_ = curve;
+    
+    switch(curve){
+        
 		case CURVE_LIN :
-			this->curve = curve_lin;
+        
+			curve_func_ = curve_lin;
 			break;
+            
 		case CURVE_SIG :
-			this->curve = curve_sig;
+        
+			curve_func_ = curve_sig;
 			break;
+            
 		case CURVE_HAN :
-			this->curve = curve_han;
+        
+			curve_func_ = curve_han;
 			break;
+            
 		case CURVEIHAN :
-			this->curve = curveihan;
+        
+			curve_func_ = curveihan;
 			break;
+            
 		default :
-			this->curve = curve_lin;
+        
+			curve_func_ = curve_lin;
 			break;
 	}
-
-	this->state = this->potentiometer >= 0 && this->potentiometer < SPI_POTAR_COUNT;
-	this->state = target_param < module_->get_param_count();
-}
-
-int IO_Accessor::update(int *potar_tab){
-	
-	if(this->state && this->module_ != NULL){
-		
-		int value = potar_tab[this->potentiometer];
-		float diff = (float)value - (float)this->value;
-		if( (diff > SPI_HYSTERESIS * SPI_MAX && diff > 0) || (diff < -SPI_HYSTERESIS * SPI_MAX && diff < 0)){
-			
-			this->value = value;
-			if(this->is_inv)value = SPI_MAX - value;
-			
-			float param = (((*this->curve)((float)value/SPI_MAX))*(this->max - this->min)) + this->min;
-
-			if(is_db) param = spi_dbtorms(param);
-			
-			this->module_->set_param(this->target_param, param);
-			return 1;
-		}
-		return 0;
-	}
-	return -1;
-}
-
-int IO_Accessor::is_dead() const{
-	
-	return !this->state;
-}
-
-int IO_Accessor::get_target_idx() const{
-	
-	return this->target_idx;
-}
-
-int IO_Accessor::get_target_param() const{
-	
-	return this->target_param;
-}
-
-int IO_Accessor::get_potar() const{
-	
-	return this->potentiometer;
-}
-
-float IO_Accessor::get_min() const{
-	
-	return this->min;
-}
-
-float IO_Accessor::get_max() const{
-	
-	return this->max;
-}
-
-int IO_Accessor::get_curve() const{
-	
-	return static_cast<int>(this->curve_type);
-}
-
-int IO_Accessor::get_db() const{
-	
-	return this->is_db;
-}
-
-int IO_Accessor::get_inv() const{
-	
-	return this->is_inv;
 }
 
 inline float curve_lin(float v){
@@ -116,15 +90,15 @@ inline float curve_lin(float v){
 
 inline float curve_sig(float v){
 	
-	return 0.5f*( tanh( 5*((v)-0.5f)) + 1 );
+	return (0.5f*( tanh( 5*((v)-0.5f)) + 1 ));
 }
 
 inline float curve_han(float v){
 	
-	return 0.5f*( 1 - cos(2*M_PI*(v)) );
+	return (0.5f*( 1 - cos(2*M_PI*(v)) ));
 }
 
 inline float curveihan(float v){
 	
-	return 1 - curve_han(v);
+	return (1 - curve_han(v));
 }

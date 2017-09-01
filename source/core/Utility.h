@@ -13,11 +13,6 @@
 using namespace std;
 
 /*
-* Very small amount
-*/
-static float vsa = (1.0 / 4294967295.0);
-
-/*
 * Simplify jack_default_audio_sample_t writing
 */
 typedef jack_default_audio_sample_t sample_t;

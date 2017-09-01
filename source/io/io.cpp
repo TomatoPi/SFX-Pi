@@ -80,6 +80,11 @@ void io_update_potar_tab(IO_Potentiometer **pot, int *tab){
 *	Screen stuff
 *	---------------------------------------------------------------------------
 */
+static int 		io_screen_port 	= 16; 				/* /dev/ttyUSB0 */
+static int 		io_screen_bdrate = 57600;			/* 9600 baud */
+static char 	io_screen_mode[]={'8','N','1',0};	/* 8 data bits, no parity, 1 stop bit */
+
+static const char* io_screen_default = "Space-Fx--!";
 
 IO_screen::IO_screen():time_(time(NULL)), fix_(-1){
 	
@@ -103,9 +108,9 @@ void IO_screen::print(const char* text, int t){
 	*/
 	char buffer[BUF_SIZE] = {};
 	
-	fprintf(stderr, "Received message : [%s] -- ", text);
+	//fprintf(stderr, "Received message : [%s] -- ", text);
 	sprintf(buffer, "%s!", text);
-	fprintf(stderr, "Message : [%s]\n", buffer);
+	//fprintf(stderr, "Message : [%s]\n", buffer);
 	
 	/*
 	*	Send data

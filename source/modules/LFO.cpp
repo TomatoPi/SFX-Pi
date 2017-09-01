@@ -1,11 +1,14 @@
 #include "LFO.h"
+
+static int RandSeed = 48172;
+
 LFO::LFO(const char *server): Module(server, MOD_LFO, LFO_PARAMS_COUNT,
     0, 1, 0, 0, "Out"),
     samplerate_(jack_get_sample_rate(client_)),
     ramp_(0)
 {
     
-    this->change_param(LFO_DEFAULT_PARAMS);
+    this->set_param(MOD_COUNT + LFO_PARAMS_COUNT, LFO_DEFAULT_PARAMS);
     
     if (jack_activate (this->client_)) {
         
@@ -13,18 +16,33 @@ LFO::LFO(const char *server): Module(server, MOD_LFO, LFO_PARAMS_COUNT,
     }
 }
 
-int LFO::process(jack_nframes_t nframes, void *arg){
+int LFO::do_process(jack_nframes_t nframes){
 
     sample_t *out = (sample_t*)jack_port_get_buffer(audio_out_[0], nframes);
     
-    for(jack_nframes_t i = 0; i < nframes; i++){
+    if ( !is_bypassed_ ){
         
-        ramp_ += param_[LFO_FREQ]/samplerate_;
-        ramp_ = fmod(ramp_, 1.0);
-    
-        int s = (param_[LFO_SIGN] < 0)? -1: 1;
+        float vol = param_[MOD_VOLUME];
         
-        out[i] = (*waveform_)(ramp_, s, param_[LFO_VAR1], param_[LFO_VAR2]);
+        float d = param_[LFO_PHD];
+        float o = param_[LFO_PHO];
+        
+        for(jack_nframes_t i = 0; i < nframes; i++){
+            
+            ramp_ += param_[LFO_FREQ]/samplerate_;
+            ramp_ = fmod(ramp_ - o, 1.0f);
+            
+            float p = (ramp_>d)?( (ramp_ + 1.0f - 2.0f*d)/(2.0f*(1.0f-d)) ):( ramp_ / (2.0f*d) );
+            p += o;
+            p = fmod( p, 1.0f );
+        
+            int s = (param_[LFO_SIGN] < 0)? -1: 1;
+            
+            out[i] = vol * (*waveform_)(p, s, param_[LFO_VAR1], param_[LFO_VAR2]);
+        }
+    }else{
+        
+        memset( out, 0, sizeof(sample_t) * nframes );
     }
 
     return 0;
@@ -35,6 +53,7 @@ void LFO::sync(){
     ramp_ = param_[LFO_PHASE];
 }
 
+/*
 int LFO::bypass(jack_nframes_t nframes, void *arg){
 
     sample_t *out = (sample_t*)jack_port_get_buffer(audio_out_[0], nframes);
@@ -42,12 +61,15 @@ int LFO::bypass(jack_nframes_t nframes, void *arg){
     
     return 0;
 }
+*/
 
 void LFO::change_param(int idx, float value){
     
     //param_[idx] = value;
     
     if (idx == LFO_TYPE) {
+        
+        value = ( value < 0 )? 0 : ( value >= WAVE_COUNT )? WAVE_COUNT - 1 : value;
         
         this->update_type(static_cast<LFO_wave>((int)value));
         param_[LFO_TYPE] = (int)value;
@@ -57,8 +79,9 @@ void LFO::change_param(int idx, float value){
 void LFO::change_param(const float *values){
     
     //memcpy(param_, values, sizeof(float) * param_c_);
-    
-    param_[LFO_TYPE] = (int)param_[LFO_TYPE];
+    int v = (int)param_[LFO_TYPE];
+    param_[LFO_TYPE] = ( v < 0 )? 0 : ( v >= WAVE_COUNT )? WAVE_COUNT - 1 : v;
+    param_[LFO_TYPE] = v;
     this->update_type(static_cast<LFO_wave>((int)param_[LFO_TYPE]));
 }
 
@@ -82,6 +105,12 @@ string LFO::return_formated_param(int idx){
     } 
     
     switch (idx){
+        
+        case MOD_VOLUME :
+        
+            n += " ";
+            n += f_ftos( param_[idx] );
+            break;
         
         case LFO_TYPE :
         
@@ -230,5 +259,5 @@ inline sample_t w_nph(float in, float sign, float p1, float p2){
 
 inline sample_t w_whi(float in, float sign, float p1, float p2){
     
-    return ((float)(((RandSeed = RandSeed * 214013L + 2531011L) >> 16) & 0x7fff)/RAND_MAX) * 2.0f - 1.0f;
+    return (sample_t)( ((((float) rand()) / (float)RAND_MAX ) * ( 2.0f )) - 1.0f );
 }
