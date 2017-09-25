@@ -22,7 +22,7 @@ Reverb::Reverb(const char *server) : Module(server, MOD_REV, REVERB_PARAMS_COUNT
 	}
 }
 	
-int Reverb::do_process(jack_nframes_t nframes){
+inline int Reverb::do_process(jack_nframes_t nframes){
 
     sample_t *in;	
     in = (sample_t*)jack_port_get_buffer(audio_in_[0], nframes);
@@ -154,7 +154,7 @@ void  Reverb::change_param(const float *values){
 
 void Reverb::new_bank(){
     
-    this->add_bank(REVERB_PARAMS_COUNT, REVERB_DEFAULT_PARAMS);
+    this->add_bank( MOD_COUNT + REVERB_PARAMS_COUNT, REVERB_DEFAULT_PARAMS);
 }
 
 string  Reverb::return_param_name(int idx){

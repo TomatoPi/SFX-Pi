@@ -9,7 +9,7 @@
 
 static const int    RINGMOD_PARAMS_COUNT = 1;
 static const string RINGMOD_PARAM_NAMES[MOD_COUNT+RINGMOD_PARAMS_COUNT] = {"Volume", "Depth"};
-static const float  RINGMOD_DEFAULT_PARAMS[MOD_COUNT+RINGMOD_PARAMS_COUNT] = {1, 1.0f};
+static const float  RINGMOD_DEFAULT_PARAMS[MOD_COUNT+RINGMOD_PARAMS_COUNT] = {0, 1, 1.0f};
 
 
 class Ringmod : public Module{

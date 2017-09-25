@@ -12,7 +12,7 @@ Drive::Drive(const char *server):Module(server, MOD_DRIVE, DRIVE_PARAM_COUNT,
 	}
 }
 
-int Drive::do_process(jack_nframes_t nframes){
+inline int Drive::do_process(jack_nframes_t nframes){
     
     sample_t *in, *out;
     in  = (sample_t*)jack_port_get_buffer( audio_in_[0], nframes);	// Collecting input buffer
@@ -111,7 +111,7 @@ void Drive::change_param(const float *values){
 
 void Drive::new_bank(){
     
-    this->add_bank(DRIVE_PARAM_COUNT, DRIVE_DEFAULT_PARAMS);
+    this->add_bank( MOD_COUNT + DRIVE_PARAM_COUNT, DRIVE_DEFAULT_PARAMS);
 }
 
 string Drive::return_param_name(int idx){

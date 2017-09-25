@@ -4,7 +4,7 @@ Chorus::Chorus(const char* server):Module(server, MOD_CHORUS, CHORUS_PARAMS_COUN
     samplerate_(jack_get_sample_rate(client_))
 {
 
-    buffer_ = new Buffer_M( CHORUS_BUFFER, this->samplerate_, CHORUS_DEFAULT_PARAMS[CHORUS_SIZE], (int*)CHORUS_DELAYS_LENGTH );
+    buffer_ = new Buffer_M( CHORUS_BUFFER, this->samplerate_, MAX_CHORUS_SIZE, (int*)CHORUS_DELAYS_LENGTH );
 	this->set_param(MOD_COUNT + CHORUS_PARAMS_COUNT, CHORUS_DEFAULT_PARAMS);
     
     if (jack_activate(this->client_)) {
@@ -12,7 +12,7 @@ Chorus::Chorus(const char* server):Module(server, MOD_CHORUS, CHORUS_PARAMS_COUN
 		throw string("Failed activate client");
 	}
     
-    cout << "depth : " << param_[CHORUS_DEPTH] << endl;
+    //cout << "depth : " << param_[CHORUS_DEPTH] << endl;
 }
 
 Chorus::~Chorus(){
@@ -20,7 +20,7 @@ Chorus::~Chorus(){
     delete buffer_;
 }
 
-int Chorus::do_process(jack_nframes_t nframes){
+inline int Chorus::do_process(jack_nframes_t nframes){
 
     sample_t *in, *out;
     in  = (sample_t*)jack_port_get_buffer(audio_in_[0], nframes);
@@ -86,25 +86,25 @@ void Chorus::change_param(int idx, float value){
     
     if ( idx == CHORUS_SIZE && value > 0 && value <= MAX_CHORUS_SIZE){
         
-        int *d = new int[(int)value];
-        for( int i = 0; i < (int)value; i++ ){
+        int *d = new int[MAX_CHORUS_SIZE];
+        for( int i = 0; i < MAX_CHORUS_SIZE; i++ ){
             
             d[i] = (int)param_[CHORUS_DELAY + i];
         }
         
-        buffer_->set_reader( (int)value, d, samplerate_ );
+        buffer_->set_reader( MAX_CHORUS_SIZE, d, samplerate_ );
         
         delete d;
     }
     else if ( idx >= CHORUS_DELAY && idx < CHORUS_DELAY + MAX_CHORUS_SIZE ){
         
-        int *d = new int[(int)param_[CHORUS_SIZE]];
-        for( int i = 0; i < (int)param_[CHORUS_SIZE]; i++ ){
+        int *d = new int[MAX_CHORUS_SIZE];
+        for( int i = 0; i < MAX_CHORUS_SIZE; i++ ){
             
             d[i] = (int)param_[CHORUS_DELAY + i];
         }
         
-        buffer_->set_reader( (int)param_[CHORUS_SIZE], d, samplerate_ );
+        buffer_->set_reader( MAX_CHORUS_SIZE, d, samplerate_ );
         
         delete d;
     }
@@ -112,20 +112,20 @@ void Chorus::change_param(int idx, float value){
 
 void Chorus::change_param(const float *values){
     
-    int *d = new int[(int)param_[CHORUS_SIZE]];
-    for( int i = 0; i < (int)param_[CHORUS_SIZE]; i++ ){
+    int *d = new int[MAX_CHORUS_SIZE];
+    for( int i = 0; i < MAX_CHORUS_SIZE; i++ ){
         
         d[i] = (int)param_[CHORUS_DELAY + i];
     }
         
-    buffer_->set_reader( (int)param_[CHORUS_SIZE], d, samplerate_ );
+    buffer_->set_reader( MAX_CHORUS_SIZE, d, samplerate_ );
     
     delete d;
 }
 
 void Chorus::new_bank(){
     
-    this->add_bank(CHORUS_PARAMS_COUNT, CHORUS_DEFAULT_PARAMS);
+    this->add_bank( MOD_COUNT + CHORUS_PARAMS_COUNT, CHORUS_DEFAULT_PARAMS);
 }
     
 string Chorus::return_param_name(int idx){

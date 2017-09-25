@@ -37,7 +37,7 @@
 /**
 *   Store last buttons states
 */
-static bool lastb[10] = {};
+static bool lastb[BUTTON_COUNT] = {};
 
 const string BACK_SELECT_MODULE = string("tmp/tmp_sel_mod");
 const string BACK_EDIT_BANK     = string("tmp/tmp_edit_bank");
@@ -54,7 +54,7 @@ static const string PRESSET_PATH = string("/home/sfx_pi/sfx/Files/");
 static vector<string> PRESSET_LIST;
 static vector<string>::iterator CURRENT_PRESSET = PRESSET_LIST.end();
 
-Module_Node_List *GRAPH = NULL;
+Module_Node_List* GRAPH = 0;
 Module *CURRENT_MODULE = NULL;
 Module_List::iterator CURRENT_IDX;
 int CURRENT_BANK = -1;
@@ -67,7 +67,7 @@ unsigned char last_reg_gpiob = 0;
 void func_update_menu();
 void func_exit_menu();
 
-void io_init_frontPanel(Module_Node_List *graph, string version){
+void io_init_frontPanel(Module_Node_List* graph, string version){
     
     MCP0 = new mcp23017( HEX_MCP_0, string("/dev/i2c-1") );
     MCP1 = new mcp23017( HEX_MCP_1, string("/dev/i2c-1") );
@@ -154,6 +154,16 @@ void io_update_frontPanel(){
             lastb[9] = !!( gpiob & HEX_EDIT );
             if ( lastb[9] ) M_FLAG = MOVE_ENTER_EDIT;
             else M_FLAG = MOVE_EXIT_EDIT;
+        }
+        else if ( !!(gpioa & HEX_FOOT_NEXT) != lastb[10] ){
+            
+            lastb[10] = !!( gpioa & HEX_FOOT_NEXT );
+            if ( GRAPH != NULL ) GRAPH->next_bank();
+        }
+        else if ( !!(gpioa & HEX_FOOT_PREV) != lastb[11] ){
+            
+            lastb[11] = !!( gpioa & HEX_FOOT_PREV );
+            if ( GRAPH != NULL ) GRAPH->prev_bank();
         }
         
         func_update_menu();
@@ -605,7 +615,7 @@ void func_update_menu(){
                     // Ok : ask for exit saving changes
                     else if ( M_FLAG == MOVE_OK ){
                         
-                        if ( save_preset( *(CURRENT_PRESSET), VERSION, *GRAPH ) ){
+                        if ( save_preset( *(CURRENT_PRESSET), VERSION, GRAPH ) ){
                         
                             sprintf( n, "Save Fail");
                         
@@ -679,7 +689,7 @@ void func_update_menu(){
                     // Ok : exit module edition saving changes
                     else if ( M_FLAG == MOVE_OK ){
                         
-                        if ( save_preset( *(CURRENT_PRESSET), VERSION, *GRAPH ) ){
+                        if ( save_preset( *(CURRENT_PRESSET), VERSION, GRAPH ) ){
                         
                             sprintf( n, "Save Fail");
                         
@@ -754,7 +764,7 @@ void func_update_menu(){
                     // Ok : exit saving changes
                     else if ( M_FLAG == MOVE_OK ){
                         
-                        if ( save_preset( *(CURRENT_PRESSET), VERSION, *GRAPH ) ){
+                        if ( save_preset( *(CURRENT_PRESSET), VERSION, GRAPH ) ){
                         
                             sprintf( n, "Save Fail");
                         
@@ -847,7 +857,7 @@ void func_update_menu(){
                     // Ok : exit saving changes
                     else if ( M_FLAG == MOVE_OK ){
                         
-                        if ( save_preset( *(CURRENT_PRESSET), VERSION, *GRAPH ) ){
+                        if ( save_preset( *(CURRENT_PRESSET), VERSION, GRAPH ) ){
                         
                             sprintf( n, "Save Fail");
                         }
@@ -953,7 +963,7 @@ void func_update_menu(){
                     // Ok : exit saving changes
                     else if ( M_FLAG == MOVE_OK ){
                         
-                        if ( save_preset( *(CURRENT_PRESSET), VERSION, *GRAPH ) ){
+                        if ( save_preset( *(CURRENT_PRESSET), VERSION, GRAPH ) ){
                         
                             sprintf( n, "Save Fail");
                         }
@@ -1136,7 +1146,7 @@ void func_update_menu(){
             }
         } // compute wait order end
         
-        if ( d ) MAIN_SCREEN->print( n, 0 );
+        if ( d ) IOS::printm( string(n) , IOS::TEMP);
     } // Move != none end
     
     M_FLAG = MOVE_NONE;
@@ -1152,5 +1162,5 @@ void func_exit_menu(){
     CURRENT_PARAM = -1;
     
     char n[] = "space-fx";
-    MAIN_SCREEN->print( n, 0 );
+    IOS::printm( string(n) );
 }

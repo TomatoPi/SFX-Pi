@@ -26,14 +26,39 @@ using namespace std;
 
 /** Preset File @see save_preset(string, string, Module_Node_List) */
 static const string NODE_ROOT_PRESET("Preset");
+static const string NRP_NAME("Name");
+static const string NRP_VERSION("Version");
+
 static const string NODE_ROOT_MODULE("ModuleBak");
 
 static const string NODE_MODULE("Module");
-static const string NODE_PARAM("Params");
-static const string NODE_ACCESSOR("Accessor");
+static const string NMOD_TYPE("Type");
+static const string NMOD_BANK("Bank");
+static const string NMOD_SIZE("Size");
+static const string NMOD_DATA("Data");
+
 static const string NODE_CONNECTION("Connection");
+
 static const string NODE_POTENTIOMETER("Potentiometer");
+static const string NPOT_IDX("Index");
+static const string NPOT_TARGET("Target");
+
+static const string NPOT_CURVE("Curve");
+static const string NPOT_TARGETN("TargetM");
+static const string NPOT_TARGETP("TargetP");
+static const string NPOT_MIN("Min");
+static const string NPOT_MAX("Max");
+static const string NPOT_DB("IsdB");
+static const string NPOT_RLT("IsRlt");
+
+
+static const string NODE_PARAM("Params");
 static const string NODE_BUTTON("Button");
+
+static const string TAB("    ");
+
+#define MAX_LINE_LENGTH 256
+#define MAX_TOKEN_COUNT 256
 
 /**
 *   Function used to save curent process graph inside a Presset file.
@@ -59,7 +84,7 @@ static const string NODE_BUTTON("Button");
 *   @param list curent process graph
 *   @return 0 on success
 */
-int save_preset(string const name, string const version, Module_Node_List list);
+int save_preset(string const name, string const version, Module_Node_List *list);
 /**
 *   Function used to load a preset file.
 *   First verify that file is a preset file by reading it first node
@@ -73,7 +98,7 @@ int save_preset(string const name, string const version, Module_Node_List list);
 *
 *   @warning if presset loaded successful it will cause a brief sound's interuption
 */
-int load_preset(string const name, string const version, Module_Node_List *list);
+int load_preset(string const name, string const version, Module_Node_List*& list);
 
 /**
 *   Function used for create new empty presset file

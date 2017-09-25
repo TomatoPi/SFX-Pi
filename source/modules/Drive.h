@@ -38,7 +38,7 @@
 *	Default values for drive module
 */
 static const int    DRIVE_PARAM_COUNT = 15;
-static const float  DRIVE_DEFAULT_PARAMS[MOD_COUNT+DRIVE_PARAM_COUNT] = {1, 0, 0, 
+static const float  DRIVE_DEFAULT_PARAMS[MOD_COUNT+DRIVE_PARAM_COUNT] = {0, 1, 0, 0, 
                                             198, 1, 22, 0.29f, 
                                             63, 1, 15, 0.1f, 
                                             200, 1000, 0.5f, 2.0f, 3.0f};

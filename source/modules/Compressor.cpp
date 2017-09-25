@@ -18,7 +18,7 @@ Compressor::Compressor( const char *server ): Module(server, MOD_COMP, COMP_PARA
 	}
 }
 
-int Compressor::do_process(jack_nframes_t nframes){
+inline int Compressor::do_process(jack_nframes_t nframes){
     
     sample_t *inl, *inr, *outl, *outr;
     
@@ -39,6 +39,11 @@ int Compressor::do_process(jack_nframes_t nframes){
         rel = param_[COMP_REL];
         thr = param_[COMP_THR];
         
+        bool gate = !!param_[COMP_GATE];
+        
+        float cut = param_[COMP_CUT];
+        float dw = param_[COMP_CUT];
+        
         for( jack_nframes_t i = 0; i < nframes; i++ ){
             
             /*
@@ -57,15 +62,26 @@ int Compressor::do_process(jack_nframes_t nframes){
             //If below threshold, decay compression rate
             if ( t ){
                 
-                //Calculate current compression rate
-                ramp_ += isr_;
-                if ( ramp_ > 15.0f * rel ) ramp_ = 15.0f * rel;
+                // If under gate level, cut output
+                if ( gate && cut * cut > thr2_){
+                    
+                    outl[i] = 0;
+                    outr[i] = 0;
+                }
+                // Else decay compression rate
+                else{
                 
-                float r = ik_ + (1 - ik_) * (1 - exp(-ramp_/rel));
+                    //Calculate current compression rate
+                    ramp_ += isr_;
+                    if ( ramp_ > 15.0f * rel ) ramp_ = 15.0f * rel;
+                    
+                    float r = ik_ + (1 - ik_) * (1 - exp(-ramp_/rel));
+                    
+                    //Apply compression
+                    outl[i] = spi_dry_wet( inl[i], vol * r * inl[i], dw );
+                    outr[i] = spi_dry_wet( inr[i], vol * r * inr[i], dw );
                 
-                //Apply compression
-                outl[i] = vol * r * inl[i];
-                outr[i] = vol * r * inr[i];
+                }
                 
             }
             // If beyond, increase compression rate
@@ -76,10 +92,10 @@ int Compressor::do_process(jack_nframes_t nframes){
                 if ( ramp_ > 15.0f * att ) ramp_ = 15.0f * att;
                 
                 float r = ik_ + (1 - ik_) * exp(-ramp_/att);
-                
+            
                 //Apply compression
-                outl[i] = vol * r * inl[i];
-                outr[i] = vol * r * inr[i];
+                outl[i] = spi_dry_wet( inl[i], vol * r * inl[i], dw );
+                outr[i] = spi_dry_wet( inr[i], vol * r * inr[i], dw );
             }
             
             last_ = t;

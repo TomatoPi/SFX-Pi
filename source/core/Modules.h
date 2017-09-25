@@ -74,9 +74,10 @@ typedef std::vector<float*> ModBank;
 /*
 *   Params shared by all modules
 */
-#define MOD_COUNT 1
+#define MOD_COUNT 2
 
-#define MOD_VOLUME 0
+#define MOD_BYPASS 0
+#define MOD_VOLUME 1
 
 class Accessor;
 
@@ -272,7 +273,7 @@ class Module{
         
 	protected:
     
-        virtual int do_process(jack_nframes_t nframes) { return 0; };
+        virtual inline int do_process(jack_nframes_t nframes) { return 0; };
     
         virtual void change_param(int idx, float value) {}; /**< @see set_param(int idx, float value) */
         virtual void change_param(const float *values)  {}; /**< @see set_param(float *values) */
@@ -293,14 +294,14 @@ class Module{
         jack_port_t **midi_in_, **midi_out_;    /**< JACK's midi ports */
         int mi_, mo_;                           /**< number of midi ports*/
         
-        float *param_;  /**< Array of current params */
+        float *param_;  /**< Pointer to current's bank begin */
         int param_c_;   /**< Number of params */
         
         ModBank bank_;  /**< Vector of avaiable params sets */
         int bank_idx_;  /**< Curent bank index */
         
         vector<jack_port_t*> mod_port_; /**< vector of modulation ports */
-        vector<Accessor> mod_acc_;      /**< vector of accessors */
+        //vector<Accessor> mod_acc_;      /**< vector of accessors */
 };
 
 #define SPI_HYSTERESIS 0.01f
@@ -343,7 +344,7 @@ class Accessor{
         *   @param isdb true if min and max are in db
         *   @param isabs true if modulation is relative to param value, or absolute
         */
-		Accessor(int source, int target, float min, float max, IO_CURVE curve, bool isdb, bool isrelative);
+		Accessor(int target, int targetp, float min, float max, IO_CURVE curve, bool isdb, bool isrelative);
         
         /**
         *   Function that modulate targeted param.
@@ -352,7 +353,7 @@ class Accessor{
         *   @param mod modulation signal
         *   @return modulated param
         */
-        float compute( float input, float mod );
+        float compute( float input );
         
         /**
         *   Get current accessor's curve
@@ -365,8 +366,8 @@ class Accessor{
         */
         void set_curve( IO_CURVE curve );
 	
-        int source_;
         int target_;
+        int targetp_;
         
         float min_;
         float max_;
@@ -401,6 +402,7 @@ typedef std::vector<Accessor*> IO_Accessor_List;
 *	Alias for vector of Connection
 */
 typedef std::vector<Connection> Connection_List;
+typedef Connection_List::iterator Connection_iterator;
 
 /**
 *   Module node class.
@@ -443,7 +445,7 @@ class Module_Node{
 		void			connection_add(Connection c);
 		void			connection_remove(int i);
 		Connection 		connection_get(int i) const;
-		Connection_List*	connection_get_list();
+		Connection_List	connection_get_list();
 		
     protected :
     
@@ -456,6 +458,8 @@ class Module_Node{
 *	Alias for vector of Module nodes
 */
 typedef std::vector<Module_Node*> Module_List;
+typedef Module_List::iterator Module_iterator;
+
 /**
 *   Main graph class.
 */
@@ -464,6 +468,7 @@ class Module_Node_List{
 	public :
     
         Module_Node_List();
+        ~Module_Node_List();
     
         /**
         *   Main function used to create new module.
@@ -496,11 +501,43 @@ class Module_Node_List{
         *	See io/io.h --> IO_Accessor
         */
         int add_accessor(int target, int param_idx, int potentiometer, float min, float max, IO_CURVE curve, int is_db, int is_inv);
+        
+        /**
+        *   Disable output from graph.
+        *   @param m true for mute graph ( set output volume to 0 )
+        */
+        void mute( bool m );
+        /**
+        *   @return true if graph is muted
+        */
+        bool mute();
+        
+        /**
+        *   Cycle to next bank for all modules
+        */
+        void next_bank();
+        
+        /**
+        *   Cycle to prev bank for all modules
+        */
+        void prev_bank();
+        
+        /**
+        * Change output volume
+        */
+        void set_out_volume( float vol );
 
         Module_List list_;
         int count_;
         
         Module_Node begin_, end_;
+        
+    protected :
+        
+        bool mute_;
+        
+        float outvl_, outvr_;
+        float outv_;
 };
 
 #endif

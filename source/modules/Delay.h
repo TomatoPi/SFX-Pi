@@ -16,7 +16,7 @@
 *	Default values for delay
 */
 static const int    DELAY_PARAMS_COUNT = 3;
-static const float  DELAY_DEFAULT_PARAMS[MOD_COUNT+DELAY_PARAMS_COUNT] = {1, 333, 0.6f, 0.2f};
+static const float  DELAY_DEFAULT_PARAMS[MOD_COUNT+DELAY_PARAMS_COUNT] = {0, 1, 333, 0.6f, 0.2f};
 static const string DELAY_PARAM_NAMES[MOD_COUNT+DELAY_PARAMS_COUNT] = {"Volume", "Delay", "Feedb", "DryWet"};
 
 /*
@@ -58,7 +58,7 @@ class Delay : public Module{
 	
 	protected :
         
-		virtual int do_process(jack_nframes_t nframes);
+		virtual inline int do_process(jack_nframes_t nframes);
     
         virtual void change_param(int idx, float value); /**< @see set_param(int idx, float value) */
         virtual void change_param(const float *values);        /**< @see set_param(float *values) */

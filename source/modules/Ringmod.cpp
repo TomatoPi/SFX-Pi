@@ -11,7 +11,7 @@ Ringmod::Ringmod(const char *server): Module(server, MOD_RINGM, RINGMOD_PARAMS_C
     }
 }
 
-int Ringmod::do_process(jack_nframes_t nframes){
+inline int Ringmod::do_process(jack_nframes_t nframes){
 
  
     sample_t *in, *out, *mod;
@@ -66,7 +66,7 @@ void Ringmod::change_param(const float *values){
 
 void Ringmod::new_bank(){
     
-    this->add_bank(RINGMOD_PARAMS_COUNT, RINGMOD_DEFAULT_PARAMS);
+    this->add_bank( MOD_COUNT + RINGMOD_PARAMS_COUNT, RINGMOD_DEFAULT_PARAMS);
 }
 
 string Ringmod::return_param_name(int idx){

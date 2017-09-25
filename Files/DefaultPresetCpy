@@ -1,5 +1,5 @@
 Preset={
-    Name=DefaultPreset
+    Name=DefaultPresetCpy
     Version=1.1
 }
 Module={
@@ -36,7 +36,7 @@ Module={
     Type=6
     Bank={
         Size=9
-        Data={ 1 0.02 0.9 2 5 8 15 18 23 }
+        Data={ 1 0.6 0.9 2 5 8 15 18 23 }
     }
     Bank={
         Size=9
@@ -51,7 +51,7 @@ Module={
     Type=6
     Bank={
         Size=9
-        Data={ 1 -0.02 0.9 2 5 8 15 18 23 }
+        Data={ 1 -0.6 0.9 2 5 8 15 18 23 }
     }
     Bank={
         Size=9

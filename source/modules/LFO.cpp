@@ -16,7 +16,7 @@ LFO::LFO(const char *server): Module(server, MOD_LFO, LFO_PARAMS_COUNT,
     }
 }
 
-int LFO::do_process(jack_nframes_t nframes){
+inline int LFO::do_process(jack_nframes_t nframes){
 
     sample_t *out = (sample_t*)jack_port_get_buffer(audio_out_[0], nframes);
     
@@ -87,7 +87,7 @@ void LFO::change_param(const float *values){
 
 void LFO::new_bank(){
     
-    this->add_bank(LFO_PARAMS_COUNT, LFO_DEFAULT_PARAMS);
+    this->add_bank( MOD_COUNT + LFO_PARAMS_COUNT, LFO_DEFAULT_PARAMS);
 }
 
 string LFO::return_param_name(int idx) {

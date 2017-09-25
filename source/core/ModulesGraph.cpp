@@ -76,15 +76,18 @@ Connection Module_Node::connection_get(int i) const{
 	return this->_connection_list.at(i);
 }
 
-Connection_List* Module_Node::connection_get_list(){
+Connection_List Module_Node::connection_get_list(){
 	
-	return &this->_connection_list;
+	return this->_connection_list;
 }
 
 Module_Node_List::Module_Node_List():
     count_(0), 
     begin_(new EndModule(SERVER_NAME, MOD_FIRST)), 
-    end_(new EndModule(SERVER_NAME, MOD_LAST))
+    end_(new EndModule(SERVER_NAME, MOD_LAST)),
+    mute_(false),
+    outvl_(0),
+    outvr_(0)
 {
 
     const char **port;
@@ -140,6 +143,14 @@ Module_Node_List::Module_Node_List():
     //cout << port[1] << " -> " << jack_port_name( end_.get_module()->get_port(AUDIO_O, 1)) << " ok -- ";
     free(port);
     cout << "Connection made" << endl;
+}
+
+Module_Node_List::~Module_Node_List(){
+    
+    for ( Module_iterator itr = list_.begin(); itr != list_.end(); itr++ ){
+        
+        delete *itr;
+    }
 }
 
 int Module_Node_List::add_module(MODULE_TYPE mod){
@@ -341,4 +352,51 @@ int Module_Node_List::add_accessor(int target, int param_idx, int potentiometer,
 	//list_[target]->accessor_add( new Accessor(list_[target]->get_module(), target, param_idx, potentiometer, min, max, curve, is_db, is_inv));
 	
 	return 0;
+}
+
+void Module_Node_List::mute( bool m ){
+    
+    mute_ = m;
+    if ( mute_ ){
+        
+        outvl_ = end_.get_module()->get_param( END_LEFT );
+        outvr_ = end_.get_module()->get_param( END_RIGHT );
+        
+        end_.get_module()->set_param( END_LEFT , 0.0f );
+        end_.get_module()->set_param( END_RIGHT, 0.0f );
+    }
+    else{
+        
+        end_.get_module()->set_param( END_LEFT , outvl_ );
+        end_.get_module()->set_param( END_RIGHT, outvr_ );
+    }
+}
+
+bool Module_Node_List::mute(){
+    
+    return mute_;
+}
+
+void Module_Node_List::next_bank(){
+    
+    for ( Module_iterator itr = list_.begin() ; itr != list_.end(); itr++ ){
+        
+        (*itr)->get_module()->next_bank();
+    }
+}
+
+void Module_Node_List::prev_bank(){
+    
+    for ( Module_iterator itr = list_.begin() ; itr != list_.end(); itr++ ){
+        
+        (*itr)->get_module()->prev_bank();
+    }
+}
+
+void Module_Node_List::set_out_volume( float vol ){
+    
+    outv_ = vol;
+    
+    end_.get_module()->set_param( END_LEFT , vol );
+    end_.get_module()->set_param( END_RIGHT, vol );
 }

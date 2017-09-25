@@ -9,14 +9,17 @@
 #define COMP_ATT    MOD_COUNT + 1
 #define COMP_REL    MOD_COUNT + 2
 #define COMP_THR    MOD_COUNT + 3
-#define COMP_NOISE  MOD_COUNT + 4
+#define COMP_GATE  MOD_COUNT + 4
 #define COMP_CUT    MOD_COUNT + 5
+#define COMP_DRY    MOD_COUNT + 6
 
 #define COMP_WINDOW 30
 
-static const int    COMP_PARAMS_COUNT = 4;
-static const string COMP_PARAM_NAMES[MOD_COUNT+COMP_PARAMS_COUNT] = {"Volume", "Ratio", "Attack", "Release", "Thrsld"};
-static const float  COMP_DEFAULT_PARAM[MOD_COUNT+COMP_PARAMS_COUNT] = {1, 2.25f, 30, 40, 0.03};
+static const int    COMP_PARAMS_COUNT = 7;
+static const string COMP_PARAM_NAMES[MOD_COUNT+COMP_PARAMS_COUNT] = {"Volume", "Ratio", "Attack", "Release", "Thrsld",
+                                                                    "Gate", "GateCut", "DryWet"};
+static const float  COMP_DEFAULT_PARAM[MOD_COUNT+COMP_PARAMS_COUNT] = {0, 1, 2.25f, 200, 400, 0.1,
+                                                                    1, 0.0031f, 1};
 
 class Compressor : public Module{
     
@@ -26,7 +29,7 @@ class Compressor : public Module{
         
     protected :
 		
-        virtual int do_process(jack_nframes_t nframes);
+        virtual inline int do_process(jack_nframes_t nframes);
     
         virtual void change_param(int idx, float value); /**< @see set_param(int idx, float value) */
         virtual void change_param(const float *values);  /**< @see set_param(float *values) */

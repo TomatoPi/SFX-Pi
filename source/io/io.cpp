@@ -47,7 +47,6 @@ void IO_Potentiometer::update(){
 		
 		char p[BUF_SIZE] = {};
 		sprintf(p, "%s %d", this->name_, (int)display);
-		MAIN_SCREEN->print(p, 1);
 	}
 }
 
@@ -80,56 +79,3 @@ void io_update_potar_tab(IO_Potentiometer **pot, int *tab){
 *	Screen stuff
 *	---------------------------------------------------------------------------
 */
-static int 		io_screen_port 	= 16; 				/* /dev/ttyUSB0 */
-static int 		io_screen_bdrate = 57600;			/* 9600 baud */
-static char 	io_screen_mode[]={'8','N','1',0};	/* 8 data bits, no parity, 1 stop bit */
-
-static const char* io_screen_default = "Space-Fx--!";
-
-IO_screen::IO_screen():time_(time(NULL)), fix_(-1){
-	
-	char str_send[BUF_SIZE]; 				/* send data buffer */
-	strcpy(str_send, "Space-Fx");
-
-	if(RS232_OpenComport(io_screen_port, io_screen_bdrate, io_screen_mode)){
-		printf("Can\'t open comport\n");
-		return;
-	}
-	
-	usleep(2000000);  			/* waits 2000ms for stable condition */
-	
-	this->print(str_send, 2); 	/* sends string on serial */
-}
-
-void IO_screen::print(const char* text, int t){
-	
-	/*
-	*	Clear the buffer and write text
-	*/
-	char buffer[BUF_SIZE] = {};
-	
-	//fprintf(stderr, "Received message : [%s] -- ", text);
-	sprintf(buffer, "%s!", text);
-	//fprintf(stderr, "Message : [%s]\n", buffer);
-	
-	/*
-	*	Send data
-	*/
-	RS232_cputs(io_screen_port, buffer);
-	
-	/*
-	*	Set timer
-	*/
-	//this->time_ = time(NULL);
-	//this->fix_ = t;
-}
-
-void IO_screen::update(){
-	
-	if( difftime(time(NULL), this->time_) > this->fix_ && this->fix_ != -1){
-		
-		RS232_cputs(io_screen_port, io_screen_default);
-		this->time_ = time(NULL);
-		this->fix_ = -1;
-	}
-}

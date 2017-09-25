@@ -39,6 +39,8 @@ void Buffer::set_length(int s){
     this->write_i_ = 0;
         
     cout << "Buffer resized : now : " << s << endl;
+    
+    this->clear();
 }
 
 int Buffer::get_length() const{
@@ -49,6 +51,14 @@ int Buffer::get_length() const{
 int Buffer::get_length(int sr) const{
 	
 	return spi_stoms(this->size_, sr);
+}
+
+void Buffer::clear(){
+    
+    for ( int i = 0; i < size_; i++ ){
+        
+        buffer_[i] = 0;
+    }
 }
 
 /*
@@ -172,7 +182,8 @@ void Buffer_M::set_reader(int count, int *delay){
 	if(count != this->count_){
 		
         delete this->read_i_;
-		this->read_i_ = new float[count];
+        float *n = new float[count];
+		this->read_i_ = n;
     
         this->count_ = count;
 	}

@@ -12,7 +12,7 @@
 
 static const int    TONE_PARAMS_COUNT    = 5;
 static const string TONE_PARAM_NAMES[MOD_COUNT+TONE_PARAMS_COUNT]   = {"Volume", "Lowcut", "Highcut", "Lowgain", "Midgain", "Hghgain"};
-static const float  TONE_DEFAULT_PARAM[MOD_COUNT+TONE_PARAMS_COUNT] = {1, 200, 1200, 0.75f, 3.0f, 7.0f};
+static const float  TONE_DEFAULT_PARAM[MOD_COUNT+TONE_PARAMS_COUNT] = {0, 1, 200, 1200, 0.75f, 3.0f, 7.0f};
 
 class Tonestack : public Module{
 

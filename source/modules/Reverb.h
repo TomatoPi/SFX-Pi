@@ -35,7 +35,7 @@ static const int allpsize[ALLPCOUNT] = {556, 441, 341, 225};
 
 static const int    REVERB_PARAMS_COUNT = 5;
 static const string REVERB_PARAM_NAMES[MOD_COUNT+REVERB_PARAMS_COUNT] = {"Volume", "Room", "Damp", "Wet", "Dry", "Allpf"};
-static const float  REVERB_DEFAULT_PARAMS[MOD_COUNT+REVERB_PARAMS_COUNT] = {1, 0.5f, 0.5f, 1.0f, 0.0f, 0.5f};
+static const float  REVERB_DEFAULT_PARAMS[MOD_COUNT+REVERB_PARAMS_COUNT] = {0, 1, 0.5f, 0.5f, 1.0f, 0.0f, 0.5f};
 
 
 class Reverb : public Module{

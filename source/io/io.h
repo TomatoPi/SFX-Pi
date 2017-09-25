@@ -9,8 +9,7 @@
 #include <unistd.h>
 #include "rs232.h"
 #include "mcp23017.h"
-
-#include <time.h>
+#include <bits/stdc++.h>
 
 #include "../core/Utility.h"
 #include "../core/Modules.h"
@@ -51,6 +50,8 @@ class IO_Potentiometer{
 		float 	min_, max_;
 		
 		int 	value_;
+        
+        
 };
 
 typedef enum{
@@ -76,22 +77,50 @@ class IO_Button{
         bool status_;
 };
 
-class IO_screen{
-	
-	public :
-	
-		IO_screen();
-		
-		void print(const char* text, int t);
-		void update();
-		
-	private :
-	
-		time_t 	time_;	/* Used to store last screen modification time */
-		int 	fix_;	/* Store delay before screen reinitialisation */
-};
-
-static IO_screen *MAIN_SCREEN;
+namespace IOS{
+    
+    static const int SEG7   = 0x01; //**< Given message will be displayed on the 7Segment display */
+    static const int STACK  = 0x02; //**< Given message will be stacked in screen's buffer */
+    static const int OVERIDE= 0x04; //**< Given message will replace current one */
+    static const int CLEAR  = 0x08; //**< Clear screen's messages buffer */
+    static const int NEXT   = 0x10; //**< Force screen to switch to next message */
+    static const int PREV   = 0x20; //**< Force screen to switch to previous message */
+    static const int FORCE  = 0x40; //**< Force screen to switch to given message ( index given instead of time ) */
+    static const int TEMP   = 0x80; //**< Given message will be a temp message */
+    
+    /**
+    * Open connection with arduino
+    * @param msg Splash message sent to arduino
+    * @param version current program version printed to 7Seg display
+    */
+    void init_screen( string msg, string version );
+    
+    /**
+    * Send given message to the 14Segment display.
+    * Given message will be displayed instantly to screen and will erase current message buffer
+    * The message is truncated if longer than 11 characters length
+    * @param msg message to print
+    */
+    void printm( string msg );
+    /**
+    * Send given message to the 14Segments display
+    * Given message will be send with given flags, viewing delay will be set to forever
+    * The message is truncated if longer than 11 characters length
+    * @param msg message to print
+    * @param flag special params for parsing and viewing message
+    */
+    void printm( string msg, int flag );
+    /**
+    * Send given message to the 14Segments display
+    * Given message will be send with given flags, and given viewing delay
+    * The message is truncated if longer than 11 characters length
+    * @param msg message to print
+    * @param t viewing time in ms ( 0 means forever )
+    * @param flag special params for parsing and viewing message
+    */
+    void printm( string msg, int t , int flag);
+    
+}
 
 void io_init_potar_tab(IO_Potentiometer **pot);
 void io_update_potar_tab(IO_Potentiometer **pot, int *tab);
@@ -123,8 +152,13 @@ static mcp23017 *MCP1 = NULL;
 #define HEX_OK      0x40    // MCP0 GPIOB 8
 #define HEX_EDIT    0x80    // MCP0 GPIOB 9
 
-#define MASK_ADRRA 0xc0     // mask for select only PREV and ADD values
+#define MASK_ADRRA 0xf0     // mask for select only PREV and ADD values
 #define MASK_ADRRB 0xff     // mask for select others buttons values
+
+#define HEX_FOOT_NEXT 0x20 // MCP0 GPIOA 10
+#define HEX_FOOT_PREV 0x10 // MCP0 GPIOA 11
+
+#define BUTTON_COUNT 12
 
 typedef enum{
     
@@ -205,7 +239,7 @@ typedef enum{
 *   Initialise front panel's buttons.
 *   Set coresponding ports to inputs and reverse their state
 */
-void io_init_frontPanel(Module_Node_List *Graph, string version);
+void io_init_frontPanel(Module_Node_List* Graph, string version);
 /**
 *   Check if a front button has been pushed.
 */

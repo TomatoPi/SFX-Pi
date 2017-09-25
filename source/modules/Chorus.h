@@ -23,7 +23,7 @@
 */
 static const int    CHORUS_PARAMS_COUNT = 3 + MAX_CHORUS_SIZE;
 
-static const float  CHORUS_DEFAULT_PARAMS[MOD_COUNT+CHORUS_PARAMS_COUNT] = {1, 0.011f, 0.86f, 5,
+static const float  CHORUS_DEFAULT_PARAMS[MOD_COUNT+CHORUS_PARAMS_COUNT] = {0, 1, 0.011f, 0.86f, 5,
                                                             5, 8, 15, 18, 23};
                                                             
 static const string CHORUS_PARAM_NAMES[MOD_COUNT+CHORUS_PARAMS_COUNT] = {"Volume", "Depth", "Drywet", "Size",
@@ -42,7 +42,7 @@ class Chorus : public Module{
 	
 	protected :
     
-		virtual int do_process(jack_nframes_t nframes);
+		virtual inline int do_process(jack_nframes_t nframes);
     
         virtual void change_param(int idx, float value); /**< @see set_param(int idx, float value) */
         virtual void change_param(const float *values);        /**< @see set_param(float *values) */

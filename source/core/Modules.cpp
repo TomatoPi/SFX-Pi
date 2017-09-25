@@ -158,14 +158,13 @@ Module::Module(const char *server, MODULE_TYPE type, int pc, int ai, int ao, int
     *   Alloc params array ----------------------------------------------------
     */
     //cout << "Alloc param array" << endl;
-    param_ = new float[pc+MOD_COUNT];
+    bank_.push_back( new float[param_c_] );
+    param_ = bank_.at(0);
     
     //cout << "Module constructor end" << endl;
 }
 
 Module::~Module(){
-    
-    delete param_;
     
     delete audio_in_;
     delete audio_out_;
@@ -183,13 +182,15 @@ Module::~Module(){
 
 int Module::process(jack_nframes_t nframes, void *arg){
     
+    this->do_process(nframes);
     
-    return this->do_process(nframes);
+    return 0;
 }
 
 void Module::set_bypass(bool state){
     
     is_bypassed_ = state;
+    bank_.at( bank_idx_ )[MOD_BYPASS] = state;
 }
 
 bool Module::get_bypass() const{
@@ -216,11 +217,24 @@ void Module::set_param(int idx, float value){
     
     if (idx < param_c_){
         
-        param_[idx] = value;
+       // param_[idx] = value;
         
-        if(bank_.size() != 0){
+      //  cout << "Bank count : " << bank_.size() << endl;
+        // If module contains banks, change current bank value
+      //  if(bank_.size() != 0){
+            
             bank_.at(bank_idx_)[idx] = value;
-        }
+            if ( idx == MOD_BYPASS ){
+                
+                is_bypassed_ = !!value;
+            }
+       // }
+        // Else create a new bank to store modified value
+       /* else{
+            
+            this->add_bank();
+            bank_.at(bank_idx_)[idx] = value;
+        }*/
         
         this->change_param(idx, value);
     }
@@ -230,12 +244,22 @@ void Module::set_param(int count, const float *values){
     
     if (count == param_c_){
         
-        memcpy(param_, values, sizeof(float) * param_c_);
+       // memcpy(param_, values, sizeof(float) * param_c_);
         
-        if(bank_.size() != 0){
+        // If module contains banks, uptade current parameters
+      //  if(bank_.size() != 0){
+            
+            memcpy(bank_.at(bank_idx_), values, sizeof(float) * param_c_);
+            
+            is_bypassed_ = !!bank_.at( bank_idx_ )[MOD_BYPASS];
+      //  }
+        // Else create a new bank
+       /* else{
+            
+            this->add_bank();
             memcpy(bank_.at(bank_idx_), values, sizeof(float) * param_c_);
         }
-        
+        */
         this->change_param(values);
     }
 }
@@ -260,15 +284,15 @@ void Module::add_bank(int size, const float *bank){
         float *newbank = new float[param_c_];
         memcpy(newbank, bank, sizeof(float) * param_c_);
         
-        if(bank_.size() == 0){
+       // if(bank_.size() == 0){
             
             bank_.push_back(newbank);
-            this->set_bank(0);
+        /*    this->set_bank(0);
         }else{
             
             bank_.push_back(newbank);
         }
-        
+        */
         /*
         cout << "New bank added : [ ";
         for( int i = 0; i < size; i++){
@@ -282,12 +306,19 @@ void Module::add_bank(int size, const float *bank){
 
 void Module::add_bank(){
     
+    //cout << endl << "Add bank : ";
     this->new_bank();
+    //cout << bank_.size() << endl;
+    param_ = bank_.at( bank_idx_ );
 }
 
 void Module::remove_bank(){
     
-    this->remove_bank(bank_idx_);
+    // Avoid removing bank if there's only one
+    if ( bank_.size() > 1 ){
+            
+        this->remove_bank(bank_idx_);
+    }
 }
 
 void Module::remove_bank(int idx){
@@ -297,8 +328,11 @@ void Module::remove_bank(int idx){
         delete bank_.at(idx);
         bank_.erase(bank_.begin() + idx);
         
-        if(bank_idx_ >= (int)bank_.size()) bank_idx_ = 0;
-        if(bank_.size() == 0) bank_idx_ = -1;
+        if ( idx == bank_idx_ ) --bank_idx_;
+        if ( bank_idx_ >= (int)bank_.size() ) bank_idx_ = bank_.size() -1;
+        if ( bank_idx_ < 0 ) bank_idx_ = 0;
+        
+        param_ = bank_.at( bank_idx_ );
     }
 }
 
@@ -309,6 +343,7 @@ bool Module::next_bank(){
     if(bank_.size() != 0){
         
         this->set_bank(++bank_idx_%bank_.size());
+        //cout << "Bank is now : " << bank_idx_ << endl;
         cycle = bank_idx_ == 0;
     }
     
@@ -319,9 +354,10 @@ bool Module::prev_bank(){
     
     bool cycle = false;
     
-    if(bank_.size() > 0){
+    if(bank_.size() != 0){
         
         this->set_bank((--bank_idx_ < 0)? bank_idx_ = bank_.size() -1 : bank_idx_);
+        //cout << "Bank is now : " << bank_idx_ << endl;
         cycle = bank_idx_ == (int)bank_.size() - 1;
     }
     
@@ -333,7 +369,11 @@ bool Module::set_bank(int idx){
     if(idx < (int)bank_.size()){
         
         bank_idx_ = idx;
-        this->set_param(param_c_, bank_.at(idx));
+        param_ = bank_.at( bank_idx_ );
+        
+        is_bypassed_ = !!bank_.at ( bank_idx_ )[MOD_BYPASS];
+        
+        this->change_param( bank_.at(bank_idx_) );
         
         return true;
     }

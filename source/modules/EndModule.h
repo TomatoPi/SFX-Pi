@@ -12,7 +12,7 @@
 #define END_LEFT    MOD_COUNT
 
 static const int    END_PARAM_COUNT = 1;
-static const float  END_DEFAULT_PARAMS[MOD_COUNT + END_PARAM_COUNT] = {1, 1};
+static const float  END_DEFAULT_PARAMS[MOD_COUNT + END_PARAM_COUNT] = {0, 1, 1};
 static const string END_PARAM_NAMES[MOD_COUNT + END_PARAM_COUNT] = {"VRight", "VLeft"};
 
 /**

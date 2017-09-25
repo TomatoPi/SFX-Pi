@@ -35,6 +35,8 @@ class Buffer{
 		int size_;
 	
 		int write_i_;
+        
+        void clear();
 };
 
 /**

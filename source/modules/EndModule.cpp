@@ -14,7 +14,7 @@ EndModule::EndModule( const char *server, MODULE_TYPE t): Module( server, t, END
 	}
 }
 
-int EndModule::do_process( jack_nframes_t nframes ){
+inline int EndModule::do_process( jack_nframes_t nframes ){
     
     sample_t *inl, *outl;
     inl  = (sample_t*)jack_port_get_buffer( audio_in_[0] , nframes);
@@ -107,4 +107,7 @@ string EndModule::return_formated_param(int idx){
     return n;
 }
 
-void EndModule::new_bank(){}
+void EndModule::new_bank(){
+    
+    this->add_bank( MOD_COUNT + END_PARAM_COUNT, END_DEFAULT_PARAMS );
+}

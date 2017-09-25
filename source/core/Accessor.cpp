@@ -5,9 +5,9 @@
 *	IO Accessor stuff
 *	---------------------------------------------------------------------------
 */
-Accessor::Accessor(int source, int target, float min, float max, IO_CURVE curve, bool isdb, bool isrelative):
-	source_(source),
-    target_(target),
+Accessor::Accessor(int target, int targetp, float min, float max, IO_CURVE curve, bool isdb, bool isrelative):
+	target_(target),
+    targetp_(targetp),
     min_(min),
     max_(max),
     isdb_(isdb),
@@ -17,10 +17,10 @@ Accessor::Accessor(int source, int target, float min, float max, IO_CURVE curve,
     set_curve(curve);
 }
 
-float Accessor::compute( float input, float mod ){
+float Accessor::compute( float input ){
 	
     
-    float param = ( (*this->curve_func_)( (mod+1.0f)/2.0f ) * (max_ - min_) ) + min_;
+    float param = 0;//( (*this->curve_func_)( (mod+1.0f)/2.0f ) * (max_ - min_) ) + min_;
     
     if ( isrlt_ ){
         

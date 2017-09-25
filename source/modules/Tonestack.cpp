@@ -12,7 +12,7 @@ Tonestack::Tonestack(const char *server): Module(server, MOD_TONE, TONE_PARAMS_C
 	}
 }
 
-int Tonestack::do_process(jack_nframes_t nframes){
+inline int Tonestack::do_process(jack_nframes_t nframes){
 
     sample_t *in, *out;	
     in  = (sample_t*)jack_port_get_buffer(audio_in_[0], nframes);
@@ -73,7 +73,7 @@ void Tonestack::change_param(const float *values){
 
 void Tonestack::new_bank(){
     
-    this->add_bank(TONE_PARAMS_COUNT+MOD_COUNT, TONE_DEFAULT_PARAM);
+    this->add_bank( MOD_COUNT + TONE_PARAMS_COUNT, TONE_DEFAULT_PARAM);
 }
 
 string Tonestack::return_param_name(int idx){

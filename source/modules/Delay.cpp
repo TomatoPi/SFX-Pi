@@ -99,7 +99,7 @@ Delay::~Delay(){
 	jack_client_close(this->client_2_);
 }
 		
-int Delay::do_process(jack_nframes_t nframes){
+inline int Delay::do_process(jack_nframes_t nframes){
 
     sample_t *in = 	  (sample_t*)jack_port_get_buffer(audio_in_[0], nframes);
     
@@ -208,7 +208,7 @@ void Delay::change_param(const float *values){
 
 void Delay::new_bank(){
     
-    this->add_bank(DELAY_PARAMS_COUNT, DELAY_DEFAULT_PARAMS);
+    this->add_bank( MOD_COUNT + DELAY_PARAMS_COUNT, DELAY_DEFAULT_PARAMS);
 }
 
 string Delay::return_param_name(int idx){

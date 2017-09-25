@@ -26,7 +26,7 @@ using namespace std;
 
 static const int    LFO_PARAMS_COUNT = 8;
 static const string LFO_PARAM_NAMES[MOD_COUNT+LFO_PARAMS_COUNT] = {"Volume", "Waveform", "Freq", "Phase", "Sign", "Param1", "Param2", "Ph-Dist", "Ph-Fix"};
-static const float  LFO_DEFAULT_PARAMS[MOD_COUNT+LFO_PARAMS_COUNT] = {1, 2, 2.0f, 0.0f, 1, 0.0f, 0.0f, 0.5f, 0.0f};
+static const float  LFO_DEFAULT_PARAMS[MOD_COUNT+LFO_PARAMS_COUNT] = {0, 1, 2, 2.0f, 0.0f, 1, 0.0f, 0.0f, 0.5f, 0.0f};
 
 /**
 *	List of possible LFO waveshape.
