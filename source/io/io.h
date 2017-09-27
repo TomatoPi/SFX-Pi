@@ -14,13 +14,13 @@
 #include "../core/Utility.h"
 #include "../core/Modules.h"
 
-#include "../presset/Presset.h"
+#include "../modules/EndModule.h"
 
 #define SPI_BASE 100
 #define SPI_CHAN1 0
 #define SPI_PMAX 8
 #define SPI_MAX 1023.0f
-#define SPI_HYSTERESIS 0.01f
+#define SPI_HYSTERESIS 0.005f
 #define SPI_POTAR_COUNT 6
 
 #define BUF_SIZE 128
@@ -29,30 +29,113 @@ void io_init_spi();
 
 float io_map(float val, float fmin, float fmax, float tmin, float tmax); // remap val from [fmin;fmax] to [tmin;tmax]
 
+/**
+* Class used for store data about potentiometers.
+* One instance of this class is created for each potentiometer ( actually 6 )
+* Each potentiometer have a display name, a display plage and 
+* a vector of accessors, used for modulate module's params
+*/
 class IO_Potentiometer{
 	
 	public :
+        
+        static const int D_NAME; // Flag for display potentiometer Name
+        static const int D_VAL;  // Flag used for display pot value
+        static const int D_ALL;  // Flag used for display everything
 		
-		IO_Potentiometer(int idx, char* name, float min, float max);
+        /**
+        * Potentiometer Constructor.
+        * @param idx potentiometer's idx , must be inferior than SPI_POTAR_COUNT
+        * @param name potentiometer's name must be 11 charachters length max
+        * @param min display min
+        * @param max display max
+        */
+		IO_Potentiometer( int idx=0, string name=string("DPot"), float min=0, float max=999 );
+        
+        /**
+        * Change potentiomer's index
+        * @param idx new potentiometer's index
+        */
+        void set_index( int idx );
 		
-		void set_name(char* name);
-		void set_plage(float min, float max);
+        /**
+        * Change potentiomer's name
+        * @param name new name, must be 11 characters length max
+        */
+		void set_name( string name );
+        /**
+        * Get Potentiometer's name
+        * @return potentiomer's name
+        */
+        string get_name() const;
+        
+        /**
+        * Change potentiometer's display plage
+        * @param min display min
+        * @param max display max
+        */
+		void set_plage( float min, float max );
+        
+        /**
+        * Get minimal display value
+        * @return minimal display value
+        */
+        float get_min() const;
+        
+        /**
+        * Get maximal display value
+        * @param maximal display value
+        */
+        float get_max() const;
 		
-		void update();
-		
+        /**
+        * Update potentiometer's value.
+        * Read actual value using gpio and update it if it differs from the old one
+        * If value has changed, update it's accessor array ( update module's params )
+        * @param graph module's graph
+        * @param disp flag used for specify what will be displayed
+        */
+		void update( Module_Node_List* graph , int disp=0 );
+        
+        /**
+        * Return current potentiometer's value.
+        * @return current value mapped between -1 and 1;
+        */
 		float 	get_value() const;
+        
+        /**
+        * Add given accessor to accessor list
+        * @param acc accessor to add
+        */
+        void add_accessor( Accessor acc );
+        
+        /**
+        * Delete given accessor if exist
+        * @param given accessor idx
+        */
+        void del_accessor( int idx );
+        
+        int get_accessor_count();
+        
+        vector<Accessor> get_accessor();
+        
 		
 	private :
+        
+        void display( int flag );
 		
-		char 	name_[40];
+		string  name_;
 		int 	idx_;
 		
 		float 	min_, max_;
 		
 		int 	value_;
         
-        
+        vector< Accessor > accs_;
 };
+
+void io_init_potar_tab( IO_Potentiometer pot[SPI_POTAR_COUNT] );
+void io_update_potar_tab( IO_Potentiometer pot[SPI_POTAR_COUNT], Module_Node_List* graph );
 
 typedef enum{
 	
@@ -88,6 +171,8 @@ namespace IOS{
     static const int FORCE  = 0x40; //**< Force screen to switch to given message ( index given instead of time ) */
     static const int TEMP   = 0x80; //**< Given message will be a temp message */
     
+    static const int DEFAULT_TEMP = 1500;
+    
     /**
     * Open connection with arduino
     * @param msg Splash message sent to arduino
@@ -121,128 +206,4 @@ namespace IOS{
     void printm( string msg, int t , int flag);
     
 }
-
-void io_init_potar_tab(IO_Potentiometer **pot);
-void io_update_potar_tab(IO_Potentiometer **pot, int *tab);
-
-/*
-*   ---------------------------------------------------------------------------
-*   ---------------------------------------------------------------------------
-*                                   Front panel
-*   ---------------------------------------------------------------------------
-*   ---------------------------------------------------------------------------
-*/
-
-static mcp23017 *MCP0 = NULL;
-static mcp23017 *MCP1 = NULL;
-
-/*
-*   -----------------------------------
-*            Buttons adresses
-*   -----------------------------------
-*/
-#define HEX_UP      0x08     // MCP0 GPIOB 0
-#define HEX_DOWN    0x04     // MCP0 GPIOB 1
-#define HEX_NEXT    0x02     // MCP0 GPIOB 2
-#define HEX_PREV    0x40    // MCP0 GPIOA 3
-#define HEX_ADD     0x80    // MCP0 GPIOA 4
-#define HEX_DEL     0x01     // MCP0 GPIOB 5
-#define HEX_ENTER   0x10    // MCP0 GPIOB 6
-#define HEX_ESC     0x20    // MCP0 GPIOB 7
-#define HEX_OK      0x40    // MCP0 GPIOB 8
-#define HEX_EDIT    0x80    // MCP0 GPIOB 9
-
-#define MASK_ADRRA 0xf0     // mask for select only PREV and ADD values
-#define MASK_ADRRB 0xff     // mask for select others buttons values
-
-#define HEX_FOOT_NEXT 0x20 // MCP0 GPIOA 10
-#define HEX_FOOT_PREV 0x10 // MCP0 GPIOA 11
-
-#define BUTTON_COUNT 12
-
-typedef enum{
-    
-    WAIT_DEL_BANK,
-    WAIT_DEL_PRESET,
-    WAIT_EXIT_SELECTMOD,
-    WAIT_EXIT_EDITBANK,
-    WAIT_EXIT_PARAM,
-    WAIT_NOTHING
-    
-}Wait_status;
-
-typedef enum{
-    
-    MAIN_MENU,
-    
-        MAIN_CHANGE_PRESSET,
-        MAIN_SELECT_MODULE,
-    
-            SELMOD,
-            SELMOD_CHANGE_BANK,
-            SELMOD_ADD_BANK,
-            SELMOD_EDIT_BANK,
-    
-                SELMOD_EDITB_SELPAR,
-                    SELMOD_EDITB_EDITPAR,
-    
-        EDIT_ADD_MODULE,
-            EDIT_CHOOSE_MODTYPE,
-            
-        EDIT_SELECT_MODULE,
-        
-            EDITMOD,
-            EDITMOD_ADD_CONNECTION,
-            
-                EDITMOD_CHOOSE_CSOURCE,
-                EDITMOD_CHOOSE_CTARGET,
-            
-            EDITMOD_ADD_ACCESSOR,
-            
-                EDITMOD_ACC_CHOOSE_TARGET_M,
-                EDITMOD_ACC_CHOOSE_TARGET_P,
-                EDITMOD_ACC_CHOOSE_POT,
-                EDITMOD_ACC_CHOOSE_MIN,
-                EDITMOD_ACC_CHOOSE_MAX,
-                EDITMOD_ACC_CHOOSE_CURVE,
-                EDITMOD_ACC_CHOOSE_ISDB,
-                EDITMOD_ACC_CHOOSE_ISINV,
-    
-    INIT
-    
-}Menu_status;
-
-typedef enum{
-    
-    MOVE_UP,
-    MOVE_DOWN,
-    
-    MOVE_NEXT,
-    MOVE_PREV,
-    
-    MOVE_ADD,
-    MOVE_DEL,
-    
-    MOVE_ENTER,
-    
-    MOVE_ESC,
-    MOVE_OK,
-    
-    MOVE_ENTER_EDIT,
-    MOVE_EXIT_EDIT,
-    
-    MOVE_NONE
-    
-}Move_flag;
-
-/**
-*   Initialise front panel's buttons.
-*   Set coresponding ports to inputs and reverse their state
-*/
-void io_init_frontPanel(Module_Node_List* Graph, string version);
-/**
-*   Check if a front button has been pushed.
-*/
-void io_update_frontPanel();
-
 #endif

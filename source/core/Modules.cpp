@@ -78,7 +78,7 @@ Module::Module(const char *server, MODULE_TYPE type, int pc, int ai, int ao, int
 	if (status & JackNameNotUnique) {
         
 		name = jack_get_client_name(client);
-		cout << "Unique name " << name << " assigned" << endl;
+		//cout << "Unique name " << name << " assigned" << endl;
 	}
 	
     //cout << "Client is ok! -- " << endl;

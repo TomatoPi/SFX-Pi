@@ -17,27 +17,37 @@ Accessor::Accessor(int target, int targetp, float min, float max, IO_CURVE curve
     set_curve(curve);
 }
 
-float Accessor::compute( float input ){
+float Accessor::compute( float input , float ref ){
 	
+    // Remap param with accessor's transfert function
+    float param = (*this->curve_func_)( (input+1.0f)/2.0f ) ;
     
-    float param = 0;//( (*this->curve_func_)( (mod+1.0f)/2.0f ) * (max_ - min_) ) + min_;
-    
+    // If accessor is relative
     if ( isrlt_ ){
         
+        float offset = ( param < 0 )? param*min_ : param*max_; // offset is now between -min and +max;
+        
+        // If boundaries are given in dB
         if(isdb_){
             
-            return input * spi_dbtorms(param);
-        }else{
-            
-            return input + param;
+            return ref * spi_dbtorms( offset );
         }
+        else{
+            
+            return ref + offset;
+        }
+    }
+    // Else if accessor is absolute
+    else{
         
-    }else{
+        //map param from [-1;1] to [min;max]
+        param = ( (param + 1)/(2.0f) ) * ( max_ - min_ ) + min_;
         
         if(isdb_){
             
             return spi_dbtorms(param);
-        }else{
+        }
+        else{
             
             return param;
         }
@@ -66,16 +76,16 @@ void Accessor::set_curve( IO_CURVE curve ){
 			curve_func_ = curve_sig;
 			break;
             
-		case CURVE_HAN :
+		case CURVE_COS :
         
-			curve_func_ = curve_han;
+			curve_func_ = curve_cos;
 			break;
-            
+           /* 
 		case CURVEIHAN :
         
 			curve_func_ = curveihan;
 			break;
-            
+            */
 		default :
         
 			curve_func_ = curve_lin;
@@ -90,15 +100,17 @@ inline float curve_lin(float v){
 
 inline float curve_sig(float v){
 	
-	return (0.5f*( tanh( 5*((v)-0.5f)) + 1 ));
+	return ( tanh( 3*(v) ) );
 }
 
-inline float curve_han(float v){
+inline float curve_cos(float v){
 	
-	return (0.5f*( 1 - cos(2*M_PI*(v)) ));
+	return ( cos( (M_PI/2)*(v-1) ) );
 }
 
+/*
 inline float curveihan(float v){
 	
 	return (1 - curve_han(v));
 }
+*/

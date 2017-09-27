@@ -1,6 +1,0 @@
-Preset 1.1 Test2 1
-Module 0 15 1
-Connection -1 0  0 0
-Connection  0 0 -1 0
-Connection  0 0 -1 1
-

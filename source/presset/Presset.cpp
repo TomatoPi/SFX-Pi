@@ -1,17 +1,60 @@
 #include "Presset.h"
+/** 
+* Preset File's nodes list 
+* @see save_preset(string, string, Module_Node_List) 
+*/
+
+namespace {
+    
+    const string NODE_ROOT_PRESET("Preset");
+    const string NRP_NAME("Name");
+    const string NRP_VERSION("Version");
+
+    const string NODE_ROOT_MODULE("ModuleBak");
+
+    const string NODE_MODULE("Module");
+    const string NMOD_ID("ID");
+    const string NMOD_TYPE("Type");
+    const string NMOD_BANK("Bank");
+    const string NMOD_SIZE("Size");
+    const string NMOD_DATA("Data");
+
+    const string NODE_CONNECTION("Connection");
+
+    const string NODE_POTENTIOMETER("Potentiometer");
+    const string NPOT_NAME("Name");
+    const string NPOT_IDX("Index");
+    const string NPOT_PLAGE("Plage");
+    const string NPOT_TARGET("Target");
+
+    const string NPOT_CURVE("Curve");
+    const string NPOT_TARGETM("TargetM");
+    const string NPOT_TARGETP("TargetP");
+    const string NPOT_MIN("Min");
+    const string NPOT_MAX("Max");
+    const string NPOT_DB("IsdB");
+    const string NPOT_RLT("IsRlt");
+
+
+    const string NODE_PARAM("Params");
+    const string NODE_BUTTON("Button");
+
+    const string TAB("    ");
+}
+
 /*
 *	---------------------------------------------------------------------------
 *	Presset stuff
 *	---------------------------------------------------------------------------
 */
-int save_preset(string const name, string const version, Module_Node_List *list){
+int save_preset(string const name, string const version, Module_Node_List *list, IO_Potentiometer pot[SPI_POTAR_COUNT]){
 	
 	string filename = "/home/sfx_pi/sfx/Files/" + name ;
 	
     try{
         
         ofstream flux(filename.c_str());
-        cout << "Save presset file : " << filename << " -- ";
+        cout << endl << "Save presset file : " << filename << " -- ";
         
         if(flux){
             
@@ -29,6 +72,7 @@ int save_preset(string const name, string const version, Module_Node_List *list)
                 // Open node and indicate module type
                 flux << NODE_MODULE << "={" << endl;
                 flux << TAB << NMOD_TYPE << "=" << mod->get_type() << endl;
+                flux << TAB << NMOD_ID << "=" << (*itr)->get_id() << endl;
                 
                 // If module has banks, save it
                 if ( mod->set_bank(0) ){
@@ -51,6 +95,36 @@ int save_preset(string const name, string const version, Module_Node_List *list)
                 }
                 
                 // Once banks are saved close node and go to next module
+                flux << "}" << endl;
+            }
+            
+            // Write Potentiometer node for each potentiometer
+            for ( int i = 0; i < SPI_POTAR_COUNT; i++ ){
+                
+                flux << NODE_POTENTIOMETER << "={" << endl;
+                flux << TAB << NPOT_NAME << "=" << pot[i].get_name() << endl;
+                flux << TAB << NPOT_IDX << "=" << i << endl;
+                flux << TAB << NPOT_PLAGE << "=" << pot[i].get_min() << " " << pot[i].get_max() << endl;
+                
+                vector<Accessor> accs = pot[i].get_accessor();
+                
+                for ( vector<Accessor>::iterator itr = accs.begin(); itr != accs.end(); itr++ ){
+                    
+                    Accessor acr = (*itr);
+                    
+                    flux << TAB << NPOT_TARGET << "={" << endl;
+                    
+                    flux << TAB << TAB << NPOT_CURVE << "=" << acr.get_curve() << endl;
+                    flux << TAB << TAB << NPOT_TARGETM << "=" << acr.target_ << endl;
+                    flux << TAB << TAB << NPOT_TARGETP << "=" << acr.targetp_ << endl;
+                    flux << TAB << TAB << NPOT_MIN << "=" << acr.min_ << endl;
+                    flux << TAB << TAB << NPOT_MAX << "=" << acr.max_ << endl;
+                    flux << TAB << TAB << NPOT_DB << "=" << acr.isdb_ << endl;
+                    flux << TAB << TAB << NPOT_RLT << "=" << acr.isrlt_ << endl;
+                    
+                    flux << TAB << "}" << endl;
+                }
+                
                 flux << "}" << endl;
             }
             
@@ -176,11 +250,17 @@ typedef enum{
     FWDAT,
     FFDAT,
     
+    FWPOT,
+    FFPOT,
+    
+    FWTAR,
+    FFTAR,
+    
     FWCON,
     FFCON
 }PFLAG;
 
-int load_preset(string const name, string const version, Module_Node_List*& list){
+int load_preset(string const name, string const version, Module_Node_List** list, IO_Potentiometer pot[SPI_POTAR_COUNT]){
 	
     string filename = "/home/sfx_pi/sfx/Files/" + name ;
 
@@ -192,6 +272,10 @@ int load_preset(string const name, string const version, Module_Node_List*& list
 
     // Store current mod index
     int cur_mod = 0;
+    int cur_type = 0;
+    bool tok = false;
+    int cur_id = 0;
+    bool iok = false;
 
     // Buffer for store banks
     float *dat_buff = NULL;
@@ -200,6 +284,11 @@ int load_preset(string const name, string const version, Module_Node_List*& list
 
     // Store current bank index
     int cur_bak = 0;
+    
+    // Store current potentiometer index
+    IO_Potentiometer cur_pot;
+    int pot_idx = 0;
+    Accessor cur_acc;
 
     // Buffer for store connections
     int con_buff[4] = {};
@@ -208,7 +297,7 @@ int load_preset(string const name, string const version, Module_Node_List*& list
     try {
             
         ifstream flux( filename.c_str() );
-        cout << "Load presset : " << filename << " -- " << endl;
+        cout << endl << "Load presset : " << filename << " -- " << endl;
         
         if(flux){
             
@@ -254,6 +343,10 @@ int load_preset(string const name, string const version, Module_Node_List*& list
                             
                             flag = FWMOD;
                         }
+                        else if ( !string(token[i]).compare(NODE_POTENTIOMETER) ){
+                            
+                            flag = FWPOT;
+                        }
                         else if ( !string(token[i]).compare(NODE_CONNECTION) ){
                             
                             flag = FWCON;
@@ -264,19 +357,26 @@ int load_preset(string const name, string const version, Module_Node_List*& list
                     else if ( flag == FWPRE && !string(token[i]).compare("{") ){
                     
                         flag = FFPRE;
-                        cout << "Entered NODE_ROOT_PRESET node" << endl;
+                        //cout << "Entered NODE_ROOT_PRESET node" << endl;
                     }
                     else if ( flag == FWMOD && !string(token[i]).compare("{") ){
                     
                         flag = FFMOD;
                         cur_bak = 0;
-                        cout << "Entered NODE_MODULE node" << endl;
+                        
+                        cur_id = 0;
+                        iok = false;
+                        
+                        cur_type = 0;
+                        tok = false;
+                        
+                        //cout << "Entered NODE_MODULE node" << endl;
                     }
                     else if ( flag == FWBAK && !string(token[i]).compare("{") ){
                     
                         flag = FFBAK;
                         dat_size = 0;
-                        cout << "  Entered NODE_BANK node" << endl;
+                        //cout << "  Entered NODE_BANK node" << endl;
                     }
                     else if ( flag == FWDAT && !string(token[i]).compare("{") ){
                     
@@ -285,11 +385,25 @@ int load_preset(string const name, string const version, Module_Node_List*& list
                         dat_idx = 0;
                         //cout << "    Entered NMOD_DATA node" << endl;
                     }
+                    else if ( flag == FWPOT && !string(token[i]).compare("{") ){
+                    
+                        flag = FFPOT;
+                        cur_pot = IO_Potentiometer();
+                        pot_idx = 0;
+                        
+                        //cout << "Entered NODE_POTENTIOMETER node" << endl;
+                    }
+                    else if ( flag == FWTAR && !string(token[i]).compare("{") ){
+                    
+                        flag = FFTAR;
+                        cur_acc = Accessor();
+                        
+                    }
                     else if ( flag == FWCON && !string(token[i]).compare("{") ){
                     
                         flag = FFCON;
                         con_idx = 0;
-                        cout << "Entered NODE_CONNECTION node" << endl;
+                        //cout << "Entered NODE_CONNECTION node" << endl;
                     }
                     
                     // If Already inside a node
@@ -299,13 +413,13 @@ int load_preset(string const name, string const version, Module_Node_List*& list
                         // Presset Name
                         if ( !string(token[i]).compare(NRP_NAME) ){
                             
-                            cout << "  Presset Name : \"" << token[i+1] << "\"" << endl;
+                            //cout << "  Presset Name : \"" << token[i+1] << "\"" << endl;
                             break;
                         }
                         // Preset Version
                         else if ( !string(token[i]).compare(NRP_VERSION) ){
                             
-                            cout << "  Presset Version : \"" << token[i+1] << "\"" << endl;
+                            //cout << "  Presset Version : \"" << token[i+1] << "\"" << endl;
                             
                             if ( !!string(token[i+1]).compare(version) ){
                              
@@ -317,7 +431,7 @@ int load_preset(string const name, string const version, Module_Node_List*& list
                         else if ( !string(token[i]).compare("}") ){
                         
                             flag = FROOT;
-                            cout << "Exit NODE_ROOT_PRESET node" << endl << endl;
+                            //cout << "Exit NODE_ROOT_PRESET node" << endl << endl;
                         }
                     }
                     // Module node
@@ -326,19 +440,38 @@ int load_preset(string const name, string const version, Module_Node_List*& list
                         // Module's Type
                         if ( !string(token[i]).compare(NMOD_TYPE) ){
                             
-                            cout << "  Module type : \"" << token[i+1] << "\"" << endl;
+                            //cout << "  Module type : \"" << token[i+1] << "\"" << endl;
+                            cur_type = atoi(token[i+1]);
+                            tok = true;
                             
-                            if ( new_graph->add_module( static_cast<MODULE_TYPE>( atoi(token[i+1]) ) ) ){
+                            if ( iok ){
                                 
-                                throw string("Invalid Module Type");
+                                if ( new_graph->add_module( static_cast<MODULE_TYPE>( cur_type ), cur_id ) ){
+                                    
+                                    flag = FROOT;
+                                    cout << "Error : Invalid Module Type" << endl;
+                                }
+                                cur_mod = new_graph->list_.size() -1;
                             }
+                        }
+                        // Module's ID
+                        else if ( !string(token[i]).compare(NMOD_ID) ){
                             
-                            cur_mod = new_graph->list_.size() -1;
+                            cur_id = atoi(token[i+1]);
+                            iok = true;
                             
-                            break;
+                            if ( tok ){
+                                
+                                if ( new_graph->add_module( static_cast<MODULE_TYPE>( cur_type ), cur_id ) ){
+                                    
+                                    flag = FROOT;
+                                    cout << "Error : Invalid Module Type" << endl;
+                                }
+                                cur_mod = new_graph->list_.size() -1;
+                            }
                         }
                         // Module's Bank
-                        else if ( !string(token[i]).compare(NMOD_BANK) ){
+                        else if ( !string(token[i]).compare(NMOD_BANK) && iok && tok ){
                             
                             flag = FWBAK;
                         }
@@ -346,7 +479,7 @@ int load_preset(string const name, string const version, Module_Node_List*& list
                         else if ( !string(token[i]).compare("}") ){
                         
                             flag = FROOT;
-                            cout << "Exit NODE_MODULE node" << endl << endl;
+                            //cout << "Exit NODE_MODULE node" << endl << endl;
                         }
                     }
                     // Bank node
@@ -355,7 +488,7 @@ int load_preset(string const name, string const version, Module_Node_List*& list
                         // Bank Size
                         if ( !string(token[i]).compare(NMOD_SIZE) ){
                             
-                            cout << "    Bank size : \"" << token[i+1] << "\"" << endl;
+                            //cout << "    Bank size : \"" << token[i+1] << "\"" << endl;
                             dat_size = atoi( token[i+1] );
                             
                             break;
@@ -371,7 +504,7 @@ int load_preset(string const name, string const version, Module_Node_List*& list
                             flag = FFMOD;
                             cur_bak++;
                             
-                            cout << "  Exit NODE_BANK node" << endl;
+                            //cout << "  Exit NODE_BANK node" << endl;
                         }
                     }
                     // Bank Datas
@@ -383,7 +516,7 @@ int load_preset(string const name, string const version, Module_Node_List*& list
                             if ( dat_idx >= dat_size ){
                                 
                                 dat_idx = dat_size + 1;
-                                cout << "    Too much data for Bank" << endl;
+                                //cout << "    Too much data for Bank" << endl;
                             }
                             else{
                                 
@@ -396,9 +529,9 @@ int load_preset(string const name, string const version, Module_Node_List*& list
                             
                             if ( dat_idx == dat_size ){
                                 
-                                cout << "    New Bank Parsed : [ " << dat_buff[0];
-                                for( int k = 1; k < dat_size; k++ ) cout << " , " << dat_buff[k];
-                                cout << " ]" << endl;
+                                //cout << "    New Bank Parsed : [ " << dat_buff[0];
+                                //for( int k = 1; k < dat_size; k++ ) cout << " , " << dat_buff[k];
+                                //cout << " ]" << endl;
                                 
                                 if ( cur_bak == 0 ){
                                     
@@ -416,7 +549,105 @@ int load_preset(string const name, string const version, Module_Node_List*& list
                             
                             delete dat_buff;
                             flag = FFBAK;
-                            //cout << "    Exit NMOD_DATA node" << endl;
+                        }
+                    }
+                    // Potentiometer node 
+                    else if ( flag == FFPOT ){
+                        
+                        // Pot name
+                        if ( !string(token[i]).compare(NPOT_NAME) ){
+                            
+                            cur_pot.set_name( string(token[i+1]) );
+                            //cout << "  Name : \"" << token[i+1] << "\"" << endl;
+                        }
+                        // Pot Index
+                        else if ( !string(token[i]).compare(NPOT_IDX) ){
+                            
+                            if ( pot_idx >= 0 && pot_idx < SPI_POTAR_COUNT ){
+                                    
+                                pot_idx = atoi(token[i+1]);
+                                
+                                cur_pot.set_index( pot_idx );
+                                //cout << "  Index : \"" << pot_idx << "\"" << endl;
+                            }
+                            else{
+                                
+                                flag = FROOT;
+                                cout << "Parsing Error : Invalid Potentiometer ID" << endl;
+                            }
+                        }
+                        // Pot Plage
+                        else if ( !string(token[i]).compare(NPOT_PLAGE) ){
+                            
+                            cur_pot.set_plage( atof(token[i+1]), atof(token[i+2]) );
+                            //cout << "  Plage : \"" << token[i+1] << "\"-\"" << token[i+2] << "\"" << endl;
+                        }
+                        // Pot Target
+                        else if ( !string(token[i]).compare(NPOT_TARGET) ){
+                            
+                            flag = FWTAR;
+                            //cout << "  Target :" << endl;
+                        }
+                        else if ( !string(token[i]).compare("}") ){
+                            
+                            pot[pot_idx] = cur_pot;
+                        
+                            flag = FROOT;
+                            //cout << "Exit NODE_POTENTIOMETER node" << endl;
+                        }
+                    }
+                    // Potentiometer Target node
+                    else if ( flag == FFTAR ){
+                        
+                        // Curve
+                        if ( !string(token[i]).compare(NPOT_CURVE) ){
+                            
+                            cur_acc.set_curve( static_cast<IO_CURVE>(atoi(token[i+1])) );
+                            //cout << "    Curve : \"" << token[i+1] << "\"" << endl;
+                        }
+                        // Target Module
+                        else if ( !string(token[i]).compare(NPOT_TARGETM) ){
+                            
+                            cur_acc.target_ =  atoi(token[i+1]);
+                            //cout << "    Module : \"" << token[i+1] << "\"" << endl;
+                        }
+                        // Target Param
+                        else if ( !string(token[i]).compare(NPOT_TARGETP) ){
+                            
+                            cur_acc.targetp_ = atoi(token[i+1]);
+                            //cout << "    Param : \"" << token[i+1] << "\"" << endl;
+                        }
+                        // Min
+                        else if ( !string(token[i]).compare(NPOT_MIN) ){
+                            
+                            cur_acc.min_ = atoi(token[i+1]);
+                            //cout << "    Min : \"" << token[i+1] << "\"" << endl;
+                        }
+                        // Max
+                        else if ( !string(token[i]).compare(NPOT_MAX) ){
+                            
+                            cur_acc.max_ = atoi(token[i+1]);
+                            //cout << "    Max : \"" << token[i+1] << "\"" << endl;
+                        }
+                        // Is in dB
+                        else if ( !string(token[i]).compare(NPOT_DB) ){
+                            
+                            cur_acc.isdb_ = atoi(token[i+1]);
+                            //cout << "    isDb : \"" << token[i+1] << "\"" << endl;
+                        }
+                        // Is Relative
+                        else if ( !string(token[i]).compare(NPOT_RLT) ){
+                            
+                            cur_acc.isrlt_ = atoi(token[i+1]);
+                            //cout << "    isRlt : \"" << token[i+1] << "\"" << endl;
+                        }
+                        // Target end
+                        else if ( !string(token[i]).compare("}") ){
+                            
+                            cur_pot.add_accessor( cur_acc );
+                            
+                            flag = FFPOT;
+                            //cout << "  End" << endl;
                         }
                     }
                     // Connection node
@@ -436,12 +667,11 @@ int load_preset(string const name, string const version, Module_Node_List*& list
                         }
                         else{
                         
-                            // TODO add new connection to process graph
                             if ( con_idx == 4 ){
                                 
-                                cout << "  New Connection calculated : [ " << con_buff[0];
-                                for( int k = 1; k < 4; k++ ) cout << " , " << con_buff[k];
-                                cout << " ]" << endl;
+                                //cout << "  New Connection calculated : [ " << con_buff[0];
+                                //for( int k = 1; k < 4; k++ ) cout << " , " << con_buff[k];
+                                //cout << " ]" << endl;
                                 
                                 new_graph->add_connection( con_buff[0], con_buff[1], con_buff[2], con_buff[3] );
                             }
@@ -451,14 +681,14 @@ int load_preset(string const name, string const version, Module_Node_List*& list
                             }
                             
                             flag = FROOT;
-                            cout << "Exit NODE_CONNECTION node" << endl << endl;
+                            //cout << "Exit NODE_CONNECTION node" << endl << endl;
                         }
                     }
                 }
             }
             
-            delete list;
-            list = new_graph;
+            delete *list;
+            *list = new_graph;
             
         }else{
             

@@ -30,7 +30,7 @@ void Buffer::set_length(int l, int sr){
 
 void Buffer::set_length(int s){
 	
-    cout << "Try resize buffer : " << this->size_ << endl;
+    //cout << "Try resize buffer : " << this->size_ << endl;
     
 	delete this->buffer_;
     this->buffer_ = new sample_t[s];
@@ -38,7 +38,7 @@ void Buffer::set_length(int s){
     this->size_ = s;
     this->write_i_ = 0;
         
-    cout << "Buffer resized : now : " << s << endl;
+    //cout << "Buffer resized : now : " << s << endl;
     
     this->clear();
 }
@@ -115,16 +115,16 @@ Buffer_M::Buffer_M(int length, int samplerate, int count, int *delay):Buffer(len
 	this->count_ = count;
 	this->read_i_ = new float[count];
     
-    cout << "Params entered : " << length << " samplerate : " << samplerate << endl;
-    cout << "Created buffer of : " << size_ << " samples and with : " << count_ << " Readers" << endl;
+    //cout << "Params entered : " << length << " samplerate : " << samplerate << endl;
+    //cout << "Created buffer of : " << size_ << " samples and with : " << count_ << " Readers" << endl;
     
 	for(int i = 0; i < count; i++){
         
         this->read_i_[i] = (this->size_ - spi_mstos(delay[i], samplerate)) % this->size_;
-        cout << "R : " << read_i_[i] << "frames ( " << delay[i] << " ms ) -- ";
+        //cout << "R : " << read_i_[i] << "frames ( " << delay[i] << " ms ) -- ";
     }
     
-    cout << endl << "Buffer created" << endl;
+   //cout << endl << "Buffer created" << endl;
 }
 
 Buffer_M::~Buffer_M(){

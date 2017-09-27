@@ -304,22 +304,18 @@ class Module{
         //vector<Accessor> mod_acc_;      /**< vector of accessors */
 };
 
-#define SPI_HYSTERESIS 0.01f
-#define SPI_POTAR_COUNT 6
-#define SPI_MAX 1023.0f
-
 typedef enum{
 	
 	CURVE_LIN,
 	CURVE_SIG,
-	CURVE_HAN,
-	CURVEIHAN
+	CURVE_COS
+	//CURVEIHAN
 }IO_CURVE;
 
 float curve_lin(float v);	//	Identity tranfer function
 float curve_sig(float v);	//	Tanh transfert function scaled between 0 and 1
-float curve_han(float v);	//	Hanning window function
-float curveihan(float v);	//	1 - Hanning window
+float curve_cos(float v);	//	Hanning window function
+//float curveihan(float v);	//	1 - Hanning window
 
 /**
 *   Accessor are structure that store values for modify parameters dynamically
@@ -336,24 +332,24 @@ class Accessor{
         /**
         *   Accessor constructor
         *
-        *   @param source modulation port index
+        *   @param target target module's index
         *   @param target target param's index
         *   @param min minimal param's value or offset
         *   @param max maximum param's value or offset
         *   @param curve transfert curve between modulation signal and param
         *   @param isdb true if min and max are in db
-        *   @param isabs true if modulation is relative to param value, or absolute
+        *   @param isrelative true if modulation is relative to param value
         */
-		Accessor(int target, int targetp, float min, float max, IO_CURVE curve, bool isdb, bool isrelative);
+		Accessor(int target=-1, int targetp=-1, float min=-1, float max=-1, IO_CURVE curve=CURVE_LIN, bool isdb=false, bool isrelative=false);
         
         /**
-        *   Function that modulate targeted param.
+        *   Function that map input.
         *
-        *   @param input param to modulate
-        *   @param mod modulation signal
+        *   @param input value to map ( -1 < input < 1 )
+        *   @param ref center value
         *   @return modulated param
         */
-        float compute( float input );
+        float compute( float input , float ref );
         
         /**
         *   Get current accessor's curve
@@ -394,11 +390,6 @@ typedef struct{
 }Connection;
 
 /**
-*	Alias for vector of IO_Accessor pointer
-*/
-typedef std::vector<Accessor*> IO_Accessor_List;
-
-/**
 *	Alias for vector of Connection
 */
 typedef std::vector<Connection> Connection_List;
@@ -417,6 +408,7 @@ class Module_Node{
         *   @param mod pointer to the node's module
 		*/
 		Module_Node(Module* mod);
+        Module_Node(Module* mod, int id);
 		~Module_Node();
 		
 		
@@ -427,18 +419,6 @@ class Module_Node{
 		*/
 		Module* 		get_module() const;
 		
-		/**
-		*	Add, remove or get the accessor at index i
-		*/
-		void 			accessor_add(Accessor *accessor);
-		void 			accessor_remove(int i);
-		Accessor* 	accessor_get(int i) const;
-		IO_Accessor_List* accessor_get_list();
-		/**
-		*	Update the io_accessor list with the given value table
-		*/
-		void			accessor_update(int *potar_tab);
-		
         /**
         *   Add, remove or get connection at i
         */
@@ -446,12 +426,15 @@ class Module_Node{
 		void			connection_remove(int i);
 		Connection 		connection_get(int i) const;
 		Connection_List	connection_get_list();
+        
+        int get_id() const;
 		
     protected :
     
 		Module *_mod;
-		IO_Accessor_List _io_accessor_list;
 		Connection_List _connection_list;
+        
+        int id_;
 };
 
 /**
@@ -459,6 +442,9 @@ class Module_Node{
 */
 typedef std::vector<Module_Node*> Module_List;
 typedef Module_List::iterator Module_iterator;
+
+#define END_NODE -55
+#define BEGIN_NODE -98
 
 /**
 *   Main graph class.
@@ -478,6 +464,7 @@ class Module_Node_List{
         *   @return 0 on success
         */
         int add_module(MODULE_TYPE mod);
+        int add_module(MODULE_TYPE mod, int id);
 
         /**
         *   Remove module at idx.
@@ -493,14 +480,8 @@ class Module_Node_List{
         *	source_idx = -1 for System_Capture ports
         *	target_idx = -1 for System_Playback ports
         */
-        int add_connection(short source_idx, short is, short target_idx, short id);
-        int del_connection(short source_idx, short is, short target_idx, short id);
-
-        /**
-        *	Create a link between a potentiometer and param[param_idx] of module[target]
-        *	See io/io.h --> IO_Accessor
-        */
-        int add_accessor(int target, int param_idx, int potentiometer, float min, float max, IO_CURVE curve, int is_db, int is_inv);
+        int add_connection(short source_id, short is, short target_id, short id);
+        int del_connection(short source_id, short is, short target_id, short id);
         
         /**
         *   Disable output from graph.
@@ -526,6 +507,13 @@ class Module_Node_List{
         * Change output volume
         */
         void set_out_volume( float vol );
+        
+        /**
+        * Get node by it id
+        * It id it given at node creation and will never change
+        * @param id module's id
+        */
+        Module_Node* get( int id );
 
         Module_List list_;
         int count_;

@@ -162,6 +162,8 @@ int inSeg = 0;
 
 bool isTemp = false;
 
+bool has_changed = true;
+
 /*
  * Messages Buffer stuff
  */
@@ -187,7 +189,7 @@ unsigned long timeB = millis();
  */
 MESSAGE tempM;
 
-bool hasTemp = false;
+bool hasTempM = false;
 
 /*
  * Screen managing stuff
@@ -196,6 +198,8 @@ byte screen[2][BUFFER_SIZE] = {};
 unsigned long time_l = millis();
 int idx = -1;
 boolean newText = false;
+
+boolean expm = false;
 
 /*
  * 7 Segments display stuff 
@@ -210,12 +214,22 @@ boolean newText = false;
 #define SEG7_COUNT 4
 
 LedControl lc = LedControl(12,11,10,1,true); // lc is our object
-unsigned long time7 = millis();
 int idx7 = 0;
+
+boolean newSeg7 = false;
 
 // 7Segment display buffer
 char seg7[SEG7_COUNT] = {};
 boolean dot7[SEG7_COUNT] = {};
+
+char seg7Temp[SEG7_COUNT] = {};
+boolean dot7Temp[SEG7_COUNT] = {};
+
+unsigned long time7 = millis();
+boolean hasTemp7 = false;
+int temp7dur = 0;
+
+boolean exp7 = false;
 
 #define SEG7_TIME 500
 
@@ -236,24 +250,54 @@ void setup() {
 }
 
 void loop() {
-  
+
+  // New Seg14 message received
   if (newText && !forceIndex ){
 
-    String n = (hasTemp)? tempM.m_ : mBuff[currentIndex].m_ ;
-    
-    preRenderScreen( n );
-    newText = false;
-
-    lc.clearDisplay( 0 );
-    
-    for ( int i = 0; i < SEG7_COUNT ; i ++ ){
+    if ( has_changed || expm ){
       
-      lc.setChar( 0, i, seg7[i], dot7[i] );
+      Serial.println( "Loop : New Text" );
+  
+      String n = (hasTempM)? tempM.m_ : mBuff[currentIndex].m_ ;
+      
+      preRenderScreen( n );
+
+      expm = !hasTempM;
     }
     
+    newText = false;
     timeB = millis();
   }
+  // New Seg7 message received
+  else if ( newSeg7 ){
+
+    if ( has_changed || exp7 ){
+        
+      Serial.println( "Loop : New Seg7" );
+  
+      lc.clearDisplay( 0 );
+      
+      for ( int i = 0; i < SEG7_COUNT ; i ++ ){
+        
+        if ( hasTemp7 ){
+          
+          lc.setChar( 0, i, seg7Temp[i], dot7Temp[i] );
+          exp7 = false;
+        }
+        else{
+          
+          lc.setChar( 0, i, seg7[i], dot7[i] );
+        }
+      }
+    }
+
+    newSeg7 = false;
+    
+    time7 = millis();
+  }
   else if ( forceIndex ){
+
+    Serial.println( "Loop : ForceIndex" );
 
     preRenderScreen( mBuff[currentIndex].m_ );
 
@@ -263,14 +307,31 @@ void loop() {
     timeB = millis();
     
   }
-  else if ( hasTemp && millis() - timeB > tempM.d_ ){
+  else if ( hasTempM && millis() - timeB > tempM.d_ ){
+
+    Serial.println( "Loop : Temp Message Expired" );
 
     newText = true;
-    hasTemp = false;
+    hasTempM = false;
+
+    expm = true;
     
     timeB = millis();
   }
+  else if ( hasTemp7 && millis() - time7 > temp7dur ){
+
+    Serial.println( "Loop : Temp Seg7 Expired" );
+
+    newSeg7 = true;
+    hasTemp7 = false;
+
+    exp7 = true;
+    
+    time7 = millis();
+  }
   else if ( ( mBuff[currentIndex].d_ != 0 ) && ( millis() - timeB > mBuff[currentIndex].d_ ) ){
+
+    Serial.println( "Loop : Current Message Expired" );
 
     bufferNext();
     preRenderScreen( mBuff[currentIndex].m_ );
@@ -399,6 +460,8 @@ void serialEvent() {
 
         isTemp = false;
 
+        has_changed = false;
+        
         forceIndex = false;
       }
     } 
@@ -421,6 +484,7 @@ void serialEvent() {
       else if ( inChar == 'o' ){
 
         inIdx = currentIndex;
+        has_changed = true;
       }
       else if ( inChar == 'c' ){
 
@@ -435,17 +499,17 @@ void serialEvent() {
 
         FLAG = W_FOR;
         forceIndex = true;
+        has_changed = true;
       }
       else if ( inChar == 't' ){
 
         isTemp = true;
-        hasTemp = true;
         inDur = 1000;
       }
       else if ( inChar == ']' ){
 
         FLAG = N_FLAG;
-        newText = true;
+        newText = !newSeg7;
       }
     }
     // Forced index parsing
@@ -468,7 +532,8 @@ void serialEvent() {
       }
       else if ( inChar == 't' ){
 
-        hasTemp = true;
+        hasTempM = true;
+        hasTemp7 = true;
         forceIndex = false;
         FLAG = P_FLAG;
       }
@@ -526,9 +591,14 @@ void serialEvent() {
       // If reached message's end, add it to buffer and change flag
       if ( inChar ==  ']' ){
 
+        hasTempM = isTemp;
+
         if ( isTemp ){
   
           Serial.print( "New Temp Message parsed, ");
+          
+          inBuff.toUpperCase();
+          has_changed |= !inBuff.equals( tempM.m_ );
   
           tempM = newMessage( inBuff, inDur );
           FLAG = P_FLAG;
@@ -537,6 +607,9 @@ void serialEvent() {
   
           Serial.print( "New Message parsed, Index : ");
           Serial.print( inIdx );
+          
+          inBuff.toUpperCase();
+          has_changed |= !inBuff.equals( mBuff[inIdx].m_ );
   
           mBuff[inIdx] = newMessage( inBuff, inDur );
           FLAG = P_FLAG;
@@ -553,36 +626,71 @@ void serialEvent() {
       FLAG = P_SEG;
       inBuff = "";
       inSeg = 0;
-
-      for ( int i = 0; i < SEG7_COUNT; i++ ){
-
-        seg7[i] = '-';
-        dot7[i] = false;
-      }
+      
     }
     else if ( FLAG == P_SEG ){
 
       if ( inChar == ']' ){
 
+        hasTemp7 = isTemp;
+
         FLAG = P_FLAG;
 
-        Serial.print( "New 7Segments Message Parsed, " );
-        for ( int i = 0; i < SEG7_COUNT; i++ ){
+        if ( isTemp ){
 
-          Serial.print( seg7[i] );
-          Serial.print( "." );
-          Serial.print( dot7[i] );
-          Serial.print( " " );
+          temp7dur = inDur;
+          
+          Serial.print( "New Temp 7Segments Message Parsed, " );
+          for ( int i = 0; i < SEG7_COUNT; i++ ){
+  
+            Serial.print( seg7Temp[i] );
+            Serial.print( "." );
+            Serial.print( dot7Temp[i] );
+            Serial.print( " " );
+          }
+          Serial.println( "--" );
         }
-        Serial.println( "--" );
+        else {
+          
+          Serial.print( "New 7Segments Message Parsed, " );
+          for ( int i = 0; i < SEG7_COUNT; i++ ){
+  
+            Serial.print( seg7[i] );
+            Serial.print( "." );
+            Serial.print( dot7[i] );
+            Serial.print( " " );
+          }
+          Serial.println( "--" );
+        }
+
+        newSeg7 = true;
       }
       else if ( inChar == 'f' && inSeg < SEG7_COUNT ){
 
-        dot7[inSeg] = true;
+        if ( isTemp ){
+
+          has_changed |= dot7Temp[inSeg] != inChar;
+          dot7Temp[inSeg] = true;
+        }
+        else{
+
+          has_changed |= dot7[inSeg] != inChar;
+          dot7[inSeg] = true;
+        }
       }
       else if ( inSeg < SEG7_COUNT ){
 
-        seg7[inSeg] = inChar;
+        if ( isTemp ){
+
+          has_changed |= seg7Temp[inSeg] != inChar;
+          seg7Temp[inSeg] = inChar;
+        }
+        else{
+
+          has_changed |= seg7[inSeg] != inChar;
+          seg7[inSeg] = inChar;
+        }
+          
         inSeg++;
         
       }
@@ -593,5 +701,6 @@ void serialEvent() {
 //[sd[1500]m[poum2]]
 //[sd[3000]m[patata3]]
 //[sd[9000]m[avant]][sm[dernier]]
-//[td[2000]m[temp]]
+//[tm[temp]]
+//[7[1234]]
 

@@ -23,7 +23,7 @@ void IOS::init_screen( string msg, string version ){
     cout << "Connection ok !" << endl;
     IOS_OK = true;
 	
-    IOS::printm( string("Hy Tomato"), 3000, IOS::CLEAR );
+    IOS::printm( string("Hy Tomato"), 3000, IOS::OVERIDE );
 	IOS::printm( msg , IOS::STACK);
     IOS::printm( version, IOS::SEG7 );
 }
@@ -50,6 +50,19 @@ void IOS::printm( string msg, int t , int flag){
         
         // If message for 7 Segment display
         if ( flag & IOS::SEG7 ){
+            
+            if ( flag & IOS::TEMP ){
+                
+                buffer += 't';
+            
+                // If a duration have been set
+                if ( t > 0 ){
+                    
+                    buffer += "d[";
+                    buffer += to_string( (int)t );
+                    buffer += "]";
+                }
+            }
             
             msg.resize( 4, ' ' );
             
@@ -118,7 +131,7 @@ void IOS::printm( string msg, int t , int flag){
         /*
         *	Send data
         */
-        cout << "New Message sent : " << buffer << endl;
+        // cout << "New Message sent : " << buffer << endl;
         RS232_cputs(io_screen_port, buffer.c_str());
     }
     else{

@@ -10,23 +10,16 @@ Delay::Delay(const char *server):Module(server, MOD_DELAY, DELAY_PARAMS_COUNT,
     samplerate_(jack_get_sample_rate(client_))
 {
 	
-    cout << "Enter delay constructor" << endl;
-    cout << "1";
 	jack_options_t options_2 = JackNullOption;
-    cout << "2";
 	jack_status_t status_2;
-    cout << "3";
 	
 	jack_client_t *client_2;
-    cout << "4";
 	
 	const char* name_2 = "Delay_Part_2";
-    cout << "5" << endl;
 	
 	/*
 	*	Creating jack client_2 with name "name_2", in server "server"
 	*/
-    cout << "Create jack client 2 -- " << endl;
 	client_2 = jack_client_open (name_2, options_2, &status_2, server);
 	if (client_2 == NULL) {
 		
@@ -36,34 +29,26 @@ Delay::Delay(const char *server):Module(server, MOD_DELAY, DELAY_PARAMS_COUNT,
 	/*
 	*	Upgrade name_2 if given name is not unique
 	*/
-    cout << "Upgrade name 2 -- " << endl;
 	if (status_2 & JackNameNotUnique) {
 		name_2 = jack_get_client_name(client_2);
-		cout << "Unique name " << name_2 << " assigned" << endl;
+		//cout << "Unique name " << name_2 << " assigned" << endl;
 	}
 	
 	client_2_ = client_2;
 	name_2_ = (char*)jack_get_client_name(client_2);
-    
-    cout << "client 2 OK! -- Set callback 2 -- " << endl;
 	
 	jack_set_process_callback(client_2, delay_Process_Callback, this);
     
-    cout << "Create buffer -- " << endl;
     buffer_ = new Buffer_S(100, samplerate_);
     
-    cout << "Set default params -- " << endl;
     this->set_param(MOD_COUNT + DELAY_PARAMS_COUNT, DELAY_DEFAULT_PARAMS);
     
-    cout << "Change second port -- " << endl;
     jack_port_unregister(client_, audio_in_[1]);
     audio_in_[1] = jack_port_register( client_2, "Return", JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
     if ( audio_in_[1] == NULL ){
         
         throw string("Echec de réassignation du port return");
     }
-    
-    cout << "Register private ports -- " << endl;
 	p_send_ = jack_port_register(client_, "p_send", JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
 	p_return_ = jack_port_register(client_2, "p_return", JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
 	if ( p_send_ == NULL || p_return_ == NULL ){
@@ -74,7 +59,6 @@ Delay::Delay(const char *server):Module(server, MOD_DELAY, DELAY_PARAMS_COUNT,
 	/*
 	*	Activation of jack clients
 	*/
-    cout << "Activate clients -- " << endl;
 	if ( jack_activate (client_) ){
         
 		throw string("Echec de l'activation du client");
@@ -85,18 +69,16 @@ Delay::Delay(const char *server):Module(server, MOD_DELAY, DELAY_PARAMS_COUNT,
 		throw string("Echec de l'activation du client 2");
 	}
     
-    cout << "Connect private ports --" << endl;
     if ( jack_connect (client_, jack_port_name(p_send_), jack_port_name(p_return_)) ){
         
 		throw string("Failed make private Connection");
 	}
-    cout << "Delay is OK!" << endl;
 }
 
 Delay::~Delay(){
 	
-    delete buffer_;
 	jack_client_close(this->client_2_);
+    delete buffer_;
 }
 		
 inline int Delay::do_process(jack_nframes_t nframes){

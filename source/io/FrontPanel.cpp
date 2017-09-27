@@ -1,4 +1,4 @@
-#include "io.h"
+#include "FrontPanel.h"
 
 #define NEGMOD(x, y) ( (x) = ( ((x) - 1) < 0 )? (y) - 1 : (x) -1 )
 #define POSMOD(x, y) ( (x) = ( ((x) + 1) % (y) ) )
@@ -259,7 +259,7 @@ void func_update_menu(){
                             }
                             
                             // Try load presset
-                            if ( load_preset( *(CURRENT_PRESSET), VERSION, GRAPH ) ){
+                            if ( true ){ //load_preset( *(CURRENT_PRESSET), VERSION, GRAPH ) ){
                                 
                                 sprintf( n, "Err Preset" );
                             }
@@ -301,7 +301,7 @@ void func_update_menu(){
                             }
                             
                             // Try load presset
-                            if ( load_preset( *(CURRENT_PRESSET), VERSION, GRAPH ) ){
+                            if ( true ){ //load_preset( *(CURRENT_PRESSET), VERSION, GRAPH ) ){
                                 
                                 sprintf( n, "Err Preset" );
                             }
@@ -330,7 +330,7 @@ void func_update_menu(){
                             CURRENT_PARAM = -1;
                             
                             // Try load new preset
-                            if ( load_preset( p, VERSION, GRAPH ) ){
+                            if ( true ){ //load_preset( p, VERSION, GRAPH ) ){
                                 
                                 sprintf( n, "Err Load" );
                             }
@@ -378,7 +378,7 @@ void func_update_menu(){
                             sprintf( n, "Sel Preset");
                         }
                         // else Try reload current presset
-                        else if ( load_preset( *(CURRENT_PRESSET), VERSION, GRAPH ) ){
+                        else if ( true ){ //load_preset( *(CURRENT_PRESSET), VERSION, GRAPH ) ){
                             
                             sprintf( n, "Err Preset");
                         }
@@ -615,7 +615,7 @@ void func_update_menu(){
                     // Ok : ask for exit saving changes
                     else if ( M_FLAG == MOVE_OK ){
                         
-                        if ( save_preset( *(CURRENT_PRESSET), VERSION, GRAPH ) ){
+                    if ( true ){ //save_preset( *(CURRENT_PRESSET), VERSION, GRAPH ) ){
                         
                             sprintf( n, "Save Fail");
                         
@@ -689,7 +689,7 @@ void func_update_menu(){
                     // Ok : exit module edition saving changes
                     else if ( M_FLAG == MOVE_OK ){
                         
-                        if ( save_preset( *(CURRENT_PRESSET), VERSION, GRAPH ) ){
+                        if ( true ){ //save_preset( *(CURRENT_PRESSET), VERSION, GRAPH ) ){
                         
                             sprintf( n, "Save Fail");
                         
@@ -764,7 +764,7 @@ void func_update_menu(){
                     // Ok : exit saving changes
                     else if ( M_FLAG == MOVE_OK ){
                         
-                        if ( save_preset( *(CURRENT_PRESSET), VERSION, GRAPH ) ){
+                        if ( true ){ //save_preset( *(CURRENT_PRESSET), VERSION, GRAPH ) ){
                         
                             sprintf( n, "Save Fail");
                         
@@ -857,7 +857,7 @@ void func_update_menu(){
                     // Ok : exit saving changes
                     else if ( M_FLAG == MOVE_OK ){
                         
-                        if ( save_preset( *(CURRENT_PRESSET), VERSION, GRAPH ) ){
+                        if ( true ){ //save_preset( *(CURRENT_PRESSET), VERSION, GRAPH ) ){
                         
                             sprintf( n, "Save Fail");
                         }
@@ -963,7 +963,7 @@ void func_update_menu(){
                     // Ok : exit saving changes
                     else if ( M_FLAG == MOVE_OK ){
                         
-                        if ( save_preset( *(CURRENT_PRESSET), VERSION, GRAPH ) ){
+                        if ( true ){ //save_preset( *(CURRENT_PRESSET), VERSION, GRAPH ) ){
                         
                             sprintf( n, "Save Fail");
                         }
