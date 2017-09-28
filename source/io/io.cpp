@@ -35,9 +35,6 @@ void io_init_potar_tab( IO_Potentiometer pot[SPI_POTAR_COUNT] ){
     
     pot[5] = IO_Potentiometer( 5, string("Volume"), vmin, vmax);
     
-    pot[5].add_accessor( Accessor( BEGIN_NODE, END_RIGHT, vmin, vmax, CURVE_LIN, true, false ) );
-    pot[5].add_accessor( Accessor( BEGIN_NODE, END_LEFT, vmin, vmax, CURVE_LIN, true, false ) );
-    
     pot[5].add_accessor( Accessor( END_NODE, END_RIGHT, vmin, vmax, CURVE_LIN, true, false ) );
     pot[5].add_accessor( Accessor( END_NODE, END_LEFT, vmin, vmax, CURVE_LIN, true, false ) );
 }
