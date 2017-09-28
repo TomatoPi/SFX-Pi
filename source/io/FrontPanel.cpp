@@ -159,7 +159,6 @@ void func_update_menu( 	Module_Node_List* graph,
 	// if button is pressed
 	if ( M_FLAG != MOVE_NONE ){
 		
-		char n[64];
 		bool d = true;
 			
 		// If not waiting for confirm and if an order wait beeing processed, process order
@@ -184,7 +183,6 @@ void func_update_menu( 	Module_Node_List* graph,
 					else{
 						
 						M_STATUS = MAIN_CHANGE_PRESSET;
-						sprintf( n, "Sel Preset" );
 					}
 					break;
 					
@@ -205,7 +203,7 @@ void func_update_menu( 	Module_Node_List* graph,
 						CURRENT_PARAM = -1;
 						
 						M_STATUS = MAIN_SELECT_MODULE;
-						sprintf( n, "Sel Module" );
+						//sprintf( n, "Sel Module" );
 					}
 					// Next : try go to next presset, if none found go back to presset 0
 					else if ( M_FLAG == MOVE_NEXT ){
@@ -216,7 +214,7 @@ void func_update_menu( 	Module_Node_List* graph,
 							// If no presset found print error
 							if ( list_files( PRESSET_PATH, &PRESSET_LIST ) ){
 								
-								sprintf( n, "ErrnoPreset" );
+								//sprintf( n, "ErrnoPreset" );
 							}
 						}
 						// Navigate througt list if not empty
@@ -242,13 +240,13 @@ void func_update_menu( 	Module_Node_List* graph,
 							// Try load presset
 							if ( true ){ //load_preset( *(CURRENT_PRESSET), VERSION, GRAPH ) ){
 								
-								sprintf( n, "Err Preset" );
+								//sprintf( n, "Err Preset" );
 							}
 							else{
 								
 								string p = string(*CURRENT_PRESSET);
 								p.erase( p.end() - 4, p.end() );
-								sprintf( n, "%s", p.c_str() );
+								//sprintf( n, "%s", p.c_str() );
 							}
 						}
 					}
@@ -261,7 +259,7 @@ void func_update_menu( 	Module_Node_List* graph,
 							// If no presset found print error
 							if ( list_files( PRESSET_PATH, &PRESSET_LIST ) ){
 								
-								sprintf( n, "ErrnoPreset" );
+								//sprintf( n, "ErrnoPreset" );
 							}
 						}
 						// Navigate througt list if not empty
@@ -284,13 +282,13 @@ void func_update_menu( 	Module_Node_List* graph,
 							// Try load presset
 							if ( true ){ //load_preset( *(CURRENT_PRESSET), VERSION, GRAPH ) ){
 								
-								sprintf( n, "Err Preset" );
+								//sprintf( n, "Err Preset" );
 							}
 							else{
 								
 								string p = string(*CURRENT_PRESSET);
 								p.erase( p.end() - 4, p.end() );
-								sprintf( n, "%s", p.c_str() );
+								//sprintf( n, "%s", p.c_str() );
 							}
 						}
 					}
@@ -301,7 +299,7 @@ void func_update_menu( 	Module_Node_List* graph,
 						string p = PRESSET_NAME + to_string( PRESSET_LIST.size() ) + string(".txt");
 						if ( new_preset( p, VERSION ) ){
 							
-							sprintf( n, "Err create" );
+							//sprintf( n, "Err create" );
 						}
 						// On success go to this presset and reload presset list
 						else{
@@ -313,7 +311,7 @@ void func_update_menu( 	Module_Node_List* graph,
 							// Try load new preset
 							if ( true ){ //load_preset( p, VERSION, GRAPH ) ){
 								
-								sprintf( n, "Err Load" );
+								//sprintf( n, "Err Load" );
 							}
 							// On success go to this preset and reload list
 							else{
@@ -325,11 +323,11 @@ void func_update_menu( 	Module_Node_List* graph,
 									CURRENT_PRESSET = itr;
 									string s = string(*CURRENT_PRESSET);
 									s.erase( s.end() - 4, s.end() );
-									sprintf( n, "%s", s.c_str() );
+									//sprintf( n, "%s", s.c_str() );
 								}
 								else{
 									
-									sprintf( n, "Err Find" );
+									//sprintf( n, "Err Find" );
 								}
 							}
 						}
@@ -342,12 +340,12 @@ void func_update_menu( 	Module_Node_List* graph,
 							
 							// Ask for confirm for delete it
 							W_STATUS = WAIT_DEL_PRESET;
-							sprintf( n, "Confirm Y/N");
+							//sprintf( n, "Confirm Y/N");
 						}
 						// Else ask select presset
 						else{
 							
-							sprintf( n, "Sel preset");
+							//sprintf( n, "Sel preset");
 						}
 					}
 					// Enter : reload current preset
@@ -356,17 +354,17 @@ void func_update_menu( 	Module_Node_List* graph,
 						// If no preset selected
 						if ( CURRENT_PRESSET == PRESSET_LIST.end() ){
 							
-							sprintf( n, "Sel Preset");
+							//sprintf( n, "Sel Preset");
 						}
 						// else Try reload current presset
 						else if ( true ){ //load_preset( *(CURRENT_PRESSET), VERSION, GRAPH ) ){
 							
-							sprintf( n, "Err Preset");
+							//sprintf( n, "Err Preset");
 						}
 						// If reload successful
 						else {
 							
-							sprintf( n, "Reload ok");
+							//sprintf( n, "Reload ok");
 						}
 					}
 					// Esc : exit main menu
@@ -400,12 +398,12 @@ void func_update_menu( 	Module_Node_List* graph,
 						
 						M_STATUS = MAIN_CHANGE_PRESSET;
 						
-						if ( CURRENT_PRESSET == PRESSET_LIST.end() ) sprintf( n, "Sel Preset" );
+						if ( CURRENT_PRESSET == PRESSET_LIST.end() ) //sprintf( n, "Sel Preset" );
 						else{
 
 							string p = string(*CURRENT_PRESSET);
 							p.erase( p.end() - 4, p.end() );
-							sprintf( n, "%s", p.c_str() );
+							//sprintf( n, "%s", p.c_str() );
 						}
 					}
 					/*
@@ -455,7 +453,7 @@ void func_update_menu( 	Module_Node_List* graph,
 								CURRENT_MODULE = (*CURRENT_IDX)->get_module();
 							}
 							
-							sprintf( n, CURRENT_MODULE->get_name() );
+							//sprintf( n, CURRENT_MODULE->get_name() );
 						}
 						// If graph is empty return an error
 						else{
@@ -472,7 +470,7 @@ void func_update_menu( 	Module_Node_List* graph,
 							CURRENT_PARAM = -1;
 							
 							M_STATUS = SELMOD;
-							sprintf( n, "Edit Params");
+							//sprintf( n, "Edit Params");
 						}
 						else{
 							
@@ -489,7 +487,7 @@ void func_update_menu( 	Module_Node_List* graph,
 							CURRENT_PARAM = -1;
 							
 							M_STATUS = MAIN_SELECT_MODULE;
-							sprintf( n, "Sel Module" );
+							//sprintf( n, "Sel Module" );
 						}
 						else{
 							
@@ -519,18 +517,18 @@ void func_update_menu( 	Module_Node_List* graph,
 						CURRENT_PARAM = -1;
 						
 						M_STATUS = MAIN_MENU;
-						sprintf( n, "Main Menu" );
+						//sprintf( n, "Main Menu" );
 					}
 					// Any button for enter, backup current module
 					else{
 						
 						if ( save_module( BACK_SELECT_MODULE, VERSION, CURRENT_MODULE) ){
 							
-							sprintf( n, "wrn nobakup" );
+							//sprintf( n, "wrn nobakup" );
 						}
 						else{
 							
-							sprintf( n, "Sel Bank" );
+							//sprintf( n, "Sel Bank" );
 						}
 						
 						M_STATUS = SELMOD_CHANGE_BANK;
@@ -550,14 +548,14 @@ void func_update_menu( 	Module_Node_List* graph,
 					if ( M_FLAG == MOVE_UP ){
 						
 						M_STATUS = SELMOD_ADD_BANK;
-						sprintf( n, "Add/DelBank" );
+						//sprintf( n, "Add/DelBank" );
 					}
 					// Down : go to edit param submenu
 					else if ( M_FLAG == MOVE_DOWN ){
 						
 						CURRENT_PARAM = -1;
 						M_STATUS = SELMOD_EDIT_BANK;
-						sprintf( n, "Edit Param" );
+						//sprintf( n, "Edit Param" );
 					}
 					// Next : go to next bank
 					else if ( M_FLAG == MOVE_NEXT ){
@@ -571,7 +569,7 @@ void func_update_menu( 	Module_Node_List* graph,
 							CURRENT_MODULE->next_bank();
 						}
 						CURRENT_BANK = CURRENT_MODULE->get_bank();
-						sprintf( n, "Bank-%d", CURRENT_BANK);
+						//sprintf( n, "Bank-%d", CURRENT_BANK);
 					}
 					// Prev : go to prev bank
 					else if ( M_FLAG == MOVE_PREV ){
@@ -585,24 +583,24 @@ void func_update_menu( 	Module_Node_List* graph,
 							CURRENT_MODULE->prev_bank();
 						}
 						CURRENT_BANK = CURRENT_MODULE->get_bank();
-						sprintf( n, "Bank-%d", CURRENT_BANK);
+						//sprintf( n, "Bank-%d", CURRENT_BANK);
 					}
 					// Esc : ask for exit without save
 					else if ( M_FLAG == MOVE_ESC ){
 						
 						W_STATUS = WAIT_EXIT_SELECTMOD;
-						sprintf( n, "Cancel Y/N");
+						//sprintf( n, "Cancel Y/N");
 					}
 					// Ok : ask for exit saving changes
 					else if ( M_FLAG == MOVE_OK ){
 						
 					if ( true ){ //save_preset( *(CURRENT_PRESSET), VERSION, GRAPH ) ){
 						
-							sprintf( n, "Save Fail");
+							//sprintf( n, "Save Fail");
 						
 						}else{
 							
-							sprintf( n, "Save ok" );
+							//sprintf( n, "Save ok" );
 						}
 						
 						M_STATUS = MAIN_MENU;
@@ -632,20 +630,20 @@ void func_update_menu( 	Module_Node_List* graph,
 						
 						CURRENT_PARAM = -1;
 						M_STATUS = SELMOD_EDIT_BANK;
-						sprintf( n, "Edit Param" );
+						//sprintf( n, "Edit Param" );
 					}
 					// Down : go to change bank submenu
 					else if ( M_FLAG == MOVE_DOWN ){
 						
 						M_STATUS = SELMOD_CHANGE_BANK;
-						if ( CURRENT_BANK == -1 ) sprintf( n, "Sel bank" );
-						else sprintf( n, "Bank-%d", CURRENT_BANK);
+						if ( CURRENT_BANK == -1 ) //sprintf( n, "Sel bank" );
+						else //sprintf( n, "Bank-%d", CURRENT_BANK);
 					}
 					// Add : add a new bank to the module
 					else if ( M_FLAG == MOVE_ADD ){
 						
 						CURRENT_MODULE->add_bank();
-						sprintf( n, "Bank added" );
+						//sprintf( n, "Bank added" );
 					}
 					// Del : remove current bank from the module
 					else if ( M_FLAG == MOVE_DEL ){
@@ -654,29 +652,29 @@ void func_update_menu( 	Module_Node_List* graph,
 						if ( CURRENT_BANK != -1 ){
 							
 							W_STATUS = WAIT_DEL_BANK;
-							sprintf( n, "Del B%d y/n", CURRENT_BANK);
+							//sprintf( n, "Del B%d y/n", CURRENT_BANK);
 						}
 						else{
 							
-							sprintf( n, "nobank sel");
+							//sprintf( n, "nobank sel");
 						}
 					}
 					// Esc : ask for exit module edition without saving
 					else if ( M_FLAG == MOVE_ESC ){
 						
 						W_STATUS = WAIT_EXIT_SELECTMOD;
-						sprintf( n, "Cancel Y/N");
+						//sprintf( n, "Cancel Y/N");
 					}
 					// Ok : exit module edition saving changes
 					else if ( M_FLAG == MOVE_OK ){
 						
 						if ( true ){ //save_preset( *(CURRENT_PRESSET), VERSION, GRAPH ) ){
 						
-							sprintf( n, "Save Fail");
+							//sprintf( n, "Save Fail");
 						
 						}else{
 							
-							sprintf( n, "Save ok" );
+							//sprintf( n, "Save ok" );
 						}
 						
 						M_STATUS = MAIN_MENU;
@@ -705,31 +703,31 @@ void func_update_menu( 	Module_Node_List* graph,
 					if ( M_FLAG == MOVE_UP ){
 						
 						M_STATUS = SELMOD_CHANGE_BANK;
-						if ( CURRENT_BANK == -1 ) sprintf( n, "Sel bank" );
-						else sprintf( n, "Bank-%d", CURRENT_BANK);
+						if ( CURRENT_BANK == -1 ) //sprintf( n, "Sel bank" );
+						else //sprintf( n, "Bank-%d", CURRENT_BANK);
 					}
 					// Down : go to add bank submenu
 					else if ( M_FLAG == MOVE_DOWN ){
 						
 						M_STATUS = SELMOD_ADD_BANK;
-						sprintf( n, "Add/DelBank" );
+						//sprintf( n, "Add/DelBank" );
 					}
 					// Enter : Enter submenu
 					else if ( M_FLAG == MOVE_ENTER ){
 						
 						if ( CURRENT_BANK == -1 ){
 							
-							sprintf( n, "No bank sel");
+							//sprintf( n, "No bank sel");
 						}
 						else{
 							
 							if ( save_module( BACK_EDIT_BANK, VERSION, CURRENT_MODULE ) ){
 								
-								sprintf( n, "wrn nobakup" );
+								//sprintf( n, "wrn nobakup" );
 							}
 							else{
 							
-								sprintf( n, "Sel Param" );
+								//sprintf( n, "Sel Param" );
 							}
 							
 							M_STATUS = SELMOD_EDITB_SELPAR;
@@ -740,18 +738,18 @@ void func_update_menu( 	Module_Node_List* graph,
 					else if ( M_FLAG == MOVE_ESC ){
 						
 						W_STATUS = WAIT_EXIT_SELECTMOD;
-						sprintf( n, "Cancel Y/N");
+						//sprintf( n, "Cancel Y/N");
 					}
 					// Ok : exit saving changes
 					else if ( M_FLAG == MOVE_OK ){
 						
 						if ( true ){ //save_preset( *(CURRENT_PRESSET), VERSION, GRAPH ) ){
 						
-							sprintf( n, "Save Fail");
+							//sprintf( n, "Save Fail");
 						
 						}else{
 							
-							sprintf( n, "Save ok" );
+							//sprintf( n, "Save ok" );
 						}
 						
 						M_STATUS = MAIN_MENU;
@@ -790,7 +788,7 @@ void func_update_menu( 	Module_Node_List* graph,
 							POSMOD( CURRENT_PARAM, CURRENT_MODULE->get_param_count() );
 						}
 						
-						sprintf( n, "%s", CURRENT_MODULE->get_formated_param( CURRENT_PARAM ).c_str() );
+						//sprintf( n, "%s", CURRENT_MODULE->get_formated_param( CURRENT_PARAM ).c_str() );
 					}
 					// Prev : select prev param or param 0 if none selected
 					else if ( M_FLAG == MOVE_PREV ){
@@ -806,7 +804,7 @@ void func_update_menu( 	Module_Node_List* graph,
 							NEGMOD( CURRENT_PARAM, CURRENT_MODULE->get_param_count() );
 						}
 						
-						sprintf( n, "%s", CURRENT_MODULE->get_formated_param( CURRENT_PARAM ).c_str() );
+						//sprintf( n, "%s", CURRENT_MODULE->get_formated_param( CURRENT_PARAM ).c_str() );
 					}
 					// Enter : start param edition or do nothing if no param selected
 					else if ( M_FLAG == MOVE_ENTER ){
@@ -815,11 +813,11 @@ void func_update_menu( 	Module_Node_List* graph,
 							
 							if ( save_module( BACK_EDIT_PARAM, VERSION, CURRENT_MODULE ) ){
 								
-								sprintf( n, "Wrn nobakup");
+								//sprintf( n, "Wrn nobakup");
 							}
 							else{
 								
-								sprintf( n, "Edit on" );
+								//sprintf( n, "Edit on" );
 							}
 							
 							M_STATUS = SELMOD_EDITB_EDITPAR;
@@ -833,18 +831,18 @@ void func_update_menu( 	Module_Node_List* graph,
 					else if ( M_FLAG == MOVE_ESC ){
 						
 						W_STATUS = WAIT_EXIT_EDITBANK;
-						sprintf( n, "Cancel Y/N");
+						//sprintf( n, "Cancel Y/N");
 					}
 					// Ok : exit saving changes
 					else if ( M_FLAG == MOVE_OK ){
 						
 						if ( true ){ //save_preset( *(CURRENT_PRESSET), VERSION, GRAPH ) ){
 						
-							sprintf( n, "Save Fail");
+							//sprintf( n, "Save Fail");
 						}
 						else{
 							
-							sprintf( n, "Save ok" );
+							//sprintf( n, "Save ok" );
 						}
 					   
 						M_STATUS = SELMOD_EDIT_BANK;
@@ -875,7 +873,7 @@ void func_update_menu( 	Module_Node_List* graph,
 								CURRENT_PARAM, 
 								CURRENT_MODULE->get_param( CURRENT_PARAM ) + 1 * MULTIPLIER 
 								);
-						sprintf( n, "%s", CURRENT_MODULE->get_formated_param( CURRENT_PARAM ).c_str() );
+						//sprintf( n, "%s", CURRENT_MODULE->get_formated_param( CURRENT_PARAM ).c_str() );
 					}
 					// Down : -1 / -1000
 					else if ( M_FLAG == MOVE_DOWN ){
@@ -884,7 +882,7 @@ void func_update_menu( 	Module_Node_List* graph,
 								CURRENT_PARAM, 
 								CURRENT_MODULE->get_param( CURRENT_PARAM ) - 1 * MULTIPLIER 
 								);
-						sprintf( n, "%s", CURRENT_MODULE->get_formated_param( CURRENT_PARAM ).c_str() );
+						//sprintf( n, "%s", CURRENT_MODULE->get_formated_param( CURRENT_PARAM ).c_str() );
 					}
 					// Next : +0.1f / +100
 					else if ( M_FLAG == MOVE_NEXT ){
@@ -893,7 +891,7 @@ void func_update_menu( 	Module_Node_List* graph,
 								CURRENT_PARAM, 
 								CURRENT_MODULE->get_param( CURRENT_PARAM ) + 0.1f * MULTIPLIER 
 								);
-						sprintf( n, "%s", CURRENT_MODULE->get_formated_param( CURRENT_PARAM ).c_str() );
+						//sprintf( n, "%s", CURRENT_MODULE->get_formated_param( CURRENT_PARAM ).c_str() );
 					}
 					// Prev : -0.1f / -100
 					else if ( M_FLAG == MOVE_PREV ){
@@ -902,7 +900,7 @@ void func_update_menu( 	Module_Node_List* graph,
 								CURRENT_PARAM, 
 								CURRENT_MODULE->get_param( CURRENT_PARAM ) - 0.1f * MULTIPLIER 
 								);
-						sprintf( n, "%s", CURRENT_MODULE->get_formated_param( CURRENT_PARAM ).c_str() );
+						//sprintf( n, "%s", CURRENT_MODULE->get_formated_param( CURRENT_PARAM ).c_str() );
 					}
 					// Add : +0.01f / +10
 					else if ( M_FLAG == MOVE_ADD ){
@@ -911,7 +909,7 @@ void func_update_menu( 	Module_Node_List* graph,
 								CURRENT_PARAM, 
 								CURRENT_MODULE->get_param( CURRENT_PARAM ) + 0.01f * MULTIPLIER 
 								);
-						sprintf( n, "%s", CURRENT_MODULE->get_formated_param( CURRENT_PARAM ).c_str() );
+						//sprintf( n, "%s", CURRENT_MODULE->get_formated_param( CURRENT_PARAM ).c_str() );
 					}
 					// Del : -0.01f / -10
 					else if ( M_FLAG == MOVE_DEL ){
@@ -920,7 +918,7 @@ void func_update_menu( 	Module_Node_List* graph,
 								CURRENT_PARAM, 
 								CURRENT_MODULE->get_param( CURRENT_PARAM ) - 0.01f * MULTIPLIER 
 								);
-						sprintf( n, "%s", CURRENT_MODULE->get_formated_param( CURRENT_PARAM ).c_str() );
+						//sprintf( n, "%s", CURRENT_MODULE->get_formated_param( CURRENT_PARAM ).c_str() );
 					}
 					// Enter : switch values
 					else if ( M_FLAG == MOVE_ENTER ){
@@ -928,29 +926,29 @@ void func_update_menu( 	Module_Node_List* graph,
 						if ( MULTIPLIER == 1 ){
 							
 							MULTIPLIER = 1000;
-							sprintf( n, "+1k 100 10" );
+							//sprintf( n, "+1k 100 10" );
 						}else{
 							
 							MULTIPLIER = 1;
-							sprintf( n, "+f01 0f1 1f" );
+							//sprintf( n, "+f01 0f1 1f" );
 						}
 					}
 					// Esc : ask for exit bank edition without save
 					else if ( M_FLAG == MOVE_ESC ){
 						
 						W_STATUS = WAIT_EXIT_PARAM;
-						sprintf( n, "Cancel Y/N");
+						//sprintf( n, "Cancel Y/N");
 					}
 					// Ok : exit saving changes
 					else if ( M_FLAG == MOVE_OK ){
 						
 						if ( true ){ //save_preset( *(CURRENT_PRESSET), VERSION, GRAPH ) ){
 						
-							sprintf( n, "Save Fail");
+							//sprintf( n, "Save Fail");
 						}
 						else{
 							
-							sprintf( n, "Save ok" );
+							//sprintf( n, "Save ok" );
 						}
 						   
 						M_STATUS = SELMOD_EDITB_SELPAR;
@@ -1023,7 +1021,7 @@ void func_update_menu( 	Module_Node_List* graph,
 					CURRENT_MODULE = NULL;
 					CURRENT_BANK = -1;
 					CURRENT_PARAM = -1;
-					sprintf( n, "Main Menu" );
+					//sprintf( n, "Main Menu" );
 					break;
 			} // switch end
 		} // wait nothing end
@@ -1126,8 +1124,6 @@ void func_update_menu( 	Module_Node_List* graph,
 				d = false;
 			}
 		} // compute wait order end
-		
-		if ( d ) IOS::printm( string(n) , IOS::TEMP);
 	} // Move != none end
 	
 	M_FLAG = MOVE_NONE;

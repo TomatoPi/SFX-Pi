@@ -5,6 +5,8 @@
 
 #include "../presset/Presset.h"
 
+#include "./menu/main_menu.h"
+
 /*
 *   ---------------------------------------------------------------------------
 *   ---------------------------------------------------------------------------
@@ -39,103 +41,11 @@
 
 #define BUTTON_COUNT 12
 
-namespace FRONT_PANEL{
-
-	typedef enum{
-		
-		WAIT_DEL_BANK,
-		WAIT_DEL_PRESET,
-		WAIT_EXIT_SELECTMOD,
-		WAIT_EXIT_EDITBANK,
-		WAIT_EXIT_PARAM,
-		WAIT_NOTHING
-		
-	}Wait_status;
-
-	typedef enum{
-		
-		MAIN_MENU,
-		
-			MAIN_CHANGE_PRESSET,
-			MAIN_SELECT_MODULE,
-		
-				SELMOD,
-				SELMOD_CHANGE_BANK,
-				SELMOD_ADD_BANK,
-				SELMOD_EDIT_BANK,
-		
-					SELMOD_EDITB_SELPAR,
-						SELMOD_EDITB_EDITPAR,
-		
-			EDIT_ADD_MODULE,
-				EDIT_CHOOSE_MODTYPE,
-				
-			EDIT_SELECT_MODULE,
-			
-				EDITMOD,
-				EDITMOD_ADD_CONNECTION,
-				
-					EDITMOD_CHOOSE_CSOURCE,
-					EDITMOD_CHOOSE_CTARGET,
-				
-				EDITMOD_ADD_ACCESSOR,
-				
-					EDITMOD_ACC_CHOOSE_TARGET_M,
-					EDITMOD_ACC_CHOOSE_TARGET_P,
-					EDITMOD_ACC_CHOOSE_POT,
-					EDITMOD_ACC_CHOOSE_MIN,
-					EDITMOD_ACC_CHOOSE_MAX,
-					EDITMOD_ACC_CHOOSE_CURVE,
-					EDITMOD_ACC_CHOOSE_ISDB,
-					EDITMOD_ACC_CHOOSE_ISINV,
-		
-		INIT
-		
-	}Menu_status;
-
-	typedef enum{
-		
-		MOVE_UP,
-		MOVE_DOWN,
-		
-		MOVE_NEXT,
-		MOVE_PREV,
-		
-		MOVE_ADD,
-		MOVE_DEL,
-		
-		MOVE_ENTER,
-		
-		MOVE_ESC,
-		MOVE_OK,
-		
-		MOVE_ENTER_EDIT,
-		MOVE_EXIT_EDIT,
-		
-		MOVE_FOOT_PREV,
-		MOVE_FOOT_NEXT,
-		
-		MOVE_NONE
-		
-	}Move_flag;
-	
-	/**
-	 * Function called when a button is pressed.
-	 * Core menu's function it compute button order regarding current status
-	 */
-	void func_update_menu(	Module_Node_List* graph,
-							IO_Potentiometer pot[SPI_POTAR_COUNT] );
-	/**
-	 * Function called when menu is exited
-	 */
-	void func_exit_menu();
-	
-	/**
-	 * Fuction called for read registers values
-	 * @return true if a register ahs changed
-	 */
-	bool func_read_reg();
-}
+/**
+ * Fuction called for read registers values
+ * @return true if a register ahs changed
+ */
+bool func_read_reg();
 
 /**
 *   Initialise front panel's buttons.
