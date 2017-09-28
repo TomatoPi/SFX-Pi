@@ -844,9 +844,9 @@ int new_preset(string const name, string const version){
     return 0;
 }
 
-int list_files(string const dir, vector<string> *list){
+int list_files(string const dir, vector<string> & list){
     
-    list->clear();
+    list.clear();
     
     DIR *rep = opendir( dir.c_str() );
     
@@ -858,8 +858,7 @@ int list_files(string const dir, vector<string> *list){
             
             if ( ent->d_name[0] != '.') {
                 
-                list->push_back( ent->d_name );
-                //cout << "File found ! : " << ent->d_name << endl;
+                list.push_back( ent->d_name );
             }
         }
     }
@@ -870,6 +869,6 @@ int list_files(string const dir, vector<string> *list){
     
     closedir( rep );
     
-    if ( list->size() == 0 ) return 1;
+    if ( list.size() == 0 ) return 1;
     return 0;
 }
