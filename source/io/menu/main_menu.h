@@ -3,7 +3,87 @@
 
 namespace FRONT_PANEL{
 
+<<<<<<< HEAD
 
+=======
+	typedef enum{
+		
+		WAIT_DEL_BANK,
+		WAIT_DEL_PRESET,
+		WAIT_EXIT_SELECTMOD,
+		WAIT_EXIT_EDITBANK,
+		WAIT_EXIT_PARAM,
+		WAIT_NOTHING
+		
+	}Wait_status;
+
+	typedef enum{
+		
+		MAIN_MENU,
+		
+			MAIN_CHANGE_PRESSET,
+			MAIN_SELECT_MODULE,
+		
+				SELMOD,
+				SELMOD_CHANGE_BANK,
+				SELMOD_ADD_BANK,
+				SELMOD_EDIT_BANK,
+		
+					SELMOD_EDITB_SELPAR,
+						SELMOD_EDITB_EDITPAR,
+		
+			EDIT_ADD_MODULE,
+				EDIT_CHOOSE_MODTYPE,
+				
+			EDIT_SELECT_MODULE,
+			
+				EDITMOD,
+				EDITMOD_ADD_CONNECTION,
+				
+					EDITMOD_CHOOSE_CSOURCE,
+					EDITMOD_CHOOSE_CTARGET,
+				
+				EDITMOD_ADD_ACCESSOR,
+				
+					EDITMOD_ACC_CHOOSE_TARGET_M,
+					EDITMOD_ACC_CHOOSE_TARGET_P,
+					EDITMOD_ACC_CHOOSE_POT,
+					EDITMOD_ACC_CHOOSE_MIN,
+					EDITMOD_ACC_CHOOSE_MAX,
+					EDITMOD_ACC_CHOOSE_CURVE,
+					EDITMOD_ACC_CHOOSE_ISDB,
+					EDITMOD_ACC_CHOOSE_ISINV,
+		
+		INIT
+		
+	}Menu_status;
+
+	typedef enum{
+		
+		MOVE_UP,
+		MOVE_DOWN,
+		
+		MOVE_NEXT,
+		MOVE_PREV,
+		
+		MOVE_ADD,
+		MOVE_DEL,
+		
+		MOVE_ENTER,
+		
+		MOVE_ESC,
+		MOVE_OK,
+		
+		MOVE_ENTER_EDIT,
+		MOVE_EXIT_EDIT,
+		
+		MOVE_FOOT_PREV,
+		MOVE_FOOT_NEXT,
+		
+		MOVE_NONE
+		
+	}Move_flag;
+>>>>>>> 33e928369b6ca82d69dff92ab4e15071b4da4658
 	
 	/**
 	 * Function called when a button is pressed.
