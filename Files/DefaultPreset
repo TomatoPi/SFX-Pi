@@ -193,24 +193,6 @@ Potentiometer={
     Plage=-30 10
     Target={
         Curve=0
-        TargetM=-98
-        TargetP=1
-        Min=-30
-        Max=10
-        IsdB=1
-        IsRlt=0
-    }
-    Target={
-        Curve=0
-        TargetM=-98
-        TargetP=2
-        Min=-30
-        Max=10
-        IsdB=1
-        IsRlt=0
-    }
-    Target={
-        Curve=0
         TargetM=-55
         TargetP=1
         Min=-30

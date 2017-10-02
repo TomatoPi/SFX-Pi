@@ -35,9 +35,6 @@ void io_init_potar_tab( IO_Potentiometer pot[SPI_POTAR_COUNT] ){
     
     pot[5] = IO_Potentiometer( 5, string("Volume"), vmin, vmax);
     
-    pot[5].add_accessor( Accessor( BEGIN_NODE, END_RIGHT, vmin, vmax, CURVE_LIN, true, false ) );
-    pot[5].add_accessor( Accessor( BEGIN_NODE, END_LEFT, vmin, vmax, CURVE_LIN, true, false ) );
-    
     pot[5].add_accessor( Accessor( END_NODE, END_RIGHT, vmin, vmax, CURVE_LIN, true, false ) );
     pot[5].add_accessor( Accessor( END_NODE, END_LEFT, vmin, vmax, CURVE_LIN, true, false ) );
 }
@@ -120,12 +117,11 @@ void IO_Potentiometer::update( Module_Node_List* graph , int disp){
             Accessor cr = *itr;
             
             Module* mod = NULL;
-            bool ok = false;
             
             /*
             * Get pointer to target module
             */
-            if ( graph->get( cr.target_) != NULL ){
+            if ( graph->get( cr.target_ ) != NULL ){
              
                 mod = graph->get( cr.target_ )->get_module();
             }
@@ -135,14 +131,11 @@ void IO_Potentiometer::update( Module_Node_List* graph , int disp){
                 return ;
             }
             
-            if (ok ){
-                
-                // Get current param value
-                float old = mod->get_param( cr.targetp_ );
-                
-                // Update it
-                mod->set_param( cr.targetp_, cr.compute( io_map( value, 0, SPI_MAX, -1.0f, 1.0f ), old ) );
-            }
+            // Get current param value
+            float old = mod->get_param( cr.targetp_ );
+            
+            // Update it
+            mod->set_param( cr.targetp_, cr.compute( io_map( value, 0, SPI_MAX, -1.0f, 1.0f ), old ) );
         }
 	}
 }

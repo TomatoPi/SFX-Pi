@@ -18,11 +18,11 @@ int main(int argc, char *argv[]){
 	
 	cout << "Bienvenu dans le fantastique et magnifique software Space-FX" << endl;
     cout << "------------------------------------------------------------" << endl;
-    cout << "VERSION:" << VERSION << " -- Run:45" << endl;
+    cout << "VERSION:" << VERSION << " -- Run:49" << endl;
     cout << "------------------------------------------------------------" << endl;
     cout << endl;
     
-    IOS::init_screen( string("Space-Fx"), string("1-45") );
+    IOS::init_screen( string("Space-Fx"), string("1-49") );
     
 	IO_Potentiometer MAIN_POTAR_TAB[SPI_POTAR_COUNT];
     
@@ -32,11 +32,114 @@ int main(int argc, char *argv[]){
     
     MAIN_LIST_MODULE = new Module_Node_List();
     
-    io_init_frontPanel(MAIN_LIST_MODULE, VERSION);
+    //io_init_frontPanel(MAIN_LIST_MODULE, VERSION);
     
     cout << endl;
     cout << "---------------------Base Setup OK--------------------------" << endl;
     cout << endl;
+
+    /*
+    cout << "Test Linked list" << endl;
+
+    LinkedList<string> test;
+    cout << "List size : " << test.size() << endl;
+    test.push_back( string("Test1") );
+    cout << "List size : " << test.size() << endl;
+    cout << "List Last : " << test.last() << endl;
+    test.push_back( string("Test2") );
+    cout << "List size : " << test.size() << endl;
+    cout << "List Last : " << test.last() << endl;
+    test.push_back( string("Test3") );
+    cout << "List size : " << test.size() << endl;
+    cout << "List Last : " << test.last() << endl;
+    test.push_front( string("Test4") );
+    cout << "List size : " << test.size() << endl;
+    cout << "List Last : " << test.last() << endl;
+    cout << "List First : " << test.first() << endl;
+    test.remove(3);
+    cout << "List size : " << test.size() << endl;
+    cout << "List Last : " << test.last() << endl;
+    test.remove(2);
+    cout << "List size : " << test.size() << endl;
+    cout << "List Last : " << test.last() << endl;
+    test.remove(1);
+    cout << "List size : " << test.size() << endl;
+    cout << "List Last : " << test.last() << endl;
+    test.remove(0);
+    cout << "List size : " << test.size() << endl;
+    test.push_front( string("Test4") );
+    test.push_back( string("Test3") );
+    test.push_back( string("Test2") );
+    test.push_back( string("Test1") );
+    cout << "List size : " << test.size() << endl;
+    test.clear();
+    cout << "List size : " << test.size() << endl;
+
+    cout << "Linked List is Ok :)" << endl;
+
+    cout << endl << "Test Tree Structure" << endl;
+    Tree<string, int> tree;
+    Tree<string, int>::Iterator itr = tree.root();
+    cout << "Tree Size : " << tree.size() << endl;
+    
+    tree.add( string("NodeA"), 0 );
+    itr = tree.root();
+    cout << "Tree Size : " << tree.size() << endl;
+    cout << "Iterator Pos : " << string( itr.get() ) << endl;
+    
+    tree.add( string("NodeB"), 1 );
+    itr.next();
+    cout << "Tree Size : " << tree.size() << endl;
+    cout << "Iterator Pos : " << string( itr.get() ) << endl;
+    
+    tree.add( string("NodeC"), 2 );
+    itr.next();
+    cout << "Tree Size : " << tree.size() << endl;
+    cout << "Iterator Pos : " << string( itr.get() ) << endl;
+    
+    itr.next();
+    cout << "Iterator Pos : " << string( itr.get() ) << endl;
+    
+    itr.next();
+    cout << "Iterator Pos : " << string( itr.get() ) << endl;
+    
+    itr.next();
+    cout << "Iterator Pos : " << string( itr.get() ) << endl;
+    
+    tree.add( string("NodeAA"), 3, tree.root(), true );
+    itr = tree.root();
+    cout << "Tree Size : " << tree.size() << endl;
+    cout << "Iterator Pos : " << string( itr.get() ) << endl;
+    
+    itr.child();
+    cout << "Iterator Pos : " << string( itr.get() ) << endl;
+    
+    tree.add( string("NodeAB"), 4, itr );
+    itr.next();
+    cout << "Tree Size : " << tree.size() << endl;
+    cout << "Iterator Pos : " << string( itr.get() ) << endl;
+    
+    tree.add( string("NodeAC"), 5, itr );
+    itr.next();
+    cout << "Tree Size : " << tree.size() << endl;
+    cout << "Iterator Pos : " << string( itr.get() ) << endl;
+
+    Tree<string, int>::Iterator src = tree.get( 1, 2 );
+    if ( src.ok() ){
+
+        cout << "Node Founded : " << src.get() << endl;
+    }
+    src = tree.remove( src );
+    cout << "Tree Size : " << tree.size() << endl;
+
+    tree.remove_branch( tree.root().child() );
+    cout << "Tree Size : " << tree.size() << endl;
+
+    tree.clear();
+    cout << "Tree Size : " << tree.size() << endl;
+
+    cout << endl << "Tree Test OK" << endl;
+    */
     
     float drive11[17] = { 0, 1, 0, 0, 5.51f, 1, 6, 0.35f, 0, 0, 0, 0, 350, 1500, 0.5f, 3.4f , 2.2f };
     float drive12[17] = { 0, 1, 0, 1, 198, 1, 22, 0.29f, 63, 1, 15, 0.1f, 200, 1500, 0.5f, 2.0f, 3.0f };
@@ -152,6 +255,8 @@ int main(int argc, char *argv[]){
     MAIN_LIST_MODULE->add_connection(12, 0, END_NODE, 0);
     MAIN_LIST_MODULE->add_connection(13, 0, END_NODE, 1);
     
+    
+    
     save_preset( string("DefaultPreset"), VERSION, MAIN_LIST_MODULE, MAIN_POTAR_TAB );
     
     for ( int i = 0 ; i <  MAIN_LIST_MODULE->list_.size() ; i++ ){
@@ -161,6 +266,7 @@ int main(int argc, char *argv[]){
     
 	load_preset( string("DefaultPreset"), VERSION, &MAIN_LIST_MODULE, MAIN_POTAR_TAB );
     save_preset( string("DefaultPresetCpy"), VERSION, MAIN_LIST_MODULE, MAIN_POTAR_TAB );
+    
 	
 	/*
 	*	---------------------Main Loop-------------------------------

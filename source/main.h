@@ -17,6 +17,8 @@ using namespace std;
 
 #include "./presset/Presset.h"
 
-#include "./io/FrontPanel.h"
+#include "./core/Tree/Tree.h"
+
+//#include "./io/FrontPanel.h"
 
 #endif
