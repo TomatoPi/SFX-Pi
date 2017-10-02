@@ -3,9 +3,6 @@
 
 namespace FRONT_PANEL{
 
-<<<<<<< HEAD
-
-=======
 	typedef enum{
 		
 		WAIT_DEL_BANK,
@@ -83,7 +80,6 @@ namespace FRONT_PANEL{
 		MOVE_NONE
 		
 	}Move_flag;
->>>>>>> 33e928369b6ca82d69dff92ab4e15071b4da4658
 	
 	/**
 	 * Function called when a button is pressed.

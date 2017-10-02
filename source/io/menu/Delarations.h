@@ -119,5 +119,18 @@ namespace MENU{
 
     }Submenu;
 
-    Tree<Submenu, Status> MAIN_MENU;
+    typedef Tree<Submenu, Status> MenuTree;
+    typedef MenuTree::Iterator MenuIterator;
+    
+    /**
+     * Menu's main structure.
+     * Contains main menu's structural tree, one node for each submenu
+     */
+    MenuTree MAIN_MENU;
+
+    void main_menu_exit_menu();
+    void main_menu_do();
+
+    Submenu NODE_ROOT = { main_menu_exit_menu(), main_menu_do() };
+
 }

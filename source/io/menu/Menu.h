@@ -5,4 +5,10 @@
 
 #include "Declarations.h"
 
+#include "SubChangePresset.h"
+
+#include "SubSelectModule.h"
+
+void menu_init_main_menu();
+
 #endif
