@@ -4,10 +4,10 @@
 #include "../../core/Tree/Tree.h"
 #include "../../core/Modules.h"
 
-/**
+/**********************************************************************
  * Enum of all submenus flags
  * Used as nodes id inside menu's tree
- */
+ **********************************************************************/
 typedef enum{
     
     /** Outside of main Menu */
@@ -80,10 +80,10 @@ typedef enum{
     
 }Status;
 
-/**
+/**********************************************************************
  * Enum of differents movements avaiable inside the menu
  * Each movement is ascociated with a specific button
- */
+ **********************************************************************/
 typedef enum{
     
     MOVE_UP     =0,
@@ -101,6 +101,10 @@ typedef enum{
     MOVE_OK     =8
 
 }Move_flag;
+
+/**********************************************************************
+ *                          Menu structure
+ **********************************************************************/
 
 struct Submenu;
 typedef struct Submenu Submenu;
@@ -122,7 +126,7 @@ struct Submenu{
     /**
      * Function Called when a button is pressed inside this submenu
      */
-    MenuIterator (*do_)( Move_flag, MenuIterator, Module_Node_List* );
+    MenuIterator (*do_)( Move_flag, MenuIterator, Module_Node_List*, IO_Potentiometer[SPI_POTAR_COUNT] );
 
 };
 
@@ -130,6 +134,13 @@ struct Submenu{
  * Menu's root node functions
  */
 void main_menu_exit_menu( Module_Node_List* );
-MenuIterator main_menu_do( Move_flag, MenuIterator, Module_Node_List* );
+MenuIterator main_menu_do( Move_flag, MenuIterator, Module_Node_List*, IO_Potentiometer[SPI_POTAR_COUNT] );
 
+/**********************************************************************
+ *                          Menu consts
+ **********************************************************************/
+namespace menu_cst{
+    
+    const std::string PATH_PRESSET;
+}
 #endif

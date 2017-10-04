@@ -869,6 +869,9 @@ int list_files(string const dir, vector<string> & list){
     
     closedir( rep );
     
-    if ( list.size() == 0 ) return 1;
+    if ( list.size() == 0 ){
+    
+        return 1;
+    }
     return 0;
 }

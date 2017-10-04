@@ -1,6 +1,11 @@
 #include "main.h"
 
-const string VERSION = "1.1";
+const string PROG_VERSION = "1.1";
+
+PROG_VERSION = "1.1";
+PROG_RUN = "1-53";
+PROG_SPLASH_SCREEN = "Space-Fx";
+PROG_JACK_SERVER = "Space_Fx";
 
 static Module_Node_List *MAIN_LIST_MODULE;
 //static int MAIN_COUNT_MODULE = 0;
@@ -18,11 +23,11 @@ int main(int argc, char *argv[]){
 	
 	cout << "Bienvenu dans le fantastique et magnifique software Space-FX" << endl;
     cout << "------------------------------------------------------------" << endl;
-    cout << "VERSION:" << VERSION << " -- Run:53" << endl;
+    cout << "VERSION:" << PROG_VERSION << " -- Run:" << PROG_RUN << endl;
     cout << "------------------------------------------------------------" << endl;
     cout << endl;
     
-    IOS::init_screen( string("Space-Fx"), string("1-53") );
+    IOS::init_screen( PROG_SPLASH_SCREEN, PROG_RUN );
     
     MAIN_LIST_MODULE = new Module_Node_List();
     

@@ -118,6 +118,6 @@ int load_module(string const name, string const version, Module* mod, bool del);
 *
 *   @return 0 if returned non empty list
 */
-int list_files(string const dir, vector<string> *list);
+int list_files(string const dir, vector<string> & list);
 
 #endif

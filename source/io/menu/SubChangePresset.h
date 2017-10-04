@@ -5,8 +5,12 @@
 #ifndef DEF_SUB_CHANGE_PRESSET_H
 #define DEF_SUB_CHANGE_PRESSET_H
 
+#include "../../consts.h"
+
 #include "../../core/Tree/Tree.h"
 #include "../../core/Modules.h"
+#include "../../presset/presset.h"
+
 #include "Declarations.h"
 
 /**
@@ -24,6 +28,6 @@ void main_change_presset_enter( Module_Node_List* );
 /**
  * Function called when inside change presset submenu
  */
-MenuIterator main_change_presset_do( Move_flag, MenuIterator, Module_Node_List* );
+MenuIterator main_change_presset_do( Move_flag, MenuIterator, Module_Node_List*, IO_Potentiometer[SPI_POTAR_COUNT] );
 
 #endif

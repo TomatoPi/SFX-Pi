@@ -34,7 +34,7 @@ void main_add_module_enter( Module_Node_List* graph ){
     
 }
 
-MenuIterator main_add_module_do( Move_flag action, MenuIterator itr, Module_Node_List* data ){
+MenuIterator main_add_module_do( Move_flag action, MenuIterator itr, Module_Node_List* graph, IO_Potentiometer pot[SPI_POTAR_COUNT] ){
 
     return itr;
 }
@@ -45,7 +45,7 @@ void addmod_choose_type_enter( Module_Node_List* graph ){
     
 }
 
-MenuIterator addmod_choose_type_do( Move_flag action, MenuIterator itr, Module_Node_List* data ){
+MenuIterator addmod_choose_type_do( Move_flag action, MenuIterator itr, Module_Node_List* graph, IO_Potentiometer pot[SPI_POTAR_COUNT] ){
 
     return itr;
 }

@@ -13,12 +13,12 @@ using namespace std;
 
 #include <jack/jack.h>
 
+#include "../../consts.h"
+
 #include "./io/io.h"
 
 #include "./presset/Presset.h"
 
 #include "./core/Tree/Tree.h"
-
-//#include "./io/FrontPanel.h"
 
 #endif

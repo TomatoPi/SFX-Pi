@@ -24,7 +24,17 @@ Submenu NODE_SELMOD_EDITB_SELPAR = { selmod_editb_selpar_enter,
 
 Submenu NODE_SELMOD_EDITB_EDITPAR = { selmod_editb_editpar_enter, 
                                             selmod_editb_editpar_do };
+                                            
+/**********************************************************************
+ * Stuff for this submenu
+ **********************************************************************/
+namespace{
 
+	// Files names for backup during graph's edition
+	const string BACK_SELECT_MODULE = "tmp/tmp_sel_mod";
+	const string BACK_EDIT_BANK     = "tmp/tmp_edit_bank";
+	const string BACK_EDIT_PARAM    = "tmp/tmp_edit_param";
+}
 /**********************************************************************
  * Functions
  **********************************************************************/
@@ -67,7 +77,7 @@ void main_select_module_enter( Module_Node_List* graph ){
 
 }
 
-MenuIterator main_select_module_do( Move_flag action, MenuIterator itr, Module_Node_List* data ){
+MenuIterator main_select_module_do( Move_flag action, MenuIterator itr, Module_Node_List* graph, IO_Potentiometer pot[SPI_POTAR_COUNT] ){
 
     return itr;
 }
@@ -84,7 +94,7 @@ void selmod_change_bank_enter( Module_Node_List* graph ){
 
 }
 
-MenuIterator selmod_change_bank_do( Move_flag action, MenuIterator itr, Module_Node_List* data ){
+MenuIterator selmod_change_bank_do( Move_flag action, MenuIterator itr, Module_Node_List* graph, IO_Potentiometer pot[SPI_POTAR_COUNT] ){
 
     return itr;
 }
@@ -96,7 +106,7 @@ void selmod_add_bank_enter( Module_Node_List* graph ){
 
 }
 
-MenuIterator selmod_add_bank_do( Move_flag action, MenuIterator itr, Module_Node_List* data ){
+MenuIterator selmod_add_bank_do( Move_flag action, MenuIterator itr, Module_Node_List* graph, IO_Potentiometer pot[SPI_POTAR_COUNT] ){
 
     return itr;
 }
@@ -108,7 +118,7 @@ void selmod_edit_bank_enter( Module_Node_List* graph ){
 
 }
 
-MenuIterator selmod_edit_bank_do( Move_flag action, MenuIterator itr, Module_Node_List* data ){
+MenuIterator selmod_edit_bank_do( Move_flag action, MenuIterator itr, Module_Node_List* graph, IO_Potentiometer pot[SPI_POTAR_COUNT] ){
 
     return itr;
 }
@@ -124,7 +134,7 @@ void selmod_editb_selpar_enter( Module_Node_List* graph ){
 
 }
 
-MenuIterator selmod_editb_selpar_do( Move_flag action, MenuIterator itr, Module_Node_List* data ){
+MenuIterator selmod_editb_selpar_do( Move_flag action, MenuIterator itr, Module_Node_List* graph, IO_Potentiometer pot[SPI_POTAR_COUNT] ){
 
     return itr;
 }
@@ -137,7 +147,7 @@ void selmod_editb_editpar_enter( Module_Node_List* graph ){
     
 }
 
-MenuIterator selmod_editb_editpar_do( Move_flag action, MenuIterator itr, Module_Node_List* data ){
+MenuIterator selmod_editb_editpar_do( Move_flag action, MenuIterator itr, Module_Node_List* graph, IO_Potentiometer pot[SPI_POTAR_COUNT] ){
 
     return itr;
 }
