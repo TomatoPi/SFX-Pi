@@ -14,7 +14,7 @@ mcp23017::mcp23017(void){
     this->i2cFileName = "/dev/i2c-0";
     this->deviceAddress= 0;
 	this->i2cDescriptor = -1;
-	cout << " Opening I2C Device" << endl;
+	cout << "    Opening I2C Device" << endl;
 	this->openI2C();
     
 }
@@ -30,7 +30,8 @@ mcp23017::mcp23017(unsigned char dev_addr, std::string i2c_file_name){
     this->i2cFileName = i2c_file_name;
 	this->deviceAddress = dev_addr;
 	this->i2cDescriptor = -1;
-	cout << " Opening I2C Device" << endl;
+	cout << "    Opening I2C Device : " << i2c_file_name;
+    cout << " : " << hex << (int)dev_addr << endl;
     this->openI2C();
 }
 
@@ -40,7 +41,7 @@ mcp23017::mcp23017(unsigned char dev_addr, std::string i2c_file_name){
  * *********************************************************************/
 mcp23017::~mcp23017(void){
 	
-    cout << " Closing I2C Device" << endl;
+    cout << "    Closing I2C Device" << endl;
     this->closeI2C();
 }
 
@@ -56,7 +57,7 @@ int mcp23017::openI2C(){
 	
     this->i2cDescriptor = open(i2cFileName.c_str(), O_RDWR);
     if(this->i2cDescriptor < 0){
-        perror("Could not open file (1)");
+        perror("    Could not open file (1)");
         exit(1);
     }
 
@@ -72,7 +73,7 @@ int mcp23017::closeI2C(){
 	int retVal = -1;
 	retVal = close(this->i2cDescriptor);
     if(retVal < 0){
-        perror("Could not close file (1)");
+        perror("    Could not close file (1)");
         exit(1);
     }
 	return retVal;

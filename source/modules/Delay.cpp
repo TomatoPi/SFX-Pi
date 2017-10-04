@@ -78,6 +78,8 @@ Delay::Delay(const char *server):Module(server, MOD_DELAY, DELAY_PARAMS_COUNT,
 Delay::~Delay(){
 	
 	jack_client_close(this->client_2_);
+    jack_deactivate( client_ );
+    
     delete buffer_;
 }
 		

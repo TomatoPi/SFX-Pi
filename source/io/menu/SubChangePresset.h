@@ -2,26 +2,28 @@
  * File Containing ChangePresset submenu's functions and stuff
  */
 
+#ifndef DEF_SUB_CHANGE_PRESSET_H
+#define DEF_SUB_CHANGE_PRESSET_H
+
+#include "../../core/Tree/Tree.h"
+#include "../../core/Modules.h"
+#include "Declarations.h"
+
 /**
  * Function called once at Menu initialisation for add this Submenu
  * It add new submenu as child of given Iterator
  * and return an iterator on Added submenu highest node
  */
-MenuIterator menu_init_change_presset( MenuIterator pos );
+MenuIterator menu_init_change_presset( MenuTree *menu, MenuIterator pos );
 
 /**
  * Function called for enter inside change presset submenu
  */
-void main_change_presset_enter();
+void main_change_presset_enter( Module_Node_List* );
 
 /**
  * Function called when inside change presset submenu
  */
-void main_change_presset_do( MENU::Move_flag );
+MenuIterator main_change_presset_do( Move_flag, MenuIterator, Module_Node_List* );
 
-/**
- * Menu tree object for this submenu
- */
-MENU::Submenu NODE_MAIN_CHANGE_PRESSET = { main_change_presset_enter, 
-                                            main_change_presset_do };
-
+#endif

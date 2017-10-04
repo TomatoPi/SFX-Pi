@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <stdarg.h>
+#include <string.h>
 
 /**
  * Linked list main structure.
@@ -127,8 +128,9 @@ class Tree{
          * Add new Element at the end of main branch
          * @param el element to add
          * @param id new element id
+         * @return iterator on added node or null if failed
          */
-        void add( T el, F id );
+        Iterator add( T el, F id );
 
         /**
          * Add new element after given Iterator
@@ -136,8 +138,9 @@ class Tree{
          * @param id new element id
          * @param itr iterator after witch new ellement will be added
          * @param child true for add element as child of target node
+         * @return iterator on added node or null if failed
          */
-        void add( T el, F id, Iterator itr, bool child=false );
+        Iterator add( T el, F id, Iterator itr, bool child=false );
 
         /**
          * Add new element at given position
@@ -146,8 +149,9 @@ class Tree{
          * @param child true for add elements as child of target node
          * @param depth number of nodes in path
          * @param ... path to target node, list of id's in order
+         * @return iterator on added node or null if failed
          */
-        void add( T el, F id, bool child, int depth, ... );
+        Iterator add( T el, F id, bool child, int depth, ... );
 
         /**
          * Get iterator at given path
@@ -205,6 +209,11 @@ class Tree{
          * get total count of nodes inside the tree
          */
         size_t size(){ return size_; }
+
+        /**
+         * Print Current Tree Structure
+         */
+        void print( int depth=0 );
         
     protected :
 
@@ -266,6 +275,11 @@ class Tree{
          * @return iterator on founded node, or null iterator if not found
          */
         Iterator search_id( Iterator itr, F f );
+
+        /**
+         * print a all branch of given node
+         */
+        void print_branch( int depth, Iterator itr );
 
         Node<T,F>* root_;
         size_t size_;

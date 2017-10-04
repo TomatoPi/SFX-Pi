@@ -2,11 +2,11 @@
 template <typename T, typename F>
 Tree<T,F>::~Tree(){
 
-    clear();
+    this->clear();
 }
 
 template <typename T, typename F>
-void Tree<T,F>::add( T el, F id ){
+typename Tree<T,F>::Iterator Tree<T,F>::add( T el, F id ){
 
     Node<T,F> *newn = new Node<T,F>( el, id );
 
@@ -24,10 +24,12 @@ void Tree<T,F>::add( T el, F id ){
     }
 
     ++size_;
+
+    return Tree<T,F>::Iterator( newn );
 }
 
 template <typename T, typename F>
-void Tree<T,F>::add( T el, F id, Iterator itr, bool child ){
+typename Tree<T,F>::Iterator Tree<T,F>::add( T el, F id, Iterator itr, bool child ){
 
     Node<T,F> *newn = new Node<T,F>( el, id );
 
@@ -44,7 +46,7 @@ void Tree<T,F>::add( T el, F id, Iterator itr, bool child ){
             std::cout << "TreeError : Invalid Iterator" << std::endl;
             delete newn;
             
-            return;
+            return Tree<T,F>::Iterator();
         }
     }
     // Else if new object is added as a child of given node
@@ -76,10 +78,12 @@ void Tree<T,F>::add( T el, F id, Iterator itr, bool child ){
     }
 
     ++size_;
+
+    return Tree<T,F>::Iterator( newn );
 }
 
 template <typename T, typename F>
-void Tree<T,F>::add( T el, F id, bool child, int depth, ... ){
+typename Tree<T,F>::Iterator Tree<T,F>::add( T el, F id, bool child, int depth, ... ){
 
 }
 
@@ -339,6 +343,12 @@ void Tree<T,F>::clear(){
 }
 
 template <typename T, typename F>
+void Tree<T,F>::print( int depth ){
+
+    print_branch( depth, root_ );
+}
+        
+template <typename T, typename F>
 void Tree<T,F>::set_root( Node<T,F>* node ){
 
     root_ = node;
@@ -400,4 +410,38 @@ typename Tree<T,F>::Iterator Tree<T,F>::search_id( Tree<T,F>::Iterator itr, F f 
     }
 
     return rtn;
+}
+
+template <typename T, typename F>
+void Tree<T,F>::print_branch( int depth, Tree<T,F>::Iterator itr ){
+
+    if ( itr.pos_ != NULL ){
+        
+        Tree<T,F>::Iterator bak = itr;
+
+        // Indent output according to depth inside tree
+        std::string tab = "";
+        for ( int i = 0; i < depth; i++ ){
+
+            tab += "    ";
+        }
+
+        // While have not looped
+        do{
+
+            // Print current node
+            std::cout << tab << "Node" << std::endl;
+            
+            // Print child branch if present
+            if ( itr.has_child() ){
+
+                Tree<T,F>::Iterator sub = itr;
+                print_branch( depth +1, sub.child() );
+            }
+
+            //Move iterator
+            itr.next();
+            
+        }while( itr.pos_ != bak.pos_ );
+    }
 }

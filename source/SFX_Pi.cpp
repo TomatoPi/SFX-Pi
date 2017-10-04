@@ -18,21 +18,15 @@ int main(int argc, char *argv[]){
 	
 	cout << "Bienvenu dans le fantastique et magnifique software Space-FX" << endl;
     cout << "------------------------------------------------------------" << endl;
-    cout << "VERSION:" << VERSION << " -- Run:49" << endl;
+    cout << "VERSION:" << VERSION << " -- Run:53" << endl;
     cout << "------------------------------------------------------------" << endl;
     cout << endl;
     
-    IOS::init_screen( string("Space-Fx"), string("1-49") );
-    
-	IO_Potentiometer MAIN_POTAR_TAB[SPI_POTAR_COUNT];
-    
-	io_init_spi();
-    
-	io_init_potar_tab(MAIN_POTAR_TAB);
+    IOS::init_screen( string("Space-Fx"), string("1-53") );
     
     MAIN_LIST_MODULE = new Module_Node_List();
     
-    //io_init_frontPanel(MAIN_LIST_MODULE, VERSION);
+    io_init_frontPanel();
     
     cout << endl;
     cout << "---------------------Base Setup OK--------------------------" << endl;
@@ -157,17 +151,17 @@ int main(int argc, char *argv[]){
     MAIN_LIST_MODULE->get(2)->get_module()->add_bank(17, drive22);
     MAIN_LIST_MODULE->get(2)->get_module()->add_bank(17, drive23);
     
-    float chorus11[10] = { 0, 1, 0.0115f, 0.9f, 2, 5, 15, 15, 18, 23 };
-    float chorus12[10] = { 0, 1, 0.018f, 0.9f, 2, 5, 8, 15, 18, 23 };
-    float chorus13[10] = { 0, 1, 0.02f, 0.7f, 2, 10, 20, 15, 18, 23 };
+    float chorus11[15] = { 0, 1, 0.0115f, 0.9f, 2, 10, 15, 15, 18, 23, 1, 1, 1, 1, 1 };
+    float chorus12[15] = { 0, 1, 0.018f, 0.9f, 2, 10, 18, 15, 18, 23, 1, 1, 1, 1, 1  };
+    float chorus13[15] = { 0, 1, 0.02f, 0.7f, 2, 10, 20, 15, 18, 23, 1, 1, 1, 1, 1  };
     MAIN_LIST_MODULE->add_module( MOD_CHORUS , 3 );
     MAIN_LIST_MODULE->get(3)->get_module()->set_param(10, chorus11);
     MAIN_LIST_MODULE->get(3)->get_module()->add_bank(10, chorus12);
     MAIN_LIST_MODULE->get(3)->get_module()->add_bank(10, chorus13);
     
-    float chorus21[10] = { 0, 1, -0.0115f, 0.9f, 2, 8, 10, 13, 18, 23 };
-    float chorus22[10] = { 0, 1, -0.018f, 0.9f, 2, 5, 8, 15, 18, 23 };
-    float chorus23[10] = { 0, 1, -0.02f, 0.7f, 2, 20, 25, 15, 18, 23 };
+    float chorus21[15] = { 0, 1, -0.0115f, 0.9f, 2, 10, 18, 13, 18, 23, 1, 1, 1, 1, 1  };
+    float chorus22[15] = { 0, 1, -0.018f, 0.9f, 2, 10, 13, 15, 18, 23, 1, 1, 1, 1, 1  };
+    float chorus23[15] = { 0, 1, -0.02f, 0.7f, 2, 20, 25, 15, 18, 23, 1, 1, 1, 1, 1  };
     MAIN_LIST_MODULE->add_module( MOD_CHORUS , 4 );
     MAIN_LIST_MODULE->get(4)->get_module()->set_param(10, chorus21);
     MAIN_LIST_MODULE->get(4)->get_module()->add_bank(10, chorus22);
@@ -175,7 +169,7 @@ int main(int argc, char *argv[]){
     
     float lfo11[] = { 0, 1, 0, 3.5f, 0, 1, 0, 0, 0.5f, 0};
     float lfo12[] = { 0, 1, 0, 5.9f, 0, 1, 0, 0, 0.5f, 0};
-    float lfo13[] = { 0, 1, 0, 0.9f, 0, 1, 0, 0, 0.5f, 0};
+    float lfo13[] = { 0, 1, 0, 0.8f, 0, 1, 0, 0, 0.5f, 0};
     MAIN_LIST_MODULE->add_module( MOD_LFO , 5 );
     MAIN_LIST_MODULE->get(5)->get_module()->set_param(10, lfo11);
     MAIN_LIST_MODULE->get(5)->get_module()->add_bank(10, lfo12);
@@ -183,7 +177,7 @@ int main(int argc, char *argv[]){
     
     float lfo21[] = { 0, 1, 2, 2.0f, 0, 1, 0, 0, 0.5f, 0};
     float lfo22[] = { 0, 1, 0, 3.5f, 0, 1, 0, 0, 0.5f, 0};
-    float lfo23[] = { 0, 1, 2, 1.1f, 0, 1, 0, 0, 0.5f, 0};
+    float lfo23[] = { 0, 1, 2, 0.6f, 0, 1, 0, 0, 0.5f, 0};
     MAIN_LIST_MODULE->add_module( MOD_LFO , 6 );
     MAIN_LIST_MODULE->get(6)->get_module()->set_param(10, lfo21);
     MAIN_LIST_MODULE->get(6)->get_module()->add_bank(10, lfo22);
@@ -257,15 +251,15 @@ int main(int argc, char *argv[]){
     
     
     
-    save_preset( string("DefaultPreset"), VERSION, MAIN_LIST_MODULE, MAIN_POTAR_TAB );
+    //save_preset( string("DefaultPreset"), VERSION, MAIN_LIST_MODULE, MAIN_POTAR_TAB );
     
     for ( int i = 0 ; i <  MAIN_LIST_MODULE->list_.size() ; i++ ){
         
         MAIN_LIST_MODULE->list_[i]->get_module()->set_bank(0);
     }
     
-	load_preset( string("DefaultPreset"), VERSION, &MAIN_LIST_MODULE, MAIN_POTAR_TAB );
-    save_preset( string("DefaultPresetCpy"), VERSION, MAIN_LIST_MODULE, MAIN_POTAR_TAB );
+	//load_preset( string("DefaultPreset"), VERSION, &MAIN_LIST_MODULE, MAIN_POTAR_TAB );
+    //save_preset( string("DefaultPresetCpy"), VERSION, MAIN_LIST_MODULE, MAIN_POTAR_TAB );
     
 	
 	/*
@@ -276,12 +270,12 @@ int main(int argc, char *argv[]){
 		/*
 		*	Read potar values and store values in MAIN_POTAR_VALUES
 		*/
-		io_update_potar_tab(MAIN_POTAR_TAB, MAIN_LIST_MODULE);
+		//io_update_potar_tab(MAIN_POTAR_TAB, MAIN_LIST_MODULE);
         
         /*
-        *   Check front pannel buttons
+        *   Update front pannel stuff
         */
-        //io_update_frontPanel();
+        io_update_frontPanel( MAIN_LIST_MODULE );
 		
         
         /*

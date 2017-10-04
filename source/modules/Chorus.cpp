@@ -16,6 +16,8 @@ Chorus::Chorus(const char* server):Module(server, MOD_CHORUS, CHORUS_PARAMS_COUN
 }
 
 Chorus::~Chorus(){
+
+    jack_deactivate( client_ );
     
     delete buffer_;
 }
@@ -29,6 +31,7 @@ inline int Chorus::do_process(jack_nframes_t nframes){
     if ( !is_bypassed_ ){
         
         int size = param_[CHORUS_SIZE];
+        float *depths = param_ + CHORUS_WEIGTH;
         
         sample_t *mod[size];
         for( int j = 0; j < size; j++ ){
@@ -55,7 +58,7 @@ inline int Chorus::do_process(jack_nframes_t nframes){
             
             sample_t w = 0;
             for(int k = 0; k < size; k++)
-                w += buffer_->read(k, 1 + (dph * mod[k][i]));
+                w += depths[k] * buffer_->read(k, 1 + (dph * mod[k][i]));
             
             buffer_->write(in[i]);
             

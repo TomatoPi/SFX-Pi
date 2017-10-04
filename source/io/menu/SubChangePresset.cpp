@@ -1,18 +1,28 @@
-#include "SubChangePresset.cpp"
+#include "SubChangePresset.h"
 
-using namespace MENU;
+/**********************************************************************
+ * Menu tree object for this submenu
+ **********************************************************************/
+Submenu NODE_MAIN_CHANGE_PRESSET = { main_change_presset_enter, 
+                                            main_change_presset_do };
 
-MenuIterator menu_init_change_presset( MenuIterator pos ){
+/**********************************************************************
+ * Functions
+ **********************************************************************/
+MenuIterator menu_init_change_presset( MenuTree *menu, MenuIterator pos ){
     
     // Add this submenu to main menu, as child of given position
-    MAIN_MENU.add( NODE_MAIN_CHANGE_PRESSET, MAIN_CHANGE_PRESSET
+    pos = menu->add( NODE_MAIN_CHANGE_PRESSET, MAIN_CHANGE_PRESSET
                     , pos ,true );
-                    
-    // Return Iterator on added node
-    
-    return MAIN_MENU.get( 2, MAIN_MENU, MAIN_CHANGE_PRESSET );
+
+    return pos;
 }
 
-void main_change_presset_enter();
+void main_change_presset_enter( Module_Node_List* graph ){
 
-void main_change_presset_do( MENU::Move_flag );
+}
+
+MenuIterator main_change_presset_do( Move_flag action, MenuIterator itr, Module_Node_List* data ){
+
+    return itr;
+}

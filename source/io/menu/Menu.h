@@ -9,6 +9,8 @@
 
 #include "SubSelectModule.h"
 
-void menu_init_main_menu();
+#include "SubAddModule.h"
+
+void menu_init_main_menu( MenuTree *menu );
 
 #endif

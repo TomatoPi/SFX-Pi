@@ -63,7 +63,7 @@ template <typename T, typename F>
 T Tree<T,F>::Iterator::get(){
 
     if ( pos_ != NULL ) return pos_->data_;
-    return NULL;
+    return T();
 }
 
 template <typename T, typename F>
