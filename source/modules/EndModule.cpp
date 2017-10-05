@@ -48,7 +48,7 @@ inline int EndModule::do_process( jack_nframes_t nframes ){
 
 bool EndModule::is_saturated(){
     
-    if ( is_sat_ ) cout << "Max recorded : " << max << endl;
+    if ( is_sat_ ) cout << modtype_to_string( type_ ) << " -- Max recorded : " << max << endl;
     
     return is_sat_;
 }

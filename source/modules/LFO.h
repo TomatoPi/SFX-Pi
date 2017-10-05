@@ -79,6 +79,8 @@ class LFO : public Module{
 
         int samplerate_;
         float ramp_;
+        
+        float rbs_;
 };
 
 /*

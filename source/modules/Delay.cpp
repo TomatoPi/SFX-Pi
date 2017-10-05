@@ -135,7 +135,8 @@ int Delay::process_2(jack_nframes_t nframes, void *arg){
             buffer_->write(p_in[i] + f*rtrn[i]);
         }else{
             
-            // If delay is bypassed stop write data in buffer
+            // If delay is bypassed stop write new data in buffer
+            // It will only compute decay, resulting a tail effect
             buffer_->write(f*rtrn[i]);
         }
     }
@@ -143,41 +144,7 @@ int Delay::process_2(jack_nframes_t nframes, void *arg){
 	return 0;
 }
 
-/*
-int Delay::bypass(jack_nframes_t nframes, void *arg){
-
-    sample_t *in;	
-    in = 	(sample_t*)jack_port_get_buffer(audio_in_[0], nframes);
-    
-    sample_t *out;
-    out = 	(sample_t*)jack_port_get_buffer(audio_out_[0], nframes);
-        
-    sample_t *send;
-    send = 	(sample_t*)jack_port_get_buffer(audio_out_[1], nframes);
-    
-    sample_t *p_out;
-    p_out = (sample_t*)jack_port_get_buffer(p_send_, nframes);
-    
-    float dw = param_[DELAY_DRYWET];
-    
-    for(jack_nframes_t i = 0; i < nframes; i++){
-        
-        sample_t w = buffer_->read();
-        
-        send[i] = w;
-        
-        p_out[i] = 0;
-        
-        out[i] = spi_dry_wet(in[i], w, dw);
-    }
-
-	return 0;
-}
-*/
-
 void Delay::change_param(int idx, float value){
-    
-    //param_[idx] = value;
     
     if (idx == DELAY_DELAY) {
         
@@ -186,8 +153,6 @@ void Delay::change_param(int idx, float value){
 }
 
 void Delay::change_param(const float *values){
-    
-    //memcpy(param_, values, sizeof(float) * param_c_);
     
     buffer_->set_length((int)param_[DELAY_DELAY], samplerate_);
 }

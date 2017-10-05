@@ -5,7 +5,8 @@ static int RandSeed = 48172;
 LFO::LFO(): Module(MOD_LFO, LFO_PARAMS_COUNT,
     0, 1, 0, 0, "Out"),
     samplerate_(jack_get_sample_rate(client_)),
-    ramp_(0)
+    ramp_(0),
+    rbs_(0)
 {
     
     this->set_param(MOD_COUNT + LFO_PARAMS_COUNT, LFO_DEFAULT_PARAMS);
@@ -29,15 +30,21 @@ inline int LFO::do_process(jack_nframes_t nframes){
         
         for(jack_nframes_t i = 0; i < nframes; i++){
             
-            ramp_ += param_[LFO_FREQ]/samplerate_;
+            // Calculate Phase
+            ramp_ += rbs_;
             ramp_ = fmod(ramp_ - o, 1.0f);
             
-            float p = (ramp_>d)?( (ramp_ + 1.0f - 2.0f*d)/(2.0f*(1.0f-d)) ):( ramp_ / (2.0f*d) );
+            // Compute Phase distortion
+            float p = ramp_;
+            if ( d != 0.5f )
+               p = (ramp_>d)?( (ramp_ + 1.0f - 2.0f*d)/(2.0f*(1.0f-d)) ):( ramp_ / (2.0f*d) );
             p += o;
             p = fmod( p, 1.0f );
         
+            // Get Sign
             int s = (param_[LFO_SIGN] < 0)? -1: 1;
             
+            // Compute waveform and output LFO
             out[i] = vol * (*waveform_)(p, s, param_[LFO_VAR1], param_[LFO_VAR2]);
         }
     }else{
@@ -53,19 +60,7 @@ void LFO::sync(){
     ramp_ = param_[LFO_PHASE];
 }
 
-/*
-int LFO::bypass(jack_nframes_t nframes, void *arg){
-
-    sample_t *out = (sample_t*)jack_port_get_buffer(audio_out_[0], nframes);
-    memset(out, 0.0f, sizeof(sample_t) * nframes);
-    
-    return 0;
-}
-*/
-
 void LFO::change_param(int idx, float value){
-    
-    //param_[idx] = value;
     
     if (idx == LFO_TYPE) {
         
@@ -74,15 +69,20 @@ void LFO::change_param(int idx, float value){
         this->update_type(static_cast<LFO_wave>((int)value));
         param_[LFO_TYPE] = (int)value;
     }
+    else if ( idx == LFO_FREQ ){
+        
+        rbs_ = value/(float)samplerate_;
+    }
 }
 
 void LFO::change_param(const float *values){
     
-    //memcpy(param_, values, sizeof(float) * param_c_);
     int v = (int)param_[LFO_TYPE];
     param_[LFO_TYPE] = ( v < 0 )? 0 : ( v >= WAVE_COUNT )? WAVE_COUNT - 1 : v;
     param_[LFO_TYPE] = v;
     this->update_type(static_cast<LFO_wave>((int)param_[LFO_TYPE]));
+    
+    rbs_ = param_[LFO_FREQ]/samplerate_;
 }
 
 void LFO::new_bank(){
@@ -243,7 +243,7 @@ inline sample_t w_saw(float in, float sign, float p1, float p2){
     return (sample_t) (sign * (2.0*in -1.0));
 }
 
-sample_t w_var(float in, float sign, float p1, float p2){
+inline sample_t w_var(float in, float sign, float p1, float p2){
     
     if(in < p1){
         return (sample_t)(sign * (2.0*((p2*in)/p1) - 1.0));

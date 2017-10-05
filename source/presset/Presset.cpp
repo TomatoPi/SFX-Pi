@@ -52,7 +52,7 @@ namespace {
 */
 int save_preset(string const name, Module_Node_List *list, IO_Potentiometer pot[SPI_POTAR_COUNT]){
 	
-	string filename = "/home/sfx_pi/sfx/Files/" + name ;
+	string filename = PATH_PRESSET + name ;
 	
     try{
         
@@ -162,7 +162,7 @@ int save_preset(string const name, Module_Node_List *list, IO_Potentiometer pot[
 
 int save_module(string const name, Module *mod){
     
-    string filename = "/home/sfx_pi/sfx/Files/" + name ;
+    string filename = PATH_PRESSET + name ;
 	
     try {
         
@@ -247,10 +247,12 @@ int load_preset(string const name, Module_Node_List* & list, IO_Potentiometer po
         cout << "Err Not a Preset File" << endl;
         return 1;
     }
-    string filename = "/home/sfx_pi/sfx/Files/" + name ;
+    string filename = PATH_PRESSET + name ;
 
-    // New graph
-    Module_Node_List *new_graph = new Module_Node_List();
+    // Securities for avoid clear graph when loading a bad preset file
+    bool is_file_ok = false;
+    bool is_version_ok = false;
+    bool clear_once = false;
 
     // Store current position inside file
     PFLAG flag = FROOT;
@@ -341,11 +343,24 @@ int load_preset(string const name, Module_Node_List* & list, IO_Potentiometer po
                     // If waiting node begin carracter
                     else if ( flag == FWPRE && !string(token[i]).compare("{") ){
                     
+                        is_file_ok = true;
                         flag = FFPRE;
                         //cout << "Entered NODE_ROOT_PRESET node" << endl;
                     }
                     else if ( flag == FWMOD && !string(token[i]).compare("{") ){
                     
+                        if ( is_file_ok && is_version_ok ){
+                            if ( !clear_once ){
+                                
+                                list->clear_graph();
+                                clear_once = true;
+                            }
+                        }
+                        else{
+                            
+                            throw string("File Root Node Is Missing Or Invalid");
+                        }
+                        
                         flag = FFMOD;
                         cur_bak = 0;
                         
@@ -411,6 +426,7 @@ int load_preset(string const name, Module_Node_List* & list, IO_Potentiometer po
                              
                                 throw string("File Version do not match Program Version");
                             }
+                            is_version_ok = true;
                             break;
                         }
                         // Exit root
@@ -432,12 +448,12 @@ int load_preset(string const name, Module_Node_List* & list, IO_Potentiometer po
                             
                             if ( iok ){
                                 
-                                if ( new_graph->add_module( static_cast<MODULE_TYPE>( cur_type ), cur_id ) ){
+                                if ( list->add_module( static_cast<MODULE_TYPE>( cur_type ), cur_id ) ){
                                     
                                     flag = FROOT;
                                     cout << "Error : Invalid Module Type" << endl;
                                 }
-                                cur_mod = new_graph->list_.size() -1;
+                                cur_mod = list->list_.size() -1;
                             }
                         }
                         // Module's ID
@@ -448,12 +464,12 @@ int load_preset(string const name, Module_Node_List* & list, IO_Potentiometer po
                             
                             if ( tok ){
                                 
-                                if ( new_graph->add_module( static_cast<MODULE_TYPE>( cur_type ), cur_id ) ){
+                                if ( list->add_module( static_cast<MODULE_TYPE>( cur_type ), cur_id ) ){
                                     
                                     flag = FROOT;
                                     cout << "Error : Invalid Module Type" << endl;
                                 }
-                                cur_mod = new_graph->list_.size() -1;
+                                cur_mod = list->list_.size() -1;
                             }
                         }
                         // Module's Bank
@@ -521,11 +537,11 @@ int load_preset(string const name, Module_Node_List* & list, IO_Potentiometer po
                                 
                                 if ( cur_bak == 0 ){
                                     
-                                    new_graph->list_[cur_mod]->get_module()->set_param( dat_size, dat_buff );
+                                    list->list_[cur_mod]->get_module()->set_param( dat_size, dat_buff );
                                 }
                                 else{
                                     
-                                    new_graph->list_[cur_mod]->get_module()->add_bank( dat_size, dat_buff );
+                                    list->list_[cur_mod]->get_module()->add_bank( dat_size, dat_buff );
                                 }
                             }
                             else{
@@ -659,7 +675,7 @@ int load_preset(string const name, Module_Node_List* & list, IO_Potentiometer po
                                 //for( int k = 1; k < 4; k++ ) cout << " , " << con_buff[k];
                                 //cout << " ]" << endl;
                                 
-                                new_graph->add_connection( con_buff[0], con_buff[1], con_buff[2], con_buff[3] );
+                                list->add_connection( con_buff[0], con_buff[1], con_buff[2], con_buff[3] );
                             }
                             else{
                                 
@@ -672,15 +688,11 @@ int load_preset(string const name, Module_Node_List* & list, IO_Potentiometer po
                     }
                 }
             }
-
-            delete list;
-            list = new_graph;
             
         }else{
             
             cout << "Error can't open file " << filename << endl;
             flux.close();
-            delete new_graph;
             if ( dat_buff != NULL )delete dat_buff;
             
             return 1;
@@ -691,7 +703,6 @@ int load_preset(string const name, Module_Node_List* & list, IO_Potentiometer po
     } catch ( string const& e ){
         
         cout << "FATAL ERROR : " << e << endl;
-        delete new_graph;
         if ( dat_buff != NULL )delete dat_buff;
         
         return 1;
@@ -699,7 +710,6 @@ int load_preset(string const name, Module_Node_List* & list, IO_Potentiometer po
     } catch ( ... ){
         
         cout << "Exception catched while opening/reading/parsing file" << endl;
-        delete new_graph;
         if ( dat_buff != NULL )delete dat_buff;
         
         return 1;
@@ -711,7 +721,7 @@ int load_preset(string const name, Module_Node_List* & list, IO_Potentiometer po
 
 int load_module(string const name, Module* mod, bool del){
     
-    string filename = "/home/sfx_pi/sfx/Files/" + name ;
+    string filename = PATH_PRESSET + name ;
 	
     try {
             

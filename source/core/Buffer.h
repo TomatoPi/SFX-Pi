@@ -95,6 +95,7 @@ class Buffer_M : public Buffer{
 /**
 *   Running summ buffer
 *   perform same operation as single tape buffer but also perform a 
+*   running summ calculation and an rms mesurement ( pow2 rms )
 */
 class Buffer_R : public Buffer{
     

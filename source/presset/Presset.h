@@ -63,6 +63,8 @@ int save_preset(    string const name,
 *   Function used to load a preset file.
 *   First verify that file is a preset file by reading it first node
 *   Then verify that file's version correspond to curent program's
+*   If Root node or program version do not match it abort preset load
+*   If file is valid, it clear current graph and reload it
 *   @see save_preset(string, string, Module_Node_List)
 *
 *   @param name file name

@@ -125,10 +125,11 @@ void Module_Node_List::copy( Module_Node_List* graph ){
 
 Module_Node_List::~Module_Node_List(){
     
-    for ( Module_iterator itr = list_.begin(); itr != list_.end(); itr++ ){
-        
-        delete *itr;
-    }
+    this->clear_graph();
+    
+    delete begin_;
+    delete end_;
+    
 }
 
 int Module_Node_List::add_module(MODULE_TYPE mod){
@@ -206,8 +207,8 @@ int Module_Node_List::add_module(MODULE_TYPE mod){
 	
 	list_.push_back(new Module_Node(newmod));
     
-    cout << "Type : \"" << txt << "\" ID : \"" << list_[list_.size()-1]->get_id() << "\"     --OK" << endl;
-	//cout << "Added new module : "<< count_ << endl;
+    cout << "Type : \"" << txt << "\" ID : \"" << list_[list_.size()-1]->get_id() << "\"";
+    cout << "     --OK" << endl;
 	
 	return 0;
 }

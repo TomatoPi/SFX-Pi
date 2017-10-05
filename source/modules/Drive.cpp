@@ -1,4 +1,12 @@
 #include "Drive.h"
+
+sample_t clip_hard( sample_t, float, float);
+sample_t clip_soft( sample_t, float, float);
+sample_t clip_pow2( sample_t, float, float);
+
+/**********************************************************************
+ *                      Drive's Functions Bodies
+ **********************************************************************/
 Drive::Drive():Module(MOD_DRIVE, DRIVE_PARAM_COUNT,
     1, 1, 0, 0, "In", "Out"),
     filter_(200, 1000, jack_get_sample_rate(client_))
@@ -15,12 +23,13 @@ Drive::Drive():Module(MOD_DRIVE, DRIVE_PARAM_COUNT,
 inline int Drive::do_process(jack_nframes_t nframes){
     
     sample_t *in, *out;
-    in  = (sample_t*)jack_port_get_buffer( audio_in_[0], nframes);	// Collecting input buffer
-    out = (sample_t*)jack_port_get_buffer( audio_out_[0], nframes);	// Collecting output buffer
+    in  = (sample_t*)jack_port_get_buffer( audio_in_[0], nframes);
+    out = (sample_t*)jack_port_get_buffer( audio_out_[0], nframes);
 
     if ( !is_bypassed_ ){
         
-        float gp, sp, shp, gn, sn, shn;			// Collecting drive settings
+        // COllect Drive settings
+        float gp, sp, shp, gn, sn, shn;
         int is_abs, isp, isn;
         
         float vol = param_[MOD_VOLUME];
@@ -29,12 +38,10 @@ inline int Drive::do_process(jack_nframes_t nframes){
         int n  = ((int)!param_[DRIVE_ASM])?0:4;
         
         gp = 		 param_[DRIVE_GAIN_P];
-        isp = (int)!!param_[DRIVE_TYPE_P];
         sp = 		 param_[DRIVE_SOFT_P];
         shp = 		 param_[DRIVE_SHAPE_P];
         
         gn = 		 param_[DRIVE_GAIN_P +n];
-        isn = (int)!!param_[DRIVE_TYPE_P +n];
         sn = 		 param_[DRIVE_SOFT_P +n];
         shn = 		 param_[DRIVE_SHAPE_P +n];
         
@@ -43,26 +50,21 @@ inline int Drive::do_process(jack_nframes_t nframes){
         gm = param_[DRIVE_F_GMID];
         gh = param_[DRIVE_F_GHIGH];
             
-        for (jack_nframes_t i = 0; i < nframes; i++) {									//For each sample
+        for (jack_nframes_t i = 0; i < nframes; i++) {									
             
-            sample_t l = filter_.compute(in[i], gl, gm, gh);	//Compute 3bands EQ
+            // Compte 3Band Filtering
+            sample_t l = filter_.compute(in[i], gl, gm, gh);	
             
-            if(l>0){ 																	//if positive
-                if(isp){																	//soft-clipping or hard-clipping
-                    out[i] = vol * spi_soft(l*gp, 1.0, sp, shp);										//soft-clipping
-                }else{																		//else
-                    out[i] = vol * spi_clip(l*gp, -1.0, 1.0);											//hard-clipping
-                }																
-            }else{																		//if negative	
-                if(isn){                                      								//soft-clipping or hard-clipping
-                    out[i] = vol * spi_soft(l*gn, 1.0, sn, shn);          							//soft-clipping
-                }else{                                                              		//else
-                    out[i] = vol * spi_clip(l*gn, -1.0, 1.0);                         				//hard-clipping
-                }
+            // Call right Clipping function if signal is pos or negative
+            if(l>0){																
+                out[i] = vol * (*clip_p_)(l*gp, 1.0, sp, shp);						
+            }else{
+                out[i] = vol * (*clip_n_)(l*gn, 1.0, sn, shn);
             }
             
-            if(is_abs){							//if absolute value mode is true, full-wave rectification
-                out[i] = spi_abs(out[i]);
+            // If full Wave rectification enabled, compute it
+            if(is_abs){							
+                out[i] = spi_abs(out[i]) * 2 - 1;
             }
         }
     }else{
@@ -73,21 +75,8 @@ inline int Drive::do_process(jack_nframes_t nframes){
     return 0;
 }
 
-/*
-int Drive::bypass(jack_nframes_t nframes, void *arg){
-
-    sample_t *in, *out;
-    in  = (sample_t*)jack_port_get_buffer( audio_in_[0], nframes);	// Collecting input buffer
-    out = (sample_t*)jack_port_get_buffer( audio_out_[0], nframes);	// Collecting output buffer
-    memcpy(out, in, sizeof(sample_t) * nframes);
-    
-    return 0;
-}
-*/
 
 void Drive::change_param(int idx, float value){
-    
-	//param_[idx] = value;
     
     if (idx == DRIVE_F_BASS) {
 		
@@ -101,8 +90,6 @@ void Drive::change_param(int idx, float value){
 }
 
 void Drive::change_param(const float *values){
-    
-    //memcpy(param_, values, sizeof(float) * param_c_);
     
     filter_.set_freq(param_[DRIVE_F_BASS], param_[DRIVE_F_HIGH]);
 
@@ -220,8 +207,63 @@ string Drive::return_formated_param(int idx){
 
 void Drive::update(){
     
+    param_[DRIVE_TYPE_P] = (int)param_[DRIVE_TYPE_P];
+    param_[DRIVE_TYPE_N] = (int)param_[DRIVE_TYPE_N];
+    
+    this->set_clipping( static_cast<DISTORTION_FORM>(param_[DRIVE_TYPE_P]),
+                        static_cast<DISTORTION_FORM>(param_[DRIVE_TYPE_N]) );
+    
     param_[DRIVE_ABS] = !!param_[DRIVE_ABS];
     param_[DRIVE_ASM] = !!param_[DRIVE_ASM];
     param_[DRIVE_TYPE_P] = !!param_[DRIVE_TYPE_P];
     param_[DRIVE_TYPE_N] = !!param_[DRIVE_TYPE_N];
+}
+
+void Drive::set_clipping( DISTORTION_FORM formp , DISTORTION_FORM formn){
+    
+    switch ( formn ){
+        
+        case SOFT_CLIP :
+            this->clip_n_ = clip_soft;
+            break;
+        case HARD_CLIP :
+            this->clip_n_ = clip_hard;
+            break;
+        case POW2 :
+            this->clip_n_ = clip_pow2;
+            break;
+        default :
+            this->clip_n_ = clip_hard;
+            break;
+    }
+    switch ( formp ){
+        
+        case SOFT_CLIP :
+            this->clip_p_ = clip_soft;
+            break;
+        case HARD_CLIP :
+            this->clip_p_ = clip_hard;
+            break;
+        case POW2 :
+            this->clip_p_ = clip_pow2;
+            break;
+        default :
+            this->clip_p_ = clip_hard;
+            break;
+    }
+}
+
+inline sample_t clip_hard( sample_t in, float p1, float p2 ){
+
+    return spi_clip( in, -1.0, 1.0 );
+}
+
+inline sample_t clip_pow2( sample_t in, float p1, float p2 ){
+
+    return spi_clip( in*in*2 - 1 , -1.0, 1.0 );
+}
+
+inline sample_t clip_soft( sample_t in, float p1, float p2 ){
+    
+    return spi_soft( in, 1.0f, p1, p2 );
 }
