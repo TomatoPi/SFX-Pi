@@ -87,10 +87,10 @@ class Drive : public Module{
         
         Filter_3EQ filter_;     /**< Drive's filter @see Filter_3EQ */
         
-        void set_clipping( DISTORTION_FORM );
+        void set_clipping( DISTORTION_FORM formp , DISTORTION_FORM formn );
         
-        sample_t (*clip_p)( sample_t, float, float);
-        sample_t (*clip_n)( sample_t, float, float);
+        sample_t (*clip_p_)( sample_t, float, float);
+        sample_t (*clip_n_)( sample_t, float, float);
 };
 
 #endif

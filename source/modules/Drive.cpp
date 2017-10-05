@@ -57,9 +57,9 @@ inline int Drive::do_process(jack_nframes_t nframes){
             
             // Call right Clipping function if signal is pos or negative
             if(l>0){																
-                out[i] = vol * (*clip_p_)(l*gp, 1.0, sp, shp);						
+                out[i] = vol * (*clip_p_)(l*gp, sp, shp);						
             }else{
-                out[i] = vol * (*clip_n_)(l*gn, 1.0, sn, shn);
+                out[i] = vol * (*clip_n_)(l*gn, sn, shn);
             }
             
             // If full Wave rectification enabled, compute it

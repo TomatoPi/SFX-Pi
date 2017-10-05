@@ -89,12 +89,12 @@ Module::Module( MODULE_TYPE type, int pc, int ai, int ao, int mi, int mo, ...):
     *   Register ports  -------------------------------------------------------
     */
     // Alloc arrays
-    //cout << "Alloc ports : ";
+    cout << "Name : " << name_ << "Alloc ports : ";
     audio_in_  = new jack_port_t*[ai];
     audio_out_ = new jack_port_t*[ao];
     midi_in_   = new jack_port_t*[mi];
     midi_out_  = new jack_port_t*[mo];
-    //cout << ai << " " << ao << " " << mi << " " << mo << " -- " << endl;
+    cout << ai << " " << ao << " " << mi << " " << mo << " -- ";
     
     // Register ports
     int count = ai+ao+mi+mo;

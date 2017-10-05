@@ -253,6 +253,7 @@ int load_preset(string const name, Module_Node_List* & list, IO_Potentiometer po
     bool is_file_ok = false;
     bool is_version_ok = false;
     bool clear_once = false;
+    bool is_load_ok = false;
 
     // Store current position inside file
     PFLAG flag = FROOT;
@@ -550,6 +551,7 @@ int load_preset(string const name, Module_Node_List* & list, IO_Potentiometer po
                             }
                             
                             delete dat_buff;
+                            dat_buff = NULL;
                             flag = FFBAK;
                         }
                     }
@@ -697,8 +699,17 @@ int load_preset(string const name, Module_Node_List* & list, IO_Potentiometer po
             
             return 1;
         }
+        if ( is_file_ok && is_version_ok ){
+            
+            cout << "Presset successfully loaded" << endl;
+            is_load_ok = true;
+        }
+        else{
+            
+            cout << "Error : File Root Node Is Missing Or Invalid" << endl;
+            is_load_ok = false;
+        }
         flux.close();
-        cout << "Presset successfully loaded" << endl;
         
     } catch ( string const& e ){
         
@@ -715,8 +726,7 @@ int load_preset(string const name, Module_Node_List* & list, IO_Potentiometer po
         return 1;
     }
 
-    if ( dat_buff != NULL )delete dat_buff;
-	return 0;
+	return is_load_ok;
 }
 
 int load_module(string const name, Module* mod, bool del){

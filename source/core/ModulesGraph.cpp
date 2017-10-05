@@ -288,7 +288,6 @@ int Module_Node_List::add_module(MODULE_TYPE mod, int id){
     cout << "Type : " << txt << "  ID : " << i << " -- OK" << endl;
 	
 	list_.push_back(new Module_Node(newmod, id) );
-	//cout << "Added new module : "<< count_ << endl;
 	
 	return 0;
 }
@@ -317,14 +316,14 @@ int Module_Node_List::add_connection(short source_id, short is, short target_id,
     
     if ( source->get_port( AUDIO_O, is ) == NULL ){
         
-        cout << "Source port is invalid" << endl;
+        cout << "Error : Source port is invalid" << endl;
         return 1;
     }
     source_port = jack_port_name( source->get_port( AUDIO_O, is ) );
     
     if ( target->get_port( AUDIO_I, id ) == NULL ){
         
-        cout << "Target port is invalid" << endl;
+        cout << "Error : Target port is invalid" << endl;
         return 1;
     }
     target_port = jack_port_name( target->get_port( AUDIO_I, id ) );
@@ -343,7 +342,7 @@ int Module_Node_List::add_connection(short source_id, short is, short target_id,
     
     if (jack_connect (source->get_client(), source_port, target_port)) {
         
-        cout << "cannot connect input ports" << endl;
+        cout << "Error : cannot connect input ports" << endl;
         return 1;
     }
     Connection c = { source_id, is, target_id, id};
@@ -374,14 +373,14 @@ int Module_Node_List::del_connection(short source_id, short is, short target_id,
     
     if ( source->get_port( AUDIO_I, is ) == NULL ){
         
-        cout << "Source port is invalid" << endl;
+        cout << "Error : Source port is invalid" << endl;
         return 1;
     }
     source_port = jack_port_name( source->get_port( AUDIO_O, is ) );
     
     if ( target->get_port( AUDIO_O, id ) == NULL ){
         
-        cout << "Target port is invalid" << endl;
+        cout << "Error : Target port is invalid" << endl;
         return 1;
     }
     target_port = jack_port_name( target->get_port( AUDIO_I, id ) );
@@ -391,12 +390,12 @@ int Module_Node_List::del_connection(short source_id, short is, short target_id,
     
     if(source == NULL){
         if (jack_disconnect (target->get_client(), source_port, target_port)) {
-            cout << "cannot disconnect input ports" << endl;
+            cout << "Error : cannot disconnect input ports" << endl;
             return 1;
         }
     }else{
         if (jack_disconnect (source->get_client(), source_port, target_port)) {
-            cout << "cannot disconnect input ports" << endl;
+            cout << "Error : cannot disconnect input ports" << endl;
             return 1;
         }
     }
@@ -454,6 +453,7 @@ Module_Node* Module_Node_List::get( int id ){
         
         if ( (*itr)->get_id() == id ) return *itr;
     }
+    cout << "Error : Module Not Founded : (" << id << ")" << endl;
     return NULL;
 }
 
@@ -493,6 +493,6 @@ void Module_Node_List::clear_graph(){
         
         delete *itr;
     }
-    
+    list_.clear();
 	connection_list_.clear();
 }
