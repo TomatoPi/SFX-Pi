@@ -1,5 +1,5 @@
 #include "Ringmod.h"
-Ringmod::Ringmod(const char *server): Module(server, MOD_RINGM, RINGMOD_PARAMS_COUNT,
+Ringmod::Ringmod(): Module(MOD_RINGM, RINGMOD_PARAMS_COUNT,
     2, 1, 0, 0, "In", "Mod", "Out")
 {
 

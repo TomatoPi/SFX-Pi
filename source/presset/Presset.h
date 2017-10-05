@@ -11,7 +11,8 @@
 #include "../core/Modules.h"
 #include "../modules/ModuleList.h"
 
-#include "../io/io.h"
+#include "../io/Potar.h"
+#include "../io/Button.h"
 
 using namespace std;
 /*
@@ -54,7 +55,7 @@ using namespace std;
 *   @param pot list of potentiometers
 *   @return 0 on success
 */
-int save_preset(    string const name, string const version, 
+int save_preset(    string const name, 
                     Module_Node_List *list, 
                     IO_Potentiometer pot[SPI_POTAR_COUNT] 
                     );
@@ -71,7 +72,7 @@ int save_preset(    string const name, string const version,
 *
 *   @warning if presset loaded successful it will cause a brief sound's interuption
 */
-int load_preset(string const name, string const version, Module_Node_List** list, IO_Potentiometer pot[SPI_POTAR_COUNT] );
+int load_preset(string const name, Module_Node_List* & list, IO_Potentiometer pot[SPI_POTAR_COUNT] );
 
 /**
 *   Function used for create new empty presset file
@@ -80,7 +81,7 @@ int load_preset(string const name, string const version, Module_Node_List** list
 *   @param version current program version
 *   @return 0 on success
 */
-int new_preset(string const name, string const version);
+int new_preset(string const name);
 
 /**
 *   Function used to backup a single module's params and banks.
@@ -93,7 +94,7 @@ int new_preset(string const name, string const version);
 *   @param mod module to save
 *   @return 0 on success
 */
-int save_module(string const name, string const version, Module* mod);
+int save_module(string const name, Module* mod);
 
 /**
 *   Function used to load a single module's banks
@@ -107,7 +108,7 @@ int save_module(string const name, string const version, Module* mod);
 *   @param del delete file after successful load if true
 *   @return 0 on success
 */
-int load_module(string const name, string const version, Module* mod, bool del);
+int load_module(string const name, Module* mod, bool del);
 
 /**
 *   Function used to list all avaiable files in givn directory

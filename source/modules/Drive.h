@@ -56,7 +56,7 @@ class Drive : public Module{
 	
 	public:	
 		
-		Drive(const char *server);
+		Drive();
 		//virtual int bypass(jack_nframes_t nframes, void *arg);
 	
 	protected :

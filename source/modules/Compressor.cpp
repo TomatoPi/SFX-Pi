@@ -1,6 +1,6 @@
 #include "Compressor.h"
 
-Compressor::Compressor( const char *server ): Module(server, MOD_COMP, COMP_PARAMS_COUNT,
+Compressor::Compressor(): Module(MOD_COMP, COMP_PARAMS_COUNT,
     2, 2, 0, 0, "In_L", "In_R", "Out_L", "Out_R"),
     buffer_( COMP_WINDOW, jack_get_sample_rate( client_ ) ),
     ramp_(0),

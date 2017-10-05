@@ -36,7 +36,7 @@ class Chorus : public Module{
 	
 	public :
 	
-		Chorus(const char* server);
+		Chorus();
         ~Chorus();
 		
 		//virtual int bypass(jack_nframes_t nframes, void *arg);

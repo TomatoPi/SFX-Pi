@@ -9,13 +9,13 @@
 
 #include <bits/stdc++.h>
 #include <vector>
-using namespace std;
 
 #include <jack/jack.h>
 
-#include "../../consts.h"
+#include "consts.h"
 
 #include "./io/io.h"
+#include "./io/FrontPanel.h"
 
 #include "./presset/Presset.h"
 

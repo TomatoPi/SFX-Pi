@@ -3,9 +3,13 @@
 
 #include <string>
 
-static const std::string PROG_VERSION;
-static const std::string PROG_RUN;
-static const std::string PROG_SPLASH_SCREEN;
-static const std::string PROG_JACK_SERVER;
+namespace PROG_CONST{
 
+    const std::string PROG_VERSION = "1.1";
+    const std::string PROG_RUN = "1-56";
+    const std::string PROG_SPLASH_SCREEN = "Space-Fx";
+    const std::string PROG_JACK_SERVER = "Space_Fx";
+
+    const std::string PATH_PRESSET = "/home/sfx_pi/sfx/Files/";
+};
 #endif

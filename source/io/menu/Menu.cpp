@@ -1,9 +1,8 @@
 #include "Menu.h"
 
-using namespace menu_cst;
+using namespace PROG_CONST;
 
 Submenu NODE_ROOT = { main_menu_exit_menu, main_menu_do };
-PATH_PRESSET = "/home/sfx_pi/sfx/Files/";
 
 void menu_init_main_menu( MenuTree *menu ){
 
@@ -26,9 +25,16 @@ void menu_init_main_menu( MenuTree *menu ){
 
 void main_menu_exit_menu( Module_Node_List* graph ){
 
+    cout << "Menu : Exit Main Menu" << endl;
 }
 
-MenuIterator main_menu_do( Move_flag action, MenuIterator itr, Module_Node_List* graph, IO_Potentiometer pot[SPI_POTAR_COUNT] ){
+MenuIterator main_menu_do( Move_flag action, MenuIterator itr, Module_Node_List* & graph, IO_Potentiometer pot[SPI_POTAR_COUNT] ){
 
+    // Press any button for enter inside menu
+    if ( action != MOVE_ESC ){
+
+        itr.child();
+        (*itr.get().enter_)( graph );
+    }
     return itr;
 }

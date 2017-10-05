@@ -1,5 +1,5 @@
 #include "Drive.h"
-Drive::Drive(const char *server):Module(server, MOD_DRIVE, DRIVE_PARAM_COUNT,
+Drive::Drive():Module(MOD_DRIVE, DRIVE_PARAM_COUNT,
     1, 1, 0, 0, "In", "Out"),
     filter_(200, 1000, jack_get_sample_rate(client_))
 {

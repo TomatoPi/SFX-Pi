@@ -1,11 +1,13 @@
 #include "Delay.h"
 
+using namespace PROG_CONST;
+
 int delay_Process_Callback(jack_nframes_t nframes, void *u){
 	
 	return static_cast<Delay*>(u)->process_2(nframes, u);
 }
 
-Delay::Delay(const char *server):Module(server, MOD_DELAY, DELAY_PARAMS_COUNT,
+Delay::Delay():Module(MOD_DELAY, DELAY_PARAMS_COUNT,
     2, 2, 0, 0, "In", "Return", "Out", "Send"),
     samplerate_(jack_get_sample_rate(client_))
 {
@@ -20,7 +22,7 @@ Delay::Delay(const char *server):Module(server, MOD_DELAY, DELAY_PARAMS_COUNT,
 	/*
 	*	Creating jack client_2 with name "name_2", in server "server"
 	*/
-	client_2 = jack_client_open (name_2, options_2, &status_2, server);
+	client_2 = jack_client_open (name_2, options_2, &status_2, PROG_JACK_SERVER);
 	if (client_2 == NULL) {
 		
         throw string("Unable to connect JACK server");

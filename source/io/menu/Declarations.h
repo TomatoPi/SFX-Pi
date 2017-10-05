@@ -4,6 +4,9 @@
 #include "../../core/Tree/Tree.h"
 #include "../../core/Modules.h"
 
+#include "../Potar.h"
+#include "../Button.h"
+
 /**********************************************************************
  * Enum of all submenus flags
  * Used as nodes id inside menu's tree
@@ -126,7 +129,7 @@ struct Submenu{
     /**
      * Function Called when a button is pressed inside this submenu
      */
-    MenuIterator (*do_)( Move_flag, MenuIterator, Module_Node_List*, IO_Potentiometer[SPI_POTAR_COUNT] );
+    MenuIterator (*do_)( Move_flag, MenuIterator, Module_Node_List* &, IO_Potentiometer[SPI_POTAR_COUNT] );
 
 };
 
@@ -134,13 +137,6 @@ struct Submenu{
  * Menu's root node functions
  */
 void main_menu_exit_menu( Module_Node_List* );
-MenuIterator main_menu_do( Move_flag, MenuIterator, Module_Node_List*, IO_Potentiometer[SPI_POTAR_COUNT] );
+MenuIterator main_menu_do( Move_flag, MenuIterator, Module_Node_List* &, IO_Potentiometer[SPI_POTAR_COUNT] );
 
-/**********************************************************************
- *                          Menu consts
- **********************************************************************/
-namespace menu_cst{
-    
-    const std::string PATH_PRESSET;
-}
 #endif

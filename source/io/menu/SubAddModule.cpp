@@ -31,21 +31,46 @@ MenuIterator menu_init_add_module( MenuTree *menu, MenuIterator pos ){
  **********************************************************************/
 void main_add_module_enter( Module_Node_List* graph ){
 
-    
+    cout << "Menu : Enter Add Module" << endl;
 }
 
-MenuIterator main_add_module_do( Move_flag action, MenuIterator itr, Module_Node_List* graph, IO_Potentiometer pot[SPI_POTAR_COUNT] ){
+MenuIterator main_add_module_do( Move_flag action, MenuIterator itr, Module_Node_List* & graph, IO_Potentiometer pot[SPI_POTAR_COUNT] ){
 
+    if ( action == MOVE_UP ){
+        
+        itr.prev();
+        (*itr.get().enter_)( graph );
+    }
+    else if ( action == MOVE_DOWN ){
+        
+        itr.next();
+        (*itr.get().enter_)( graph );
+    }
+    else if ( action == MOVE_ENTER ){
+
+        itr.child();
+        (*itr.get().enter_)( graph );
+    }
+    else if ( action == MOVE_ESC ){
+
+        itr.parent();
+        (*itr.get().enter_)( graph );
+    }
     return itr;
 }
 
 /**********************************************************************/
 void addmod_choose_type_enter( Module_Node_List* graph ){
 
-    
+    cout << "Menu : Enter Choose Type" << endl;
 }
 
-MenuIterator addmod_choose_type_do( Move_flag action, MenuIterator itr, Module_Node_List* graph, IO_Potentiometer pot[SPI_POTAR_COUNT] ){
+MenuIterator addmod_choose_type_do( Move_flag action, MenuIterator itr, Module_Node_List* & graph, IO_Potentiometer pot[SPI_POTAR_COUNT] ){
 
+    if ( action == MOVE_ESC ){
+
+        itr.parent();
+        (*itr.get().enter_)( graph );
+    }
     return itr;
 }

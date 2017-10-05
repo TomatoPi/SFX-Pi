@@ -56,7 +56,7 @@ class LFO : public Module{
 
     public:
 
-        LFO(const char *server);
+        LFO();
         //virtual int bypass(jack_nframes_t nframes, void *arg);
 
         void sync();

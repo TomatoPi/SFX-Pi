@@ -25,7 +25,7 @@ class Compressor : public Module{
     
     public :
     
-        Compressor( const char *server );
+        Compressor();
         
     protected :
 		

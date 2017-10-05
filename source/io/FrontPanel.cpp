@@ -1,8 +1,9 @@
-#include "io.h"
+#include "FrontPanel.h"
 
 namespace{
 
     using namespace HEX;
+    using namespace std;
 
     typedef unsigned char hex_reg;
 
@@ -150,20 +151,20 @@ void io_init_frontPanel(){
     // get registers values
     func_read_reg();
 
-    cout << "Build Main Menu" << endl;
+    cout << endl << "Build Main Menu" << endl;
     
     menu_init_main_menu( &MAIN_MENU );
 
     MENU_POS = MAIN_MENU.root();
 
-    cout << "Configure MCP3008 AD Converters" << endl;
+    cout << endl << "Configure MCP3008 AD Converters" << endl;
     
 	io_init_spi();
     
 	io_init_potar_tab(MAIN_POTAR_TAB);
 }
 
-void io_update_frontPanel( Module_Node_List* graph ){
+void io_update_frontPanel( Module_Node_List* & graph ){
 
     /*
      * Update Potar Tab
@@ -192,7 +193,7 @@ void io_update_frontPanel( Module_Node_List* graph ){
             {
 
                 //Update menu
-                MENU_POS = (*MENU_POS.get().do_)( static_cast<Move_flag>(i), MENU_POS, graph );
+                MENU_POS = (*MENU_POS.get().do_)( static_cast<Move_flag>(i), MENU_POS, graph, MAIN_POTAR_TAB );
                 break;
             }
         }

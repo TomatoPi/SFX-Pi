@@ -74,6 +74,10 @@ typename Tree<T,F>::Iterator Tree<T,F>::add( T el, F id, Iterator itr, bool chil
     // Else object is added after iterator
     else{
 
+        if ( itr.has_parent() ){
+
+            newn->parent_ = itr.pos_->parent_;
+        }
         insert_after( itr.pos_, newn );
     }
 

@@ -1,16 +1,33 @@
 #include "main.h"
 
-const string PROG_VERSION = "1.1";
+using namespace std;
+using namespace PROG_CONST;
 
-PROG_VERSION = "1.1";
-PROG_RUN = "1-53";
-PROG_SPLASH_SCREEN = "Space-Fx";
-PROG_JACK_SERVER = "Space_Fx";
+/**
+ * Store Current program version.
+ * Used by presset save and loading functions for prevent corruption or
+ * bad files loads
+ */
+//string PROG_CONST::PROG_VERSION = "1.1";
+/**
+ * Store current program run.
+ * Only used by splash screen
+ */
+//string PROG_CONST::PROG_RUN = "1-53";
+/**
+ * Splash screen send to screen at program boot
+ */
+//string PROG_CONST::PROG_SPLASH_SCREEN = "Space-Fx";
+/**
+ * JACK's server name
+ */
+//string PROG_CONST::PROG_JACK_SERVER = "Space_Fx";
+/**
+ * Path to presset folder
+ */
+//string PROG_CONST::PATH_PRESSET = "/home/sfx_pi/sfx/Files/";
 
 static Module_Node_List *MAIN_LIST_MODULE;
-//static int MAIN_COUNT_MODULE = 0;
-
-//static int MAIN_POTAR_VALUES[SPI_POTAR_COUNT] = {};
 
 int last_vol = 0;
 
@@ -27,7 +44,7 @@ int main(int argc, char *argv[]){
     cout << "------------------------------------------------------------" << endl;
     cout << endl;
     
-    IOS::init_screen( PROG_SPLASH_SCREEN, PROG_RUN );
+    IOS::init_screen();
     
     MAIN_LIST_MODULE = new Module_Node_List();
     
@@ -286,23 +303,23 @@ int main(int argc, char *argv[]){
         /*
         * Check if input is saturated
         */
-        if ( static_cast<EndModule*>(MAIN_LIST_MODULE->begin_.get_module())->is_saturated() ){
+        if ( static_cast<EndModule*>(MAIN_LIST_MODULE->begin_->get_module())->is_saturated() ){
             
             char n[64];
             sprintf( n, "Wrn Input");
             IOS::printm( string(n), IOS::DEFAULT_TEMP , IOS::TEMP);
-            static_cast<EndModule*>(MAIN_LIST_MODULE->begin_.get_module())->reset_saturated();
+            static_cast<EndModule*>(MAIN_LIST_MODULE->begin_->get_module())->reset_saturated();
         }
         
         /*
         * Check if output is saturated
         */
-        if ( static_cast<EndModule*>(MAIN_LIST_MODULE->end_.get_module())->is_saturated() ){
+        if ( static_cast<EndModule*>(MAIN_LIST_MODULE->end_->get_module())->is_saturated() ){
             
             char n[64];
             sprintf( n, "Wrn Output");
             IOS::printm( string(n), IOS::DEFAULT_TEMP , IOS::TEMP );
-            static_cast<EndModule*>(MAIN_LIST_MODULE->end_.get_module())->reset_saturated();
+            static_cast<EndModule*>(MAIN_LIST_MODULE->end_->get_module())->reset_saturated();
         }
 		
 		/*

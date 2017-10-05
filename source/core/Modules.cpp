@@ -4,17 +4,13 @@
 *	Misc stuff
 *	---------------------------------------------------------------------------
 */
+using namespace std;
+using namespace PROG_CONST;
+
 int mod_Process_Callback(jack_nframes_t nframes, void *u){
 	
 	return static_cast<Module*>(u)->process(nframes, u);
 }
-
-/*
-int mod_Bypass_Callback(jack_nframes_t nframes, void *u){
-	
-	return static_cast<Module*>(u)->bypass(nframes, u);
-}
-*/
 
 string modtype_to_string(MODULE_TYPE type){
 
@@ -45,7 +41,7 @@ string modtype_to_string(MODULE_TYPE type){
 	}
 }
 
-Module::Module(const char *server, MODULE_TYPE type, int pc, int ai, int ao, int mi, int mo, ...):
+Module::Module( MODULE_TYPE type, int pc, int ai, int ao, int mi, int mo, ...):
     type_(type),
     is_bypassed_(false),
     ai_(ai),
@@ -68,7 +64,7 @@ Module::Module(const char *server, MODULE_TYPE type, int pc, int ai, int ao, int
 	char* name = (char*)modtype_to_string(type).c_str();
 	
 	// Creating jack client with name "name", in server "server"
-	client = jack_client_open (name, options, &status, server);
+	client = jack_client_open ( name, options, &status, PROG_JACK_SERVER.c_str() );
 	if (client == NULL) {
         
 		throw string("Unable to connect JACK server");
@@ -165,6 +161,10 @@ Module::Module(const char *server, MODULE_TYPE type, int pc, int ai, int ao, int
 }
 
 Module::~Module(){
+
+    cout << "Delete Module : " << name_ << endl;
+
+    jack_deactivate( client_ );
     
     delete audio_in_;
     delete audio_out_;
@@ -177,7 +177,7 @@ Module::~Module(){
     }
     bank_.clear();
     
-    jack_client_close(client_);
+    jack_client_close( client_ );
 }
 
 int Module::process(jack_nframes_t nframes, void *arg){
@@ -222,12 +222,12 @@ void Module::set_param(int idx, float value){
       //  cout << "Bank count : " << bank_.size() << endl;
         // If module contains banks, change current bank value
       //  if(bank_.size() != 0){
-            
+        if ( bank_.size() > bank_idx_ )
             bank_.at(bank_idx_)[idx] = value;
-            if ( idx == MOD_BYPASS ){
-                
-                is_bypassed_ = !!value;
-            }
+        if ( idx == MOD_BYPASS ){
+            
+            is_bypassed_ = !!value;
+        }
        // }
         // Else create a new bank to store modified value
        /* else{

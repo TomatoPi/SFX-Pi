@@ -9,7 +9,9 @@
 
 #include "../../core/Tree/Tree.h"
 #include "../../core/Modules.h"
-#include "../../presset/presset.h"
+#include "../../presset/Presset.h"
+
+#include "../io.h"
 
 #include "Declarations.h"
 
@@ -28,6 +30,6 @@ void main_change_presset_enter( Module_Node_List* );
 /**
  * Function called when inside change presset submenu
  */
-MenuIterator main_change_presset_do( Move_flag, MenuIterator, Module_Node_List*, IO_Potentiometer[SPI_POTAR_COUNT] );
+MenuIterator main_change_presset_do( Move_flag, MenuIterator, Module_Node_List* &, IO_Potentiometer[SPI_POTAR_COUNT] );
 
 #endif

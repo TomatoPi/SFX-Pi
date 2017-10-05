@@ -1,9 +1,12 @@
 #include "Presset.h"
+
+using namespace std;
+using namespace PROG_CONST;
+
 /** 
 * Preset File's nodes list 
 * @see save_preset(string, string, Module_Node_List) 
 */
-
 namespace {
     
     const string NODE_ROOT_PRESET("Preset");
@@ -47,7 +50,7 @@ namespace {
 *	Presset stuff
 *	---------------------------------------------------------------------------
 */
-int save_preset(string const name, string const version, Module_Node_List *list, IO_Potentiometer pot[SPI_POTAR_COUNT]){
+int save_preset(string const name, Module_Node_List *list, IO_Potentiometer pot[SPI_POTAR_COUNT]){
 	
 	string filename = "/home/sfx_pi/sfx/Files/" + name ;
 	
@@ -61,7 +64,7 @@ int save_preset(string const name, string const version, Module_Node_List *list,
             // Write root node
             flux << NODE_ROOT_PRESET << "={" << endl;
             flux << TAB << NRP_NAME << "=" << name << endl;
-            flux << TAB << NRP_VERSION << "=" << version << endl;
+            flux << TAB << NRP_VERSION << "=" << PROG_VERSION << endl;
             flux << "}" << endl;
             
             // Write module node for each module
@@ -129,33 +132,9 @@ int save_preset(string const name, string const version, Module_Node_List *list,
             }
             
             // Write connection node for each connection
-            for ( Module_iterator itr = list->list_.begin() ; itr != list->list_.end(); itr++ ){
-                
-                // Write a node for each connection
-                Connection_List cl = (*itr)->connection_get_list();
-                
-                for ( Connection_iterator ctr = cl.begin(); ctr != cl.end(); ctr++ ){
-                    
-                    Connection c = *ctr;
-                    
-                    flux << NODE_CONNECTION << "={ " << c.s << " " << c.sp << " " << c.t << " ";
-                    flux << c.tp << " }" << endl;
-                }
-            }
+            Connection_List cl = list->connection_get_list();
             
-            // Write Begin module's Connections
-            Connection_List bl = list->begin_.connection_get_list();
-            for ( Connection_iterator ctr = bl.begin(); ctr != bl.end(); ctr++ ){
-                
-                Connection c = *ctr;
-                
-                flux << NODE_CONNECTION << "={ " << c.s << " " << c.sp << " " << c.t << " ";
-                flux << c.tp << " }" << endl;
-            }
-            
-            // Write End module's Connections
-            Connection_List el = list->end_.connection_get_list();
-            for ( Connection_iterator ctr = el.begin(); ctr != el.end(); ctr++ ){
+            for ( Connection_iterator ctr = cl.begin(); ctr != cl.end(); ctr++ ){
                 
                 Connection c = *ctr;
                 
@@ -181,7 +160,7 @@ int save_preset(string const name, string const version, Module_Node_List *list,
 	return 0;
 }
 
-int save_module(string const name, string const version, Module *mod){
+int save_module(string const name, Module *mod){
     
     string filename = "/home/sfx_pi/sfx/Files/" + name ;
 	
@@ -193,7 +172,7 @@ int save_module(string const name, string const version, Module *mod){
         if(flux){
             
             // Save root node indicating that file is a module file
-            flux << NODE_ROOT_MODULE << " " << version << " " << static_cast<int>(mod->get_type()) << endl;
+            flux << NODE_ROOT_MODULE << " " << PROG_VERSION << " " << static_cast<int>(mod->get_type()) << endl;
             
             // Set current bank to bank 0 ( will fail if module hasn't bank
             if(mod->set_bank(0)){
@@ -260,8 +239,14 @@ typedef enum{
     FFCON
 }PFLAG;
 
-int load_preset(string const name, string const version, Module_Node_List** list, IO_Potentiometer pot[SPI_POTAR_COUNT]){
-	
+int load_preset(string const name, Module_Node_List* & list, IO_Potentiometer pot[SPI_POTAR_COUNT]){
+
+
+    if ( !name.compare("tmp") ){
+
+        cout << "Err Not a Preset File" << endl;
+        return 1;
+    }
     string filename = "/home/sfx_pi/sfx/Files/" + name ;
 
     // New graph
@@ -381,6 +366,7 @@ int load_preset(string const name, string const version, Module_Node_List** list
                     else if ( flag == FWDAT && !string(token[i]).compare("{") ){
                     
                         flag = FFDAT;
+                        
                         dat_buff = new float[dat_size];
                         dat_idx = 0;
                         //cout << "    Entered NMOD_DATA node" << endl;
@@ -421,7 +407,7 @@ int load_preset(string const name, string const version, Module_Node_List** list
                             
                             //cout << "  Presset Version : \"" << token[i+1] << "\"" << endl;
                             
-                            if ( !!string(token[i+1]).compare(version) ){
+                            if ( !!string(token[i+1]).compare(PROG_VERSION) ){
                              
                                 throw string("File Version do not match Program Version");
                             }
@@ -686,14 +672,17 @@ int load_preset(string const name, string const version, Module_Node_List** list
                     }
                 }
             }
-            
-            delete *list;
-            *list = new_graph;
+
+            delete list;
+            list = new_graph;
             
         }else{
             
             cout << "Error can't open file " << filename << endl;
             flux.close();
+            delete new_graph;
+            if ( dat_buff != NULL )delete dat_buff;
+            
             return 1;
         }
         flux.close();
@@ -715,10 +704,12 @@ int load_preset(string const name, string const version, Module_Node_List** list
         
         return 1;
     }
+
+    if ( dat_buff != NULL )delete dat_buff;
 	return 0;
 }
 
-int load_module(string const name, string const version, Module* mod, bool del){
+int load_module(string const name, Module* mod, bool del){
     
     string filename = "/home/sfx_pi/sfx/Files/" + name ;
 	
@@ -742,9 +733,9 @@ int load_module(string const name, string const version, Module* mod, bool del){
             
             // Get second word aka program version
             flux >> current;
-            if ( !!current.compare( version ) ){
+            if ( !!current.compare( PROG_VERSION ) ){
                 
-                cout << "Bad version -- File : " << current << " -- Current : " << version << endl;
+                cout << "Bad version -- File : " << current << " -- Current : " << PROG_VERSION << endl;
                 flux.close();
                 return 1;
             }
@@ -814,7 +805,7 @@ int load_module(string const name, string const version, Module* mod, bool del){
 	return 0;
 }
 
-int new_preset(string const name, string const version){
+int new_preset(string const name){
     
     string filename = "/home/sfx_pi/sfx/Files/" + name ;
 	
@@ -825,7 +816,7 @@ int new_preset(string const name, string const version){
         
         if ( flux ){
             
-            flux << NODE_ROOT_PRESET << " " << version << " " << name << " " << 0 << endl;
+            flux << NODE_ROOT_PRESET << " " << PROG_VERSION << " " << name << " " << 0 << endl;
         }
         else{
             
@@ -845,7 +836,8 @@ int new_preset(string const name, string const version){
 }
 
 int list_files(string const dir, vector<string> & list){
-    
+
+    cout << "List files in Dierctory : \"" << dir << "\"" << endl;
     list.clear();
     
     DIR *rep = opendir( dir.c_str() );
@@ -857,13 +849,15 @@ int list_files(string const dir, vector<string> & list){
         while ( (ent = readdir( rep )) != NULL ){
             
             if ( ent->d_name[0] != '.') {
-                
+
+                cout << "    File : \"" << ent->d_name << "\"" << endl;
                 list.push_back( ent->d_name );
             }
         }
     }
     else{
-        
+
+        cout << "    Error : Cant't Open Given Dir" << endl;
         return 1;
     }
     
@@ -871,6 +865,7 @@ int list_files(string const dir, vector<string> & list){
     
     if ( list.size() == 0 ){
     
+        cout << "    Error : No Files Founded" << endl;
         return 1;
     }
     return 0;

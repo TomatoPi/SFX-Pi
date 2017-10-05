@@ -1,15 +1,6 @@
 #ifndef DEF_MODULES_H
 #define DEF_MODULES_H
 
-/*
-#include <stdio.h>
-#include <errno.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdarg.h>
-*/
-
 #include <iostream>
 #include <stdio.h>
 #include <string.h>
@@ -20,7 +11,7 @@
 #include <math.h>
 #include <jack/jack.h>
 
-using namespace std;
+#include "../consts.h"
 
 /**
 *   Enum of avaiables ports types
@@ -63,7 +54,7 @@ typedef enum{
 /**
 *	Get formated name of given module type
 */
-string modtype_to_string(MODULE_TYPE type);
+std::string modtype_to_string(MODULE_TYPE type);
 
 /**
 *   Alias for vector of param array used by modules.
@@ -103,7 +94,7 @@ class Module{
         *   @param mo unmber of midi outputs
         *   @param ... names of ports in order
         */
-		Module(const char *server, MODULE_TYPE type, int pc, int ai, int ao, int mi, int mo, ...);
+		Module( MODULE_TYPE type, int pc, int ai, int ao, int mi, int mo, ... );
 		virtual ~Module();
 		
         /**
@@ -114,13 +105,6 @@ class Module{
         *   @return 0
         */
 		int process(jack_nframes_t nframes, void *arg);
-        /**
-        *   Bypass callback called when module is bypassed.
-        *   Basically copy input to output_iterator or send 0
-        *
-        *   @see process(jack_nframes_t nframes, void *arg)
-        */
-		//virtual int bypass(jack_nframes_t nframes, void *arg){ return 0; };
 	
         /**
         *   Set module status
@@ -186,7 +170,7 @@ class Module{
         *   @param idx param's index
         *   @return param's name or empty string if index is not valid
         */
-        string get_param_name(int idx);
+        std::string get_param_name(int idx);
         
         /**
         *   Get parame name followed by it value.
@@ -194,7 +178,7 @@ class Module{
         *   @param idx param's index
         *   @return formated string or NONE if given param not found
         */
-        string get_formated_param(int idx);
+        std::string get_formated_param(int idx);
         
         /**
         *   Get module's port.
@@ -278,8 +262,8 @@ class Module{
         virtual void change_param(int idx, float value) {}; /**< @see set_param(int idx, float value) */
         virtual void change_param(const float *values)  {}; /**< @see set_param(float *values) */
     
-        virtual string return_param_name(int idx)     { return string(""); };   /**< @see get_param_name(int idx) */
-        virtual string return_formated_param(int idx) { return string(""); };   /**< @see get_formated_param(int idx) */
+        virtual std::string return_param_name(int idx)     { return std::string(""); };   /**< @see get_param_name(int idx) */
+        virtual std::string return_formated_param(int idx) { return std::string(""); };   /**< @see get_formated_param(int idx) */
     
         virtual void new_bank() {};    /**< @see add_bank() */
     
@@ -300,8 +284,7 @@ class Module{
         ModBank bank_;  /**< Vector of avaiable params sets */
         int bank_idx_;  /**< Curent bank index */
         
-        vector<jack_port_t*> mod_port_; /**< vector of modulation ports */
-        //vector<Accessor> mod_acc_;      /**< vector of accessors */
+        std::vector<jack_port_t*> mod_port_; /**< vector of modulation ports */
 };
 
 typedef enum{
@@ -309,7 +292,6 @@ typedef enum{
 	CURVE_LIN,
 	CURVE_SIG,
 	CURVE_COS
-	//CURVEIHAN
 }IO_CURVE;
 
 float curve_lin(float v);	//	Identity tranfer function
@@ -418,21 +400,12 @@ class Module_Node{
         *   @return pointer to node's module
 		*/
 		Module* 		get_module() const;
-		
-        /**
-        *   Add, remove or get connection at i
-        */
-		void			connection_add(Connection c);
-		void			connection_remove(int i);
-		Connection 		connection_get(int i) const;
-		Connection_List	connection_get_list();
         
         int get_id() const;
 		
     protected :
     
 		Module *_mod;
-		Connection_List _connection_list;
         
         int id_;
 };
@@ -453,7 +426,18 @@ class Module_Node_List{
 	
 	public :
     
+        /**
+         * Module Graph Constructor.
+         * @param tmp : true for create a temp graph, without input and output nodes
+         */
         Module_Node_List();
+        /**
+         * Copy constructor of module node list
+         * It only copy Graph and connections, but don't copy begin and
+         * end modules
+         */
+        void copy( Module_Node_List* graph );
+        
         ~Module_Node_List();
     
         /**
@@ -481,6 +465,7 @@ class Module_Node_List{
         *	target_idx = -1 for System_Playback ports
         */
         int add_connection(short source_id, short is, short target_id, short id);
+        int add_connection( Connection c );
         int del_connection(short source_id, short is, short target_id, short id);
         
         /**
@@ -514,11 +499,21 @@ class Module_Node_List{
         * @param id module's id
         */
         Module_Node* get( int id );
+        
+        /**
+        *   Add, remove or get connection at i
+        */
+		void			connection_add(Connection c);
+		void			connection_remove(int i);
+		Connection 		connection_get(int i) const;
+		Connection_List	connection_get_list();
+
+        void clear_graph();
 
         Module_List list_;
         int count_;
         
-        Module_Node begin_, end_;
+        Module_Node *begin_, *end_;
         
     protected :
         
@@ -526,6 +521,10 @@ class Module_Node_List{
         
         float outvl_, outvr_;
         float outv_;
+
+        bool tmp_;
+        
+		Connection_List connection_list_;
 };
 
 #endif

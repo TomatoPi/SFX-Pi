@@ -1,5 +1,5 @@
 #include "Chorus.h"
-Chorus::Chorus(const char* server):Module(server, MOD_CHORUS, CHORUS_PARAMS_COUNT,
+Chorus::Chorus():Module(MOD_CHORUS, CHORUS_PARAMS_COUNT,
     1+MAX_CHORUS_SIZE, 1, 0, 0, "In", "Mod-1", "Mod-2", "Mod-3", "Mod-4", "Mod-5", "Out"),
     samplerate_(jack_get_sample_rate(client_))
 {

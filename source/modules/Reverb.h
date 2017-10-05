@@ -42,7 +42,7 @@ class Reverb : public Module{
 	
 	public:
 		
-		Reverb(const char *server);
+		Reverb();
 		//virtual int bypass(jack_nframes_t nframes, void *arg);
 	
 	protected :

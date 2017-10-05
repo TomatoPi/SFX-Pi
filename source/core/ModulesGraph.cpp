@@ -2,7 +2,6 @@
 #include "../modules/ModuleList.h"
 
 namespace {
-    const char *SERVER_NAME = "Space_Fx";
     int MIDX = 0;
 }
 /*
@@ -21,36 +20,11 @@ Module_Node::Module_Node(Module* mod, int id): _mod(mod), id_(id){
 Module_Node::~Module_Node(){
 	
 	delete this->_mod;
-    
-	this->_connection_list.clear();
 }
 
 Module* Module_Node::get_module() const{
 	
 	return this->_mod;
-}
-
-void Module_Node::connection_add(Connection c){
-	
-	Connection a = Connection(c);
-	this->_connection_list.push_back(a);
-}
-
-void Module_Node::connection_remove(int i){
-	
-	this->_connection_list.erase(this->_connection_list.begin() +i);
-}
-
-Connection Module_Node::connection_get(int i) const{
-	
-	
-	if(i >= (int)this->_connection_list.size())return Connection();
-	return this->_connection_list.at(i);
-}
-
-Connection_List Module_Node::connection_get_list(){
-	
-	return this->_connection_list;
 }
 
 int Module_Node::get_id() const{
@@ -60,12 +34,13 @@ int Module_Node::get_id() const{
 
 Module_Node_List::Module_Node_List():
     count_(0), 
-    begin_(new EndModule(SERVER_NAME, MOD_FIRST)), 
-    end_(new EndModule(SERVER_NAME, MOD_LAST)),
     mute_(false),
     outvl_(0),
     outvr_(0)
 {
+    
+    begin_ = new Module_Node( new EndModule( MOD_FIRST ));
+    end_ = new Module_Node( new EndModule( MOD_LAST ));
 
     const char **port;
     
@@ -73,25 +48,25 @@ Module_Node_List::Module_Node_List():
     *   Connect begin module to capture ports
     */
     //cout << "Connect begin module to capture ports -- ";
-    port = jack_get_ports (begin_.get_module()->get_client(), NULL, NULL, JackPortIsPhysical|JackPortIsOutput);
+    port = jack_get_ports (begin_->get_module()->get_client(), NULL, NULL, JackPortIsPhysical|JackPortIsOutput);
     if (port == NULL) {
         
         cout << "no physical capture ports" << endl;
         exit (1);
     }
         
-    if (jack_connect (begin_.get_module()->get_client(), port[0], jack_port_name( begin_.get_module()->get_port(AUDIO_I, 0))) ) {
+    if (jack_connect (begin_->get_module()->get_client(), port[0], jack_port_name( begin_->get_module()->get_port(AUDIO_I, 0))) ) {
         
         cout << "cannot connect input port Left" << endl;
         exit(1);
     }
-    //cout << port[0] << " -> " << jack_port_name( begin_.get_module()->get_port(AUDIO_I, 0)) << " ok -- ";
-    if (jack_connect (begin_.get_module()->get_client(), port[1], jack_port_name( begin_.get_module()->get_port(AUDIO_I, 1))) ) {
+    //cout << port[0] << " -> " << jack_port_name( begin_->get_module()->get_port(AUDIO_I, 0)) << " ok -- ";
+    if (jack_connect (begin_->get_module()->get_client(), port[1], jack_port_name( begin_->get_module()->get_port(AUDIO_I, 1))) ) {
         
         cout << "cannot connect input port Right" << endl;
         exit(1);
     }
-    //cout << port[1] << " -> " << jack_port_name( begin_.get_module()->get_port(AUDIO_I, 1)) << " ok -- ";
+    //cout << port[1] << " -> " << jack_port_name( begin_->get_module()->get_port(AUDIO_I, 1)) << " ok -- ";
     free(port);
     //cout << "Connection made" << endl;
     
@@ -99,27 +74,53 @@ Module_Node_List::Module_Node_List():
     *   Connect end module to playback ports
     */
     //cout << "Connect End module to Playback ports -- ";
-    port = jack_get_ports (end_.get_module()->get_client(), NULL, NULL, JackPortIsPhysical|JackPortIsInput);
+    port = jack_get_ports (end_->get_module()->get_client(), NULL, NULL, JackPortIsPhysical|JackPortIsInput);
     if (port == NULL) {
         
         cout << "no physical Playback ports" << endl;
         exit (1);
     }
         
-    if (jack_connect (end_.get_module()->get_client(), jack_port_name( end_.get_module()->get_port(AUDIO_O, 0)), port[0]) ) {
+    if (jack_connect (end_->get_module()->get_client(), jack_port_name( end_->get_module()->get_port(AUDIO_O, 0)), port[0]) ) {
         
         cout << "cannot connect input port Left" << endl;
         exit(1);
     }
-    //cout << port[0] << " -> " << jack_port_name( end_.get_module()->get_port(AUDIO_O, 0)) << " ok -- ";
-    if (jack_connect (end_.get_module()->get_client(), jack_port_name( end_.get_module()->get_port(AUDIO_O, 1)), port[1]) ) {
+    //cout << port[0] << " -> " << jack_port_name( end_->get_module()->get_port(AUDIO_O, 0)) << " ok -- ";
+    if (jack_connect (end_->get_module()->get_client(), jack_port_name( end_->get_module()->get_port(AUDIO_O, 1)), port[1]) ) {
         
         cout << "cannot connect input port Right" << endl;
         exit(1);
     }
-    //cout << port[1] << " -> " << jack_port_name( end_.get_module()->get_port(AUDIO_O, 1)) << " ok -- ";
+    //cout << port[1] << " -> " << jack_port_name( end_->get_module()->get_port(AUDIO_O, 1)) << " ok -- ";
     free(port);
     //cout << "Connection made" << endl;
+}
+
+void Module_Node_List::copy( Module_Node_List* graph ){
+
+    cout << "Entered Copy Constructor" << endl;
+    
+    list_ = graph->list_;
+    count_ = graph->count_;
+
+    mute_ = graph->mute_;
+    
+    outvl_ = graph->outvl_;
+    outvr_ = graph->outvr_;
+    
+    outv_ = graph->outv_;
+
+    cout << "Copy constructor Start Copy COnnections" << endl;
+
+    Connection_List l = graph->connection_list_;
+    for ( Connection_iterator itr = l.begin(); itr != l.end(); ++itr ){
+
+        this->add_connection( *itr );
+        cout << "Test" << endl;
+    }
+    
+    cout << "Copy constructor Finished Copy Connections" << endl;
 }
 
 Module_Node_List::~Module_Node_List(){
@@ -144,49 +145,49 @@ int Module_Node_List::add_module(MODULE_TYPE mod){
             case MOD_DRIVE:
             
                 txt = "new Drive";
-                newmod = new Drive(SERVER_NAME);
+                newmod = new Drive();
                 break;
                 
             case MOD_DELAY:
             
                 txt = "new Delay";
-                newmod = new Delay(SERVER_NAME);
+                newmod = new Delay();
                 break;
                 
             case MOD_LFO:
             
                 txt = "new LFO";
-                newmod = new LFO(SERVER_NAME);
+                newmod = new LFO();
                 break;
                 
             case MOD_RINGM:
             
                 txt = "new Ringmod";
-                newmod = new Ringmod(SERVER_NAME);
+                newmod = new Ringmod();
                 break;
                 
             case MOD_TONE:
             
                 txt = "new Tonestack";
-                newmod = new Tonestack(SERVER_NAME);
+                newmod = new Tonestack();
                 break;
                 
             case MOD_REV:
             
                 txt = "new Reverb";
-                newmod = new Reverb(SERVER_NAME);
+                newmod = new Reverb();
                 break;
                 
             case MOD_CHORUS:
             
                 txt = "new Chorus";
-                newmod = new Chorus(SERVER_NAME);
+                newmod = new Chorus();
                 break;
                 
             case MOD_COMP:
                 
                 txt = "new Compressor";
-                newmod = new Compressor(SERVER_NAME);
+                newmod = new Compressor();
                 break;
                 
             default:
@@ -223,49 +224,49 @@ int Module_Node_List::add_module(MODULE_TYPE mod, int id){
             case MOD_DRIVE:
             
                 txt = "Drive";
-                newmod = new Drive(SERVER_NAME);
+                newmod = new Drive();
                 break;
                 
             case MOD_DELAY:
             
                 txt = "Delay";
-                newmod = new Delay(SERVER_NAME);
+                newmod = new Delay();
                 break;
                 
             case MOD_LFO:
             
                 txt = "LFO";
-                newmod = new LFO(SERVER_NAME);
+                newmod = new LFO();
                 break;
                 
             case MOD_RINGM:
             
                 txt = "Ringmod";
-                newmod = new Ringmod(SERVER_NAME);
+                newmod = new Ringmod();
                 break;
                 
             case MOD_TONE:
             
                 txt = "Tonestack";
-                newmod = new Tonestack(SERVER_NAME);
+                newmod = new Tonestack();
                 break;
                 
             case MOD_REV:
             
                 txt = "Reverb";
-                newmod = new Reverb(SERVER_NAME);
+                newmod = new Reverb();
                 break;
                 
             case MOD_CHORUS:
             
                 txt = "Chorus";
-                newmod = new Chorus(SERVER_NAME);
+                newmod = new Chorus();
                 break;
                 
             case MOD_COMP:
                 
                 txt = "Compressor";
-                newmod = new Compressor(SERVER_NAME);
+                newmod = new Compressor();
                 break;
                 
             default:
@@ -306,12 +307,12 @@ int Module_Node_List::add_connection(short source_id, short is, short target_id,
 	if(target_id < 0 && target_id != END_NODE  )return 1;
     
     if ( this->get(source_id) == NULL || this->get(target_id) == NULL ) return 1;
-	
-	Module *source = (source_id == BEGIN_NODE)? begin_.get_module():this->get(source_id)->get_module();
-	Module *target = (target_id == END_NODE  )? end_.get_module()  :this->get(target_id)->get_module();
-	
-	const char *source_port;
-	const char *target_port;
+
+    Module *source = (source_id == BEGIN_NODE)? begin_->get_module():this->get(source_id)->get_module();
+    Module *target = (target_id == END_NODE  )? end_->get_module()  :this->get(target_id)->get_module();
+    
+    const char *source_port;
+    const char *target_port;
     
     if ( source->get_port( AUDIO_O, is ) == NULL ){
         
@@ -338,29 +339,23 @@ int Module_Node_List::add_connection(short source_id, short is, short target_id,
     td.resize( 3, ' ' );
     
     cout << "Connection from : " << s << "( " << sd << " )   to : " << t << "( " << td << " )  -- ";
-	
+    
     if (jack_connect (source->get_client(), source_port, target_port)) {
         
         cout << "cannot connect input ports" << endl;
         return 1;
     }
     Connection c = { source_id, is, target_id, id};
-    if( source_id == BEGIN_NODE ){
-        
-        begin_.connection_add(c);
-        
-    }else if ( target_id == END_NODE ){
-        
-        end_.connection_add(c);
-        
-    }else{
-        
-        this->get(source_id)->connection_add(c);
-    }
-	
+    this->connection_add( c );
+    
 	cout << "New connection made" << endl;
 
 	return 0;
+}
+
+int Module_Node_List::add_connection( Connection c ){
+
+    return this->add_connection( c.s, c.sp, c.t, c.tp );
 }
 
 int Module_Node_List::del_connection(short source_id, short is, short target_id, short id){
@@ -370,11 +365,11 @@ int Module_Node_List::del_connection(short source_id, short is, short target_id,
     
     if ( this->get(source_id) == NULL || this->get(target_id) == NULL ) return 1;
 	
-	Module *source = (source_id == BEGIN_NODE)? begin_.get_module():this->get(source_id)->get_module();
-	Module *target = (target_id == END_NODE  )? end_.get_module()  :this->get(target_id)->get_module();
-	
-	const char *source_port;
-	const char *target_port;
+    Module *source = (source_id == BEGIN_NODE)? begin_->get_module():this->get(source_id)->get_module();
+    Module *target = (target_id == END_NODE  )? end_->get_module()  :this->get(target_id)->get_module();
+    
+    const char *source_port;
+    const char *target_port;
     
     if ( source->get_port( AUDIO_I, is ) == NULL ){
         
@@ -389,21 +384,21 @@ int Module_Node_List::del_connection(short source_id, short is, short target_id,
         return 1;
     }
     target_port = jack_port_name( target->get_port( AUDIO_I, id ) );
-	
-	if(source_port == NULL && target_port == NULL)
-		return 1;
-	
-	if(source == NULL){
-		if (jack_disconnect (target->get_client(), source_port, target_port)) {
-			cout << "cannot disconnect input ports" << endl;
-			return 1;
-		}
-	}else{
-		if (jack_disconnect (source->get_client(), source_port, target_port)) {
-			cout << "cannot disconnect input ports" << endl;
-			return 1;
-		}
-	}
+    
+    if(source_port == NULL && target_port == NULL)
+        return 1;
+    
+    if(source == NULL){
+        if (jack_disconnect (target->get_client(), source_port, target_port)) {
+            cout << "cannot disconnect input ports" << endl;
+            return 1;
+        }
+    }else{
+        if (jack_disconnect (source->get_client(), source_port, target_port)) {
+            cout << "cannot disconnect input ports" << endl;
+            return 1;
+        }
+    }
 	cout << "Connection removed" << endl;
 	
 	return 0;
@@ -414,16 +409,16 @@ void Module_Node_List::mute( bool m ){
     mute_ = m;
     if ( mute_ ){
         
-        outvl_ = end_.get_module()->get_param( END_LEFT );
-        outvr_ = end_.get_module()->get_param( END_RIGHT );
+        outvl_ = end_->get_module()->get_param( END_LEFT );
+        outvr_ = end_->get_module()->get_param( END_RIGHT );
         
-        end_.get_module()->set_param( END_LEFT , 0.0f );
-        end_.get_module()->set_param( END_RIGHT, 0.0f );
+        end_->get_module()->set_param( END_LEFT , 0.0f );
+        end_->get_module()->set_param( END_RIGHT, 0.0f );
     }
     else{
         
-        end_.get_module()->set_param( END_LEFT , outvl_ );
-        end_.get_module()->set_param( END_RIGHT, outvr_ );
+        end_->get_module()->set_param( END_LEFT , outvl_ );
+        end_->get_module()->set_param( END_RIGHT, outvr_ );
     }
 }
 
@@ -449,23 +444,54 @@ void Module_Node_List::prev_bank(){
 }
 
 Module_Node* Module_Node_List::get( int id ){
+
+    if ( id == END_NODE ) return end_;
     
-    if ( id == END_NODE ) return &end_;
-    
-    if ( id == BEGIN_NODE ) return &begin_;
+    if ( id == BEGIN_NODE ) return begin_;
     
     for ( Module_iterator itr = list_.begin() ; itr != list_.end(); itr++ ){
         
         if ( (*itr)->get_id() == id ) return *itr;
     }
-    
     return NULL;
 }
 
 void Module_Node_List::set_out_volume( float vol ){
-    
+
     outv_ = vol;
     
-    end_.get_module()->set_param( END_LEFT , vol );
-    end_.get_module()->set_param( END_RIGHT, vol );
+    end_->get_module()->set_param( END_LEFT , vol );
+    end_->get_module()->set_param( END_RIGHT, vol );
+}
+void Module_Node_List::connection_add(Connection c){
+	
+	Connection a = Connection(c);
+	this->connection_list_.push_back(a);
+}
+
+void Module_Node_List::connection_remove(int i){
+	
+	this->connection_list_.erase(this->connection_list_.begin() +i);
+}
+
+Connection Module_Node_List::connection_get(int i) const{
+	
+	
+	if(i >= (int)this->connection_list_.size())return Connection();
+	return this->connection_list_.at(i);
+}
+
+Connection_List Module_Node_List::connection_get_list(){
+	
+	return this->connection_list_;
+}
+
+void Module_Node_List::clear_graph(){
+
+    for ( Module_iterator itr = list_.begin(); itr != list_.end(); itr++ ){
+        
+        delete *itr;
+    }
+    
+	connection_list_.clear();
 }

@@ -1,5 +1,5 @@
 #include "Reverb.h"	
-Reverb::Reverb(const char *server) : Module(server, MOD_REV, REVERB_PARAMS_COUNT,
+Reverb::Reverb() : Module(MOD_REV, REVERB_PARAMS_COUNT,
     1, 2, 0, 0, "In", "Out", "Rev"),
     samplerate_(jack_get_sample_rate(client_)),
     gain_(0.015f)

@@ -1,6 +1,6 @@
 #include "EndModule.h"
 
-EndModule::EndModule( const char *server, MODULE_TYPE t): Module( server, t, END_PARAM_COUNT,
+EndModule::EndModule(MODULE_TYPE t): Module(t, END_PARAM_COUNT,
     2, 2, 0, 0, "In_L", "In_R", "Out_L", "Out_R"),
     is_sat_(false),
     max(0)
@@ -45,19 +45,6 @@ inline int EndModule::do_process( jack_nframes_t nframes ){
     
     return 0;
 }
-
-/*
-int EndModule::bypass ( jack_nframes_t nframes, void *arg ){
-    
-    sample_t *outl = (sample_t*)jack_port_get_buffer( audio_out_[0], nframes);
-    sample_t *outr = (sample_t*)jack_port_get_buffer( audio_out_[1], nframes);
-    
-    memset( outl, 0, sizeof(sample_t) * nframes );
-    memset( outr, 0, sizeof(sample_t) * nframes );
-    
-    return 0;
-}
-*/
 
 bool EndModule::is_saturated(){
     

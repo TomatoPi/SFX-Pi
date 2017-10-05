@@ -2,7 +2,7 @@
 
 static int RandSeed = 48172;
 
-LFO::LFO(const char *server): Module(server, MOD_LFO, LFO_PARAMS_COUNT,
+LFO::LFO(): Module(MOD_LFO, LFO_PARAMS_COUNT,
     0, 1, 0, 0, "Out"),
     samplerate_(jack_get_sample_rate(client_)),
     ramp_(0)

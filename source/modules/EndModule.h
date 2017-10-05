@@ -29,8 +29,7 @@ class EndModule : public Module{
         *   @param server JACK server
         *   @param t module type, MOD_FIRST for capture module or MOD_LAST for playback module
         */
-        EndModule( const char *server, MODULE_TYPE t);
-        //virtual int bypass ( jack_nframes_t nframes, void *arg );
+        EndModule( MODULE_TYPE t );
         
         /**
         *   Function called by main loop for verify if output is staturated
