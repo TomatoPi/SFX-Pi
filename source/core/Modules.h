@@ -30,9 +30,6 @@ enum MODULE_PORT_TYPE{
 *   @see Module::process_callback(jack_nframes_t, void*)
 */
 int mod_Process_Callback(jack_nframes_t nframes, void *u);
-/*
-int mod_Bypass_Callback(jack_nframes_t nframes, void *u);
-*/
 
 /**
 *	Enum of all avaiable modules

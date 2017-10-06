@@ -28,9 +28,22 @@ IO_BUTTON_FUNCTION IO_Button::get_func() const{
     return func_;
 }
 
-void* IO_Button::compute( void* data ){
+void* IO_Button::compute( MouleNodeList* graph ){
 
-    return data;
+    if ( func_ == FUNC_MENU ){
+        
+        return NULL;
+    }
+    else if ( func_ == FUNC_BANK_NEXT ){
+        
+        graph->next_bank();
+    }
+    else if ( func_ == FUNC_BANK_PREV ){
+        
+        graph->prev_bank();
+    }
+    
+    return NULL;
 }
 
 IO_Adress IO_Button::get_adr() const{

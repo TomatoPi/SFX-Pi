@@ -1,12 +1,13 @@
 #ifndef DEF_BUTTON_H
 #define DEF_BUTTON_H
 
+#include "../core/Modules.h"
+
 typedef enum{
     
     PUSH,
     PULL,
-    PUSH_PUSH,
-    MOMENT
+    PP
 }IO_PUSH_TYPE;
 
 typedef enum{
@@ -85,7 +86,7 @@ class IO_Button{
         /**
          * Compute given structure depending on curent button's mode
          */
-        void* compute( void* data );
+        void* compute( Module_Node_List* graph );
 
         /**
          * Get Button adress
@@ -99,8 +100,6 @@ class IO_Button{
         IO_BUTTON_FUNCTION func_;
         
         IO_Adress adr_;
-
-        void* data_;
 };
 
 namespace HEX{
@@ -122,7 +121,10 @@ namespace HEX{
     #define HEX_FOOT_NEXT 0x20  // MCP0 GPIOA 10
     #define HEX_FOOT_PREV 0x10  // MCP0 GPIOA 11
 
-    #define MASK_ADRRA_FOOT 0x30 // mask for select only footswitches
+    #define MASK_ADRRA_FOOT_0 0x30 // mask for MCP0-GPIOA footswitches
+    #define MASK_ADRRB_FOOT_0 0x00 // mask for MCP1-GPIOB footswitches
+    #define MASK_ADRRA_FOOT_1 0x00 // mask for MCP1-GPIOA footswitches
+    #define MASK_ADRRB_FOOT_1 0x00 // mask for MCP1-GPIOB footswitches
 }
 
 #endif

@@ -34,7 +34,12 @@ namespace{
 	const string BACK_SELECT_MODULE = "tmp/tmp_sel_mod";
 	const string BACK_EDIT_BANK     = "tmp/tmp_edit_bank";
 	const string BACK_EDIT_PARAM    = "tmp/tmp_edit_param";
+    
+    int current_id = -1;
+    Module_iterator current_module;
+    
 }
+void func_exit_select_module();
 /**********************************************************************
  * Functions
  **********************************************************************/
@@ -69,6 +74,10 @@ MenuIterator menu_init_select_module( MenuTree *menu, MenuIterator pos ){
     return init;
 }
 
+void func_exit_select_module(){
+        
+    current_id = -1;
+}
 /**********************************************************************
  *      Main node
  **********************************************************************/
@@ -76,6 +85,8 @@ MenuIterator menu_init_select_module( MenuTree *menu, MenuIterator pos ){
 void main_select_module_enter( Module_Node_List* graph ){
 
     cout << "Menu : Enter Select Module" << endl;
+    current_id = -1;
+    current_module = graph->end();
 }
 
 MenuIterator main_select_module_do( Move_flag action, MenuIterator itr, Module_Node_List* & graph, IO_Potentiometer pot[SPI_POTAR_COUNT] ){
@@ -90,13 +101,23 @@ MenuIterator main_select_module_do( Move_flag action, MenuIterator itr, Module_N
         itr.next();
         (*itr.get().enter_)( graph );
     }
+    else if ( action == MOVE_NEXT ){
+        
+        // Increment current module
+    }
+    else if ( action == MOVE_PREV ){
+        
+        //Decrement Current module
+    }
     else if ( action == MOVE_ENTER ){
 
+        // If current module is selected enter, else do nothing
         itr.child();
         (*itr.get().enter_)( graph );
     }
     else if ( action == MOVE_ESC ){
 
+        // Clear curent positions inside menu;
         itr.parent();
         (*itr.get().enter_)( graph );
     }

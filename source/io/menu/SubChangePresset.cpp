@@ -13,6 +13,8 @@ namespace{
     
     vector<string> presset_list;
     vector<string>::iterator current_presset;
+    
+    string loaded_preset_name = "";
 }
 
 /**
@@ -58,7 +60,7 @@ void main_change_presset_enter( Module_Node_List* graph ){
     
     if ( presset_list.size() != 0 ){
         
-        IOS::printm( (*current_presset), IOS::OVERIDE );
+        IOS::printm( loaded_preset_name, IOS::OVERIDE );
         IOS::printm( "SelPresset", IOS::DEFAULT_TEMP, IOS::TEMP );
     }
 }
@@ -128,7 +130,24 @@ MenuIterator main_change_presset_do( Move_flag action, MenuIterator itr, Module_
             IOS::printm( (*current_presset), IOS::OVERIDE );
         }
     }
+    else if ( action == MOVE_ADD ){
+        
+    }
+    else if ( action == MOVE_DEL ){
+        
+    }
     else if ( action == MOVE_ENTER ){
+        
+        if ( func_reload_presset_list() ){
+            
+            IOS::printm( (*current_presset), IOS::OVERIDE );
+            IOS::printm( "ListReloadd", IOS::DEFAULT_TEMP, IOS::TEMP );
+        }
+        else{
+            IOS::printm( "ErrNoPreset", IOS::OVERIDE );
+        }
+    }
+    else if ( action == MOVE_OK ){
         
         // If presset list is empty try reload it
         if ( presset_list.size() == 0 ){
@@ -184,5 +203,6 @@ void func_load_preset( Module_Node_List* & graph, IO_Potentiometer pot[SPI_POTAR
     }
     else{
         IOS::printm( "LoadSuccess", IOS::DEFAULT_TEMP, IOS::TEMP );
+        loaded_preset_name = (*current_presset);
     }
 }

@@ -32,8 +32,8 @@ namespace{
     IO_Button But_esc   = IO_Button( PUSH, FUNC_MENU,
                                 IO_Adress( HEX_ESC, true, false ) );
 
-    const int Buts_menu_count = 9;
-    const IO_Button Buts_menu[Buts_menu_count] = { But_up, But_down,
+    const int buts_menu_count = 9;
+    const IO_Button buts_menu[buts_menu_count] = { But_up, But_down,
                                     But_next, But_prev,
                                     But_add, But_del, But_enter,
                                     But_ok, But_esc };
@@ -41,10 +41,13 @@ namespace{
     /******************************************************************
      *                      Footswitch Adresses
      ******************************************************************/
-    IO_Button But_f_next= IO_Button( PUSH, FUNC_BANK_NEXT,
+    IO_Button But_f_next= IO_Button( PP, FUNC_BANK_NEXT,
                                 IO_Adress( HEX_FOOT_NEXT, false, false ) );
-    IO_Button But_f_prev= IO_Button( PUSH, FUNC_BANK_PREV,
+    IO_Button But_f_prev= IO_Button( PP, FUNC_BANK_PREV,
                                 IO_Adress( HEX_FOOT_PREV, false, false ) );
+                                
+    const int but_foot_count = 2;
+    const IO_Button buts_foot[but_foot_count] = { But_f_next, But_f_prev };
 
     /******************************************************************
      *                      Potentiometers Stuff
@@ -132,21 +135,21 @@ void io_init_frontPanel(){
     MCP0 = new mcp23017( HEX_MCP_0, string("/dev/i2c-1") );
     MCP1 = new mcp23017( HEX_MCP_1, string("/dev/i2c-1") );
 	
-	// Set Menu buttons ports to output
-	MCP0->writeReg( HEX_IODIRA, MASK_ADRRA_MENU, 0xff );
-	MCP0->writeReg( HEX_IODIRB, MASK_ADRRB_MENU, 0xff );
+	// Set Menu buttons ports to input
+	MCP0->writeReg( HEX_IODIRA, MASK_ADRRA_MENU | MASK_ADRRA_FOOT_0, 0xff );
+	MCP0->writeReg( HEX_IODIRB, MASK_ADRRB_MENU | MASK_ADRRB_FOOT_0, 0xff );
 	
 	// Invert their state
 	MCP0->writeReg( HEX_IPOLA, MASK_ADRRA_MENU, 0xff );
 	MCP0->writeReg( HEX_IPOLB, MASK_ADRRB_MENU, 0xff );
 	
-	// Set buttons ports to output
-	MCP1->writeReg( HEX_IODIRA, 0x00, 0xff );
-	MCP1->writeReg( HEX_IODIRB, 0x00, 0xff );
+	// Set buttons ports to input
+	MCP1->writeReg( HEX_IODIRA, MASK_ADRRA_FOOT_1, 0xff );
+	MCP1->writeReg( HEX_IODIRB, MASK_ADRRB_FOOT_1, 0xff );
 	
 	// Invert their state
-	MCP1->writeReg( HEX_IPOLA, 0x00, 0xff );
-	MCP1->writeReg( HEX_IPOLB, 0x00, 0xff );
+	MCP1->writeReg( HEX_IPOLA, MASK_ADRRA_FOOT_1, 0xff );
+	MCP1->writeReg( HEX_IPOLB, MASK_ADRRB_FOOT_1, 0xff );
 
     // get registers values
     func_read_reg();
@@ -174,27 +177,65 @@ void io_update_frontPanel( Module_Node_List* & graph ){
     /*
      * Update Buttons
      */
-    func_read_reg();
+    if ( func_read_reg() ){
     
-    // If a Menu's button has been pressed
-    if ( !func_compare_reg( mcp0_reg_gpioa, mcp0_l_reg_gpioa, MASK_ADRRA_MENU )
-        || !func_compare_reg( mcp0_reg_gpiob, mcp0_l_reg_gpiob, MASK_ADRRB_MENU ) )
-    {
-        for ( int i = 0; i < Buts_menu_count; i++ ){
+        // If a Menu's button has been pressed
+        if ( !func_compare_reg( mcp0_reg_gpioa, mcp0_l_reg_gpioa, MASK_ADRRA_MENU )
+            || !func_compare_reg( mcp0_reg_gpiob, mcp0_l_reg_gpiob, MASK_ADRRB_MENU ) )
+        {
+            for ( int i = 0; i < buts_menu_count; i++ ){
 
-            // Get correct register
-            IO_Adress cur_adr = Buts_menu[i].get_adr();
-            hex_reg cur_reg = (cur_adr.gpiob_)?mcp0_reg_gpiob:mcp0_reg_gpioa;
-            hex_reg l_reg = (cur_adr.gpiob_)?mcp0_l_reg_gpiob:mcp0_l_reg_gpioa;
+                // Get correct register
+                IO_Adress cur_adr = buts_menu[i].get_adr();
+                hex_reg cur_reg = (cur_adr.gpiob_)?mcp0_reg_gpiob:mcp0_reg_gpioa;
+                hex_reg l_reg = (cur_adr.gpiob_)?mcp0_l_reg_gpiob:mcp0_l_reg_gpioa;
 
-            // If button state has changed and button is now up
-            if ( !func_compare_reg( cur_reg, l_reg, cur_adr.adr_ )
-                && func_get_reg( cur_reg, cur_adr.adr_) )
-            {
+                // If button state has changed and button is now up
+                if ( !func_compare_reg( cur_reg, l_reg, cur_adr.adr_ )
+                    && func_get_reg( cur_reg, cur_adr.adr_) )
+                {
 
-                //Update menu
-                MENU_POS = (*MENU_POS.get().do_)( static_cast<Move_flag>(i), MENU_POS, graph, MAIN_POTAR_TAB );
-                break;
+                    //Update menu
+                    MENU_POS = (*MENU_POS.get().do_)( static_cast<Move_flag>(i), MENU_POS, graph, MAIN_POTAR_TAB );
+                    break;
+                }
+            }
+        }
+        // Else if a foot switche has been presset
+        else if ( !func_compare_reg( mcp0_reg_gpioa, mcp0_l_reg_gpioa, MASK_ADRRA_FOOT_0 )
+            || !func_compare_reg( mcp0_reg_gpiob, mcp0_l_reg_gpiob, MASK_ADRRB_FOOT_0 )
+            || !func_compare_reg( mcp1_reg_gpioa, mcp1_l_reg_gpioa, MASK_ADRRA_FOOT_1 )
+            || !func_compare_reg( mcp1_reg_gpiob, mcp1_l_reg_gpiob, MASK_ADRRB_FOOT_1 ) )
+        {
+            for ( int i = 0; i < but_foot_count; i++ ){
+                
+                // Get Correct Register
+                IO_Adress cur_adr = buts_menu[i].get_adr
+                hex_reg cur_reg = 0;
+                hex_reg l_reg = 0;
+                // If button is on MCP1
+                if ( cur_adr.mcp1_ ){
+                    cur_reg = (cur_adr.gpiob_)?mcp1_reg_gpiob:mcp1_reg_gpioa;
+                    l_reg = (cur_adr.gpiob_)?mcp1_l_reg_gpiob:mcp1_l_reg_gpioa;
+                }
+                // Else if Button is on MCP0
+                else{
+                    cur_reg = (cur_adr.gpiob_)?mcp0_reg_gpiob:mcp0_reg_gpioa;
+                    l_reg = (cur_adr.gpiob_)?mcp0_l_reg_gpiob:mcp0_l_reg_gpioa;
+                }
+                
+                // If button state has changed
+                if ( !func_compare_reg( cur_reg, l_reg, cur_adr.adr_ ){
+                    
+                    bool state = func_get_reg( cur_reg, cur_adr.adr_);
+                    IO_PUSH_TYPE cur_type = buts_menu[i].get_type();
+                    
+                    if ( ( state && cur_type == PUSH ) || ( !state && cur_type == PULL )
+                        || ( cur_type == PP ) )
+                    {
+                        buts_menu[i].compute( graph );
+                    }
+                }
             }
         }
     }
