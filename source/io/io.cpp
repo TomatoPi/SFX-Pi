@@ -134,7 +134,7 @@ void IOS::printm( string msg, int t , int flag){
         /*
         *	Send data
         */
-         cout << "    New Message sent : " << buffer << endl;
+        //cout << "    New Message sent : " << buffer << endl;
         RS232_cputs(io_screen_port, buffer.c_str());
     }
     else{

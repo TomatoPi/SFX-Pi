@@ -1,0 +1,82 @@
+Preset={
+    Name=Homeworld
+    Version=1.2
+}
+Module={
+    Type=0
+    ID=0
+    Bank={
+        Size=18
+        Data={ 0 1 0 0 0 100 0 10 0.2 0 0 0 0 450 900 5 3 1 }
+    }
+}
+Module={
+    Type=0
+    ID=10
+    Bank={
+        Size=18
+        Data={ 0 1 0 0 0 100 1 10 0.2 0 0 0 0 250 600 8 1 1.2 }
+    }
+}
+Module={
+    Type=4
+    ID=1
+    Bank={
+        Size=7
+        Data={ 0 0.5 10 10 0 0 1 }
+    }
+}
+Module={
+    Type=4
+    ID=11
+    Bank={
+        Size=7
+        Data={ 0 0.5 10 10 0 0 1 }
+    }
+}
+Module={
+    Type=6
+    ID=2
+    Bank={
+        Size=16
+        Data={ 0 1 -0.02 0.8 2 100 10 13 18 23 28 1 2 1 1 1 }
+    }
+}
+Module={
+    Type=6
+    ID=12
+    Bank={
+        Size=16
+        Data={ 0 1 0.02 0.8 2 100 10 13 18 23 28 1 2 1 1 1 }
+    }
+}
+Module={
+    Type=2
+    ID=30
+    Bank={
+        Size=10
+        Data={ 0 1 2 1.0 0 1 10 0 0.7 0.25 }
+    }
+}
+Module={
+    Type=2
+    ID=31
+    Bank={
+        Size=10
+        Data={ 0 1 2 0.7 0 1 10 0 0.8 0.75 }
+    }
+}
+Connection={ -98 0   0 0 }
+Connection={   0 0   1 0 }
+Connection={   1 0   2 0 }
+Connection={   2 0 -55 0 }
+
+Connection={ -98 0  10 0 }
+Connection={  10 0  11 0 }
+Connection={  11 0  12 0 }
+Connection={  12 0 -55 1 }
+
+Connection={  30 0   2 1 }
+Connection={  30 0  12 1 }
+Connection={  31 0   2 2 }
+Connection={  31 0  12 2 }

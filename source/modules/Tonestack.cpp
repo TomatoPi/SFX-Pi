@@ -1,5 +1,5 @@
 #include "Tonestack.h"
-Tonestack::Tonestack(): Module(MOD_TONE, TONE_PARAMS_COUNT,
+Tonestack::Tonestack( int id ): Module(MOD_TONE, id, TONE_PARAMS_COUNT,
     1, 1, 0, 0, "In", "Out"),
     filter_(Filter_3EQ(200, 1000, jack_get_sample_rate(client_)))
 {

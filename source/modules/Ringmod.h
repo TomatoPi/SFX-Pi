@@ -16,7 +16,7 @@ class Ringmod : public Module{
 
 	public:
 	
-		Ringmod();
+		Ringmod( int id );
 		//virtual int bypass(jack_nframes_t nframes, void *arg);
 	
 	protected :

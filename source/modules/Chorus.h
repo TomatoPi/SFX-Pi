@@ -13,7 +13,8 @@
 #define CHORUS_DEPTH  MOD_COUNT + 0
 #define CHORUS_DRYWET MOD_COUNT + 1
 #define CHORUS_SIZE   MOD_COUNT + 2
-#define CHORUS_DELAY  MOD_COUNT + 3
+#define CHORUS_WINDOW MOD_COUNT + 3
+#define CHORUS_DELAY  MOD_COUNT + 4
 #define CHORUS_WEIGTH CHORUS_DELAY + MAX_CHORUS_SIZE
 
 #define MAX_CHORUS_SIZE 5
@@ -22,24 +23,22 @@
 /*
 *	Default values for chorus
 */
-static const int    CHORUS_PARAMS_COUNT = 3 + 2*MAX_CHORUS_SIZE;
+static const int    CHORUS_PARAMS_COUNT = 4 + 2*MAX_CHORUS_SIZE;
 
-static const float  CHORUS_DEFAULT_PARAMS[MOD_COUNT+CHORUS_PARAMS_COUNT] = {0, 1, 0.011f, 0.86f, 5,
+static const float  CHORUS_DEFAULT_PARAMS[MOD_COUNT+CHORUS_PARAMS_COUNT] = {0, 1, 1, 1, 1, 10,
                                                             10, 13, 18, 23, 28, 1, 1, 1, 1, 1};
                                                             
 static const string CHORUS_PARAM_NAMES[MOD_COUNT+CHORUS_PARAMS_COUNT] = {"Volume", "Depth", "Drywet", "Size",
                                                             "D1", "D2", "D3", "D4", "D5", "W1", "W2", "W3", "W4", "W5"};
                                                             
-static const int    CHORUS_DELAYS_LENGTH[MAX_CHORUS_SIZE] = {10, 13, 18, 23, 28};
+static const int    CHORUS_DELAYS_LENGTH[2*MAX_CHORUS_SIZE] = {10, 10, 13, 13, 18, 18, 23, 23, 28, 28};
 
 class Chorus : public Module{
 	
 	public :
 	
-		Chorus();
+		Chorus( int id );
         ~Chorus();
-		
-		//virtual int bypass(jack_nframes_t nframes, void *arg);
 	
 	protected :
     
@@ -54,7 +53,11 @@ class Chorus : public Module{
         virtual void new_bank();    /**< @see add_bank() */
     
 		int samplerate_;    /**< Current semplerate */
-		Buffer_M *buffer_;  /**< Choru's buffer */
+		Buffer_A *buffer_;  /**< Chorus buffer */
+
+        float ramp1_;
+        float ramp2_;
+        float dr_;
 };
 
 #endif

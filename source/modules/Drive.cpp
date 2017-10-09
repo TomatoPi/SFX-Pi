@@ -3,11 +3,12 @@
 sample_t clip_hard( sample_t, float, float);
 sample_t clip_soft( sample_t, float, float);
 sample_t clip_pow2( sample_t, float, float);
+sample_t clip_vars( sample_t, float, float);
 
 /**********************************************************************
  *                      Drive's Functions Bodies
  **********************************************************************/
-Drive::Drive():Module(MOD_DRIVE, DRIVE_PARAM_COUNT,
+Drive::Drive( int id ):Module(MOD_DRIVE, id, DRIVE_PARAM_COUNT,
     1, 1, 0, 0, "In", "Out"),
     filter_(200, 1000, jack_get_sample_rate(client_))
 {
@@ -28,9 +29,9 @@ inline int Drive::do_process(jack_nframes_t nframes){
 
     if ( !is_bypassed_ ){
         
-        // COllect Drive settings
+        // Collect Drive settings
         float gp, sp, shp, gn, sn, shn;
-        int is_abs, isp, isn;
+        int is_abs;
         
         float vol = param_[MOD_VOLUME];
         
@@ -44,6 +45,8 @@ inline int Drive::do_process(jack_nframes_t nframes){
         gn = 		 param_[DRIVE_GAIN_P +n];
         sn = 		 param_[DRIVE_SOFT_P +n];
         shn = 		 param_[DRIVE_SHAPE_P +n];
+
+        float o = param_[DRIVE_OFFSET];
         
         float gl, gm, gh;
         gl = param_[DRIVE_F_GBASS];
@@ -53,17 +56,17 @@ inline int Drive::do_process(jack_nframes_t nframes){
         for (jack_nframes_t i = 0; i < nframes; i++) {									
             
             // Compte 3Band Filtering
-            sample_t l = filter_.compute(in[i], gl, gm, gh);	
+            sample_t l = filter_.compute(in[i], gl, gm, gh);
             
             // Call right Clipping function if signal is pos or negative
-            if(l>0){																
-                out[i] = vol * (*clip_p_)(l*gp, sp, shp);						
+            if ( l > 0 ){															
+                out[i] = vol * (*clip_p_)(l*gp + o, sp, shp);						
             }else{
-                out[i] = vol * (*clip_n_)(l*gn, sn, shn);
+                out[i] = vol * (*clip_n_)(l*gn + o, sn, shn);
             }
             
             // If full Wave rectification enabled, compute it
-            if(is_abs){							
+            if(is_abs){
                 out[i] = spi_abs(out[i]) * 2 - 1;
             }
         }
@@ -232,6 +235,9 @@ void Drive::set_clipping( DISTORTION_FORM formp , DISTORTION_FORM formn){
         case POW2 :
             this->clip_n_ = clip_pow2;
             break;
+        case VAR_SOFT :
+            this->clip_n_ = clip_vars;
+            break;
         default :
             this->clip_n_ = clip_hard;
             break;
@@ -247,6 +253,9 @@ void Drive::set_clipping( DISTORTION_FORM formp , DISTORTION_FORM formn){
         case POW2 :
             this->clip_p_ = clip_pow2;
             break;
+        case VAR_SOFT :
+            this->clip_p_ = clip_vars;
+            break;
         default :
             this->clip_p_ = clip_hard;
             break;
@@ -260,10 +269,18 @@ inline sample_t clip_hard( sample_t in, float p1, float p2 ){
 
 inline sample_t clip_pow2( sample_t in, float p1, float p2 ){
 
-    return spi_clip( in*in*2 - 1 , -1.0, 1.0 );
+    return spi_clip( in*in - 1 , -1.0, 1.0 );
 }
 
 inline sample_t clip_soft( sample_t in, float p1, float p2 ){
     
     return spi_soft( in, 1.0f, p1, p2 );
+}
+
+inline sample_t clip_vars( sample_t in, float p1, float p2 ){
+
+    float a = sin( (p1 + 1)*M_PI / (202) );
+    float k = 2*a*(1 - a); 
+
+    return (1 + k)*in / ( 1 + k * spi_abs(in) );
 }

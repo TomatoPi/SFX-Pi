@@ -18,7 +18,7 @@ class Tonestack : public Module{
 
 	public:
 	
-		Tonestack();
+		Tonestack( int id );
 		//virtual int bypass(jack_nframes_t nframes, void *arg);
 	
 	protected :

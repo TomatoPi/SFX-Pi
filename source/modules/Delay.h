@@ -42,7 +42,7 @@ class Delay : public Module{
 
 	public:
 	
-		Delay();
+		Delay( int id );
         ~Delay();
         
         /**

@@ -1,6 +1,6 @@
 #include "EndModule.h"
 
-EndModule::EndModule(MODULE_TYPE t): Module(t, END_PARAM_COUNT,
+EndModule::EndModule(MODULE_TYPE t, int id ): Module(t, id, END_PARAM_COUNT,
     2, 2, 0, 0, "In_L", "In_R", "Out_L", "Out_R"),
     is_sat_(false),
     max(0)

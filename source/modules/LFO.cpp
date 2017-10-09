@@ -2,7 +2,7 @@
 
 static int RandSeed = 48172;
 
-LFO::LFO(): Module(MOD_LFO, LFO_PARAMS_COUNT,
+LFO::LFO( int id ): Module(MOD_LFO, id, LFO_PARAMS_COUNT,
     0, 1, 0, 0, "Out"),
     samplerate_(jack_get_sample_rate(client_)),
     ramp_(0),
@@ -217,6 +217,9 @@ void LFO::update_type(LFO_wave type){
         case WAVE_WHI:
             this->waveform_ = w_whi;
             break;
+        case WAVE_CST:
+            this->waveform_ = w_cst;
+            break;
         default:
             this->waveform_ = w_sin;
             break;
@@ -260,4 +263,9 @@ inline sample_t w_nph(float in, float sign, float p1, float p2){
 inline sample_t w_whi(float in, float sign, float p1, float p2){
     
     return (sample_t)( ((((float) rand()) / (float)RAND_MAX ) * ( 2.0f )) - 1.0f );
+}
+
+inline sample_t w_cst(float in, float sign, float p1, float p2){
+
+    return p1;
 }

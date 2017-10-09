@@ -123,8 +123,8 @@ void IO_Potentiometer::update( Module_Node_List* graph , int disp){
             */
             if ( graph->get( cr.target_ ) != NULL ){
              
-                mod = graph->get( cr.target_ )->get_module();
-                cout << "Target : " << mod->get_name() << endl;
+                mod = graph->get( cr.target_ );
+                //cout << "Target : " << mod->get_name() << endl;
             }
             else{
                 

@@ -5,8 +5,8 @@
 
 namespace PROG_CONST{
 
-    const std::string PROG_VERSION = "1.1";
-    const std::string PROG_RUN = "1-58";
+    const std::string PROG_VERSION = "1.2";
+    const std::string PROG_RUN = "0077";
     const std::string PROG_SPLASH_SCREEN = "Space-Fx";
     const std::string PROG_JACK_SERVER = "Space_Fx";
 

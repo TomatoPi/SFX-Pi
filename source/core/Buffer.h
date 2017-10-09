@@ -77,7 +77,7 @@ class Buffer_M : public Buffer{
 		virtual void set_length(int s);
 		
 		sample_t read(int idx);
-		sample_t read(int idx, float speed);
+		virtual sample_t read(int idx, float speed);
 		
 		void set_reader(int count, int *delay, int sr);
 		void set_reader(int count, int *delay);
@@ -116,5 +116,35 @@ class Buffer_R : public Buffer{
     
         float summ_;
     
+};
+
+/**
+ * Anchored Buffer.
+ * Perform a similar job as Multitape buffer
+ * But provide an Advanced Variable speed read feature
+ */
+class Buffer_A : public Buffer_M{
+
+    public :
+
+        Buffer_A(int length, int samplerate, int count, int *delay);
+        ~Buffer_A();
+
+        virtual sample_t read(int idx, float speed);
+
+		virtual void set_length(int l, int sr){ Buffer_M::set_length(l,sr); }
+		virtual void set_length(int s){ Buffer_M::set_length(s); }
+
+        virtual void write(sample_t value){ Buffer::write(value); }
+
+        /**
+         * Function that reset Readers positions.
+         */
+        void sync( int idx );
+
+    protected :
+
+        float *read_anchor_;
+
 };
 #endif

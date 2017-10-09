@@ -9,29 +9,6 @@ namespace {
 *	Module Node Stuff
 *	---------------------------------------------------------------------------
 */
-Module_Node::Module_Node(Module *mod):_mod(mod), id_( ++MIDX ){
-	
-}
-
-Module_Node::Module_Node(Module* mod, int id): _mod(mod), id_(id){
-    
-}
-
-Module_Node::~Module_Node(){
-	
-	delete this->_mod;
-}
-
-Module* Module_Node::get_module() const{
-	
-	return this->_mod;
-}
-
-int Module_Node::get_id() const{
-    
-    return id_;
-}
-
 Module_Node_List::Module_Node_List():
     count_(0), 
     mute_(false),
@@ -39,8 +16,8 @@ Module_Node_List::Module_Node_List():
     outvr_(0)
 {
     
-    begin_ = new Module_Node( new EndModule( MOD_FIRST ));
-    end_ = new Module_Node( new EndModule( MOD_LAST ));
+    begin_ = new EndModule( MOD_FIRST, BEGIN_NODE );
+    end_ = new EndModule( MOD_LAST, END_NODE );
 
     const char **port;
     
@@ -48,25 +25,25 @@ Module_Node_List::Module_Node_List():
     *   Connect begin module to capture ports
     */
     //cout << "Connect begin module to capture ports -- ";
-    port = jack_get_ports (begin_->get_module()->get_client(), NULL, NULL, JackPortIsPhysical|JackPortIsOutput);
+    port = jack_get_ports (begin_->get_client(), NULL, NULL, JackPortIsPhysical|JackPortIsOutput);
     if (port == NULL) {
         
         cout << "no physical capture ports" << endl;
         exit (1);
     }
         
-    if (jack_connect (begin_->get_module()->get_client(), port[0], jack_port_name( begin_->get_module()->get_port(AUDIO_I, 0))) ) {
+    if (jack_connect (begin_->get_client(), port[0], jack_port_name( begin_->get_port(AUDIO_I, 0))) ) {
         
         cout << "cannot connect input port Left" << endl;
         exit(1);
     }
-    //cout << port[0] << " -> " << jack_port_name( begin_->get_module()->get_port(AUDIO_I, 0)) << " ok -- ";
-    if (jack_connect (begin_->get_module()->get_client(), port[1], jack_port_name( begin_->get_module()->get_port(AUDIO_I, 1))) ) {
+    //cout << port[0] << " -> " << jack_port_name( begin_->get_port(AUDIO_I, 0)) << " ok -- ";
+    if (jack_connect (begin_->get_client(), port[1], jack_port_name( begin_->get_port(AUDIO_I, 1))) ) {
         
         cout << "cannot connect input port Right" << endl;
         exit(1);
     }
-    //cout << port[1] << " -> " << jack_port_name( begin_->get_module()->get_port(AUDIO_I, 1)) << " ok -- ";
+    //cout << port[1] << " -> " << jack_port_name( begin_->get_port(AUDIO_I, 1)) << " ok -- ";
     free(port);
     //cout << "Connection made" << endl;
     
@@ -74,25 +51,25 @@ Module_Node_List::Module_Node_List():
     *   Connect end module to playback ports
     */
     //cout << "Connect End module to Playback ports -- ";
-    port = jack_get_ports (end_->get_module()->get_client(), NULL, NULL, JackPortIsPhysical|JackPortIsInput);
+    port = jack_get_ports (end_->get_client(), NULL, NULL, JackPortIsPhysical|JackPortIsInput);
     if (port == NULL) {
         
         cout << "no physical Playback ports" << endl;
         exit (1);
     }
         
-    if (jack_connect (end_->get_module()->get_client(), jack_port_name( end_->get_module()->get_port(AUDIO_O, 0)), port[0]) ) {
+    if (jack_connect (end_->get_client(), jack_port_name( end_->get_port(AUDIO_O, 0)), port[0]) ) {
         
         cout << "cannot connect input port Left" << endl;
         exit(1);
     }
-    //cout << port[0] << " -> " << jack_port_name( end_->get_module()->get_port(AUDIO_O, 0)) << " ok -- ";
-    if (jack_connect (end_->get_module()->get_client(), jack_port_name( end_->get_module()->get_port(AUDIO_O, 1)), port[1]) ) {
+    //cout << port[0] << " -> " << jack_port_name( end_->get_port(AUDIO_O, 0)) << " ok -- ";
+    if (jack_connect (end_->get_client(), jack_port_name( end_->get_port(AUDIO_O, 1)), port[1]) ) {
         
         cout << "cannot connect input port Right" << endl;
         exit(1);
     }
-    //cout << port[1] << " -> " << jack_port_name( end_->get_module()->get_port(AUDIO_O, 1)) << " ok -- ";
+    //cout << port[1] << " -> " << jack_port_name( end_->get_port(AUDIO_O, 1)) << " ok -- ";
     free(port);
     //cout << "Connection made" << endl;
 }
@@ -132,86 +109,6 @@ Module_Node_List::~Module_Node_List(){
     
 }
 
-int Module_Node_List::add_module(MODULE_TYPE mod){
-    
-    while(count_ < (int)list_.size()) count_++;
-	cout << "Add module --- ";
-	
-	string txt = "";
-	
-	Module *newmod;
-    try{
-        
-        switch(mod){
-            case MOD_DRIVE:
-            
-                txt = "new Drive";
-                newmod = new Drive();
-                break;
-                
-            case MOD_DELAY:
-            
-                txt = "new Delay";
-                newmod = new Delay();
-                break;
-                
-            case MOD_LFO:
-            
-                txt = "new LFO";
-                newmod = new LFO();
-                break;
-                
-            case MOD_RINGM:
-            
-                txt = "new Ringmod";
-                newmod = new Ringmod();
-                break;
-                
-            case MOD_TONE:
-            
-                txt = "new Tonestack";
-                newmod = new Tonestack();
-                break;
-                
-            case MOD_REV:
-            
-                txt = "new Reverb";
-                newmod = new Reverb();
-                break;
-                
-            case MOD_CHORUS:
-            
-                txt = "new Chorus";
-                newmod = new Chorus();
-                break;
-                
-            case MOD_COMP:
-                
-                txt = "new Compressor";
-                newmod = new Compressor();
-                break;
-                
-            default:
-            
-                throw string ("Invalid module type");
-                break;
-        }
-        
-    } catch(string const& e) {
-        
-        cout << e << endl;
-        return 1;
-    }
-    
-    txt.resize( 10, ' ' );
-	
-	list_.push_back(new Module_Node(newmod));
-    
-    cout << "Type : \"" << txt << "\" ID : \"" << list_[list_.size()-1]->get_id() << "\"";
-    cout << "     --OK" << endl;
-	
-	return 0;
-}
 int Module_Node_List::add_module(MODULE_TYPE mod, int id){
 	
 	while(count_ < (int)list_.size()) count_++;
@@ -225,49 +122,49 @@ int Module_Node_List::add_module(MODULE_TYPE mod, int id){
             case MOD_DRIVE:
             
                 txt = "Drive";
-                newmod = new Drive();
+                newmod = new Drive( id );
                 break;
                 
             case MOD_DELAY:
             
                 txt = "Delay";
-                newmod = new Delay();
+                newmod = new Delay( id );
                 break;
                 
             case MOD_LFO:
             
                 txt = "LFO";
-                newmod = new LFO();
+                newmod = new LFO( id );
                 break;
                 
             case MOD_RINGM:
             
                 txt = "Ringmod";
-                newmod = new Ringmod();
+                newmod = new Ringmod( id );
                 break;
                 
             case MOD_TONE:
             
                 txt = "Tonestack";
-                newmod = new Tonestack();
+                newmod = new Tonestack( id );
                 break;
                 
             case MOD_REV:
             
                 txt = "Reverb";
-                newmod = new Reverb();
+                newmod = new Reverb( id );
                 break;
                 
             case MOD_CHORUS:
             
                 txt = "Chorus";
-                newmod = new Chorus();
+                newmod = new Chorus( id );
                 break;
                 
             case MOD_COMP:
                 
                 txt = "Compressor";
-                newmod = new Compressor();
+                newmod = new Compressor( id );
                 break;
                 
             default:
@@ -287,7 +184,7 @@ int Module_Node_List::add_module(MODULE_TYPE mod, int id){
     i.resize( 3, ' ' );
     cout << "Type : " << txt << "  ID : " << i << " -- OK" << endl;
 	
-	list_.push_back(new Module_Node(newmod, id) );
+	list_.push_back( newmod );
 	
 	return 0;
 }
@@ -308,8 +205,8 @@ int Module_Node_List::add_connection(short source_id, short is, short target_id,
     
     if ( this->get(source_id) == NULL || this->get(target_id) == NULL ) return 1;
 
-    Module *source = (source_id == BEGIN_NODE)? begin_->get_module():this->get(source_id)->get_module();
-    Module *target = (target_id == END_NODE  )? end_->get_module()  :this->get(target_id)->get_module();
+    Module *source = (source_id == BEGIN_NODE)? begin_:this->get(source_id);
+    Module *target = (target_id == END_NODE  )? end_  :this->get(target_id);
     
     const char *source_port;
     const char *target_port;
@@ -365,8 +262,8 @@ int Module_Node_List::del_connection(short source_id, short is, short target_id,
     
     if ( this->get(source_id) == NULL || this->get(target_id) == NULL ) return 1;
 	
-    Module *source = (source_id == BEGIN_NODE)? begin_->get_module():this->get(source_id)->get_module();
-    Module *target = (target_id == END_NODE  )? end_->get_module()  :this->get(target_id)->get_module();
+    Module *source = (source_id == BEGIN_NODE)? begin_:this->get(source_id);
+    Module *target = (target_id == END_NODE  )? end_  :this->get(target_id);
     
     const char *source_port;
     const char *target_port;
@@ -409,16 +306,16 @@ void Module_Node_List::mute( bool m ){
     mute_ = m;
     if ( mute_ ){
         
-        outvl_ = end_->get_module()->get_param( END_LEFT );
-        outvr_ = end_->get_module()->get_param( END_RIGHT );
+        outvl_ = end_->get_param( END_LEFT );
+        outvr_ = end_->get_param( END_RIGHT );
         
-        end_->get_module()->set_param( END_LEFT , 0.0f );
-        end_->get_module()->set_param( END_RIGHT, 0.0f );
+        end_->set_param( END_LEFT , 0.0f );
+        end_->set_param( END_RIGHT, 0.0f );
     }
     else{
         
-        end_->get_module()->set_param( END_LEFT , outvl_ );
-        end_->get_module()->set_param( END_RIGHT, outvr_ );
+        end_->set_param( END_LEFT , outvl_ );
+        end_->set_param( END_RIGHT, outvr_ );
     }
 }
 
@@ -431,7 +328,7 @@ void Module_Node_List::next_bank(){
     
     for ( Module_iterator itr = list_.begin() ; itr != list_.end(); itr++ ){
         
-        (*itr)->get_module()->next_bank();
+        (*itr)->next_bank();
     }
 }
 
@@ -439,11 +336,11 @@ void Module_Node_List::prev_bank(){
     
     for ( Module_iterator itr = list_.begin() ; itr != list_.end(); itr++ ){
         
-        (*itr)->get_module()->prev_bank();
+        (*itr)->prev_bank();
     }
 }
 
-Module_Node* Module_Node_List::get( int id ){
+Module* Module_Node_List::get( int id ){
 
     if ( id == END_NODE ) return end_;
     
@@ -461,8 +358,8 @@ void Module_Node_List::set_out_volume( float vol ){
 
     outv_ = vol;
     
-    end_->get_module()->set_param( END_LEFT , vol );
-    end_->get_module()->set_param( END_RIGHT, vol );
+    end_->set_param( END_LEFT , vol );
+    end_->set_param( END_RIGHT, vol );
 }
 void Module_Node_List::connection_add(Connection c){
 	

@@ -43,6 +43,16 @@ namespace {
     const string NODE_BUTTON("Button");
 
     const string TAB("    ");
+
+    /*
+    typedef unsigned char hex2_t;
+    typedef unsigned int  hex4_t;
+
+    const hex4_t FLAG_FILE_PRESSET  = 0xfff0;
+    const hex2_t FLAG_PARSER_ID     = 0xa0;
+
+    const hex2_t FLAG_MODULE        = 0x0a;
+    */
 }
 
 /*
@@ -70,7 +80,7 @@ int save_preset(string const name, Module_Node_List *list, IO_Potentiometer pot[
             // Write module node for each module
             for ( Module_iterator itr = list->list_.begin() ; itr != list->list_.end(); itr++ ){
                 
-                Module* mod = (*itr)->get_module();
+                Module* mod = (*itr);
                 
                 // Open node and indicate module type
                 flux << NODE_MODULE << "={" << endl;
@@ -538,11 +548,11 @@ int load_preset(string const name, Module_Node_List* & list, IO_Potentiometer po
                                 
                                 if ( cur_bak == 0 ){
                                     
-                                    list->list_[cur_mod]->get_module()->set_param( dat_size, dat_buff );
+                                    list->list_[cur_mod]->set_param( dat_size, dat_buff );
                                 }
                                 else{
                                     
-                                    list->list_[cur_mod]->get_module()->add_bank( dat_size, dat_buff );
+                                    list->list_[cur_mod]->add_bank( dat_size, dat_buff );
                                 }
                             }
                             else{
@@ -726,7 +736,7 @@ int load_preset(string const name, Module_Node_List* & list, IO_Potentiometer po
         return 1;
     }
 
-	return is_load_ok;
+	return !is_load_ok;
 }
 
 int load_module(string const name, Module* mod, bool del){

@@ -1,10 +1,13 @@
 #include "Chorus.h"
-Chorus::Chorus():Module(MOD_CHORUS, CHORUS_PARAMS_COUNT,
+Chorus::Chorus( int id ):Module(MOD_CHORUS, id, CHORUS_PARAMS_COUNT,
     1+MAX_CHORUS_SIZE, 1, 0, 0, "In", "Mod-1", "Mod-2", "Mod-3", "Mod-4", "Mod-5", "Out"),
-    samplerate_(jack_get_sample_rate(client_))
+    samplerate_(jack_get_sample_rate(client_)),
+    ramp1_(0),
+    ramp2_(0.5f),
+    dr_(0)
 {
 
-    buffer_ = new Buffer_M( CHORUS_BUFFER, this->samplerate_, MAX_CHORUS_SIZE, (int*)CHORUS_DELAYS_LENGTH );
+    buffer_ = new Buffer_A( CHORUS_BUFFER, this->samplerate_, 2*MAX_CHORUS_SIZE, (int*)CHORUS_DELAYS_LENGTH );
 	this->set_param(MOD_COUNT + CHORUS_PARAMS_COUNT, CHORUS_DEFAULT_PARAMS);
     
     if (jack_activate(this->client_)) {
@@ -38,15 +41,6 @@ inline int Chorus::do_process(jack_nframes_t nframes){
 
             mod[j] = (sample_t*)jack_port_get_buffer(audio_in_[1+j], nframes);
         }
-        /*
-        if ( 
-        sample_t *mods[mod_port_.size()];
-        for ( int j = 0; j < mod_port_.size(); j++ ){
-            
-            mods[j]  = (sample_t*) jack_port_get_buffer( mod_port_[j], nframes );
-            
-        }
-        */
         
         float vol = param_[MOD_VOLUME];
         
@@ -55,14 +49,29 @@ inline int Chorus::do_process(jack_nframes_t nframes){
         
         
         for(jack_nframes_t i = 0; i < nframes; i++){
+
+            ramp1_ += dr_;
+            ramp2_ += dr_;
+            float han1 = 0.5f - 0.5f*cos( 2 * M_PI * ramp1_ );
+            float han2 = 1 - han1;
             
             sample_t w = 0;
-            for(int k = 0; k < size; k++)
-                w += depths[k] * buffer_->read(k, 1 + (dph * mod[k][i]));
+            // Perform Granular synthetisis
+            for(int k = 0; k < size; k++){
+
+                if ( ramp1_ > 1 ) buffer_->sync( 2*k );
+                if ( ramp2_ > 1 ) buffer_->sync( 2*k + 1 );
+                
+                w += han1 * depths[k] * buffer_->read(2*k   , 1 + (dph * mod[k][i]));
+                w += han2 * depths[k] * buffer_->read(2*k +1, 1 + (dph * mod[k][i]));
+            }
             
             buffer_->write(in[i]);
             
             out[i] = vol * spi_dry_wet(in[i], w / (float)size, dw);
+
+            ramp1_ = fmod( ramp1_, 1.0f );
+            ramp2_ = fmod( ramp2_, 1.0f );
         }
         
     }else{
@@ -72,18 +81,6 @@ inline int Chorus::do_process(jack_nframes_t nframes){
 
     return 0;
 }
-
-/*
-int Chorus::bypass(jack_nframes_t nframes, void *arg){
-
-    sample_t *in, *out;
-    in  = (sample_t*)jack_port_get_buffer( audio_in_[0], nframes);	// Collecting input buffer
-    out = (sample_t*)jack_port_get_buffer( audio_out_[0], nframes);	// Collecting output buffer
-    memcpy(out, in, sizeof(sample_t) * nframes);
-    
-    return 0;
-}
-*/
 
 void Chorus::change_param(int idx, float value){
     
@@ -111,19 +108,30 @@ void Chorus::change_param(int idx, float value){
         
         delete d;
     }
+    else if ( idx == CHORUS_WINDOW ){
+
+        ramp1_ = 0;
+        ramp2_ = 0.5f;
+        dr_ = 1000.0f / (value * (float)samplerate_);
+    }
 }
 
 void Chorus::change_param(const float *values){
-    
-    int *d = new int[MAX_CHORUS_SIZE];
+
+    /*
+    int *d = new int[2*MAX_CHORUS_SIZE];
     for( int i = 0; i < MAX_CHORUS_SIZE; i++ ){
         
-        d[i] = (int)param_[CHORUS_DELAY + i];
+        d[i] = (int)param_[CHORUS_DELAY + i/2];
     }
         
-    buffer_->set_reader( MAX_CHORUS_SIZE, d, samplerate_ );
-    
-    delete d;
+    buffer_->set_reader( 2*MAX_CHORUS_SIZE, d, samplerate_ );
+    */
+    ramp1_ = 0;
+    ramp2_ = 0.5f;
+    dr_ = 1000.0f / (param_[CHORUS_WINDOW] * (float)samplerate_);
+        
+    //delete d;
 }
 
 void Chorus::new_bank(){

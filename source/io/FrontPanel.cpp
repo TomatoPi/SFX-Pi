@@ -47,7 +47,7 @@ namespace{
                                 IO_Adress( HEX_FOOT_PREV, false, false ) );
                                 
     const int but_foot_count = 2;
-    const IO_Button buts_foot[but_foot_count] = { But_f_next, But_f_prev };
+    IO_Button buts_foot[but_foot_count] = { But_f_next, But_f_prev };
 
     /******************************************************************
      *                      Potentiometers Stuff
@@ -210,7 +210,7 @@ void io_update_frontPanel( Module_Node_List* & graph ){
             for ( int i = 0; i < but_foot_count; i++ ){
                 
                 // Get Correct Register
-                IO_Adress cur_adr = buts_menu[i].get_adr
+                IO_Adress cur_adr = buts_foot[i].get_adr();
                 hex_reg cur_reg = 0;
                 hex_reg l_reg = 0;
                 // If button is on MCP1
@@ -225,15 +225,15 @@ void io_update_frontPanel( Module_Node_List* & graph ){
                 }
                 
                 // If button state has changed
-                if ( !func_compare_reg( cur_reg, l_reg, cur_adr.adr_ ){
+                if ( !func_compare_reg( cur_reg, l_reg, cur_adr.adr_ ) ){
                     
                     bool state = func_get_reg( cur_reg, cur_adr.adr_);
-                    IO_PUSH_TYPE cur_type = buts_menu[i].get_type();
+                    IO_PUSH_TYPE cur_type = buts_foot[i].get_type();
                     
                     if ( ( state && cur_type == PUSH ) || ( !state && cur_type == PULL )
                         || ( cur_type == PP ) )
                     {
-                        buts_menu[i].compute( graph );
+                        buts_foot[i].compute( graph );
                     }
                 }
             }

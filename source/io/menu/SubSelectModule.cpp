@@ -86,7 +86,7 @@ void main_select_module_enter( Module_Node_List* graph ){
 
     cout << "Menu : Enter Select Module" << endl;
     current_id = -1;
-    current_module = graph->end();
+    current_module = graph->list_.end();
 }
 
 MenuIterator main_select_module_do( Move_flag action, MenuIterator itr, Module_Node_List* & graph, IO_Potentiometer pot[SPI_POTAR_COUNT] ){

@@ -41,7 +41,7 @@ string modtype_to_string(MODULE_TYPE type){
 	}
 }
 
-Module::Module( MODULE_TYPE type, int pc, int ai, int ao, int mi, int mo, ...):
+Module::Module( MODULE_TYPE type, int id, int pc, int ai, int ao, int mi, int mo, ...):
     type_(type),
     is_bypassed_(false),
     ai_(ai),
@@ -49,7 +49,8 @@ Module::Module( MODULE_TYPE type, int pc, int ai, int ao, int mi, int mo, ...):
     mi_(mi),
     mo_(mo),
     param_c_(MOD_COUNT + pc),
-    bank_idx_(0)
+    bank_idx_(0),
+    id_(id)
 {
     
     /*
@@ -89,12 +90,12 @@ Module::Module( MODULE_TYPE type, int pc, int ai, int ao, int mi, int mo, ...):
     *   Register ports  -------------------------------------------------------
     */
     // Alloc arrays
-    cout << "Name : " << name_ << "Alloc ports : ";
+    //cout << "Name : " << name_ << "Alloc ports : ";
     audio_in_  = new jack_port_t*[ai];
     audio_out_ = new jack_port_t*[ao];
     midi_in_   = new jack_port_t*[mi];
     midi_out_  = new jack_port_t*[mo];
-    cout << ai << " " << ao << " " << mi << " " << mo << " -- ";
+    //cout << ai << " " << ao << " " << mi << " " << mo << " -- ";
     
     // Register ports
     int count = ai+ao+mi+mo;
@@ -475,4 +476,9 @@ void Module::del_mod(int idx){
         jack_port_unregister( client_, mod_port_[idx] );
         mod_port_.erase( mod_port_.begin() + idx );
     }
+}
+
+int Module::get_id() const{
+    
+    return id_;
 }

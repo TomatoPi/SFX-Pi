@@ -7,7 +7,7 @@ int delay_Process_Callback(jack_nframes_t nframes, void *u){
 	return static_cast<Delay*>(u)->process_2(nframes, u);
 }
 
-Delay::Delay():Module(MOD_DELAY, DELAY_PARAMS_COUNT,
+Delay::Delay( int id ):Module(MOD_DELAY, id, DELAY_PARAMS_COUNT,
     2, 2, 0, 0, "In", "Return", "Out", "Send"),
     samplerate_(jack_get_sample_rate(client_))
 {

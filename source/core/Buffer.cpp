@@ -1,9 +1,7 @@
 #include "Buffer.h"
-/*
-*	---------------------------------------------------------------------------
-*	Basic buffer stuff
-*	---------------------------------------------------------------------------
-*/
+/**********************************************************************
+ *	                    Basic buffer stuff
+***********************************************************************/
 Buffer::Buffer(int length, int samplerate){
 
 	this->size_ = spi_mstos(length, samplerate);
@@ -244,4 +242,38 @@ void Buffer_R::write( sample_t data ){
     // Move write head
     write_i_ = (write_i_ + 1) % size_;
     
+}
+
+/**********************************************************************
+ *                      Anchored Buffer
+ **********************************************************************/
+Buffer_A::Buffer_A(int length, int samplerate, int count, int *delay):
+    Buffer_M( length, samplerate, count, delay )
+{
+
+    read_anchor_ = new float[count];
+    
+    memcpy( read_anchor_, read_i_, count * sizeof( float ) );
+}
+
+Buffer_A::~Buffer_A(){
+
+    delete read_anchor_;
+}
+
+sample_t Buffer_A::read(int idx, float speed){
+
+    if ( idx < count_ ){
+
+        read_anchor_[idx] = fmod(read_anchor_[idx] + 1, size_);
+    }
+    return Buffer_M::read( idx, speed );
+}
+
+void Buffer_A::sync( int idx ){
+
+    if ( idx < count_ && idx >= 0 ){
+        
+        read_i_[idx] = read_anchor_[idx];
+    }
 }

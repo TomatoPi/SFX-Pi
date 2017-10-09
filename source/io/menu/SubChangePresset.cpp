@@ -131,7 +131,18 @@ MenuIterator main_change_presset_do( Move_flag action, MenuIterator itr, Module_
         }
     }
     else if ( action == MOVE_ADD ){
-        
+
+        if ( presset_list.size() != 0 ){
+            
+            if ( save_preset( (*current_presset),
+                        graph, pot) )
+            {
+                IOS::printm( "ErrSavePrst", IOS::DEFAULT_TEMP, IOS::TEMP );
+            }
+            else{
+                IOS::printm( "SaveSuccess", IOS::DEFAULT_TEMP, IOS::TEMP );
+            }
+        }
     }
     else if ( action == MOVE_DEL ){
         

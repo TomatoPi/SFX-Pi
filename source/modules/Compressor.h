@@ -25,7 +25,7 @@ class Compressor : public Module{
     
     public :
     
-        Compressor();
+        Compressor( int id );
         
     protected :
 		

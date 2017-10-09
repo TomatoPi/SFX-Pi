@@ -56,7 +56,8 @@ typedef enum{
     
     SOFT_CLIP   =0,
     HARD_CLIP   =1,
-    POW2        =2
+    POW2        =2,
+    VAR_SOFT    =3
 }DISTORTION_FORM;
 
 /**
@@ -68,7 +69,7 @@ class Drive : public Module{
 	
 	public:	
 		
-		Drive();
+		Drive( int id );
 		//virtual int bypass(jack_nframes_t nframes, void *arg);
 	
 	protected :

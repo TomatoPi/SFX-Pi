@@ -67,8 +67,6 @@ typedef std::vector<float*> ModBank;
 #define MOD_BYPASS 0
 #define MOD_VOLUME 1
 
-class Accessor;
-
 /*
 *	Basic class for all modules
 */
@@ -91,7 +89,7 @@ class Module{
         *   @param mo unmber of midi outputs
         *   @param ... names of ports in order
         */
-		Module( MODULE_TYPE type, int pc, int ai, int ao, int mi, int mo, ... );
+		Module( MODULE_TYPE type, int id, int pc, int ai, int ao, int mi, int mo, ... );
 		virtual ~Module();
 		
         /**
@@ -252,6 +250,8 @@ class Module{
         */
         void del_mod(int idx);
         
+        int get_id() const;
+        
 	protected:
     
         virtual inline int do_process(jack_nframes_t nframes) { return 0; };
@@ -282,6 +282,8 @@ class Module{
         int bank_idx_;  /**< Curent bank index */
         
         std::vector<jack_port_t*> mod_port_; /**< vector of modulation ports */
+        
+        int id_;
 };
 
 typedef enum{
@@ -375,42 +377,9 @@ typedef std::vector<Connection> Connection_List;
 typedef Connection_List::iterator Connection_iterator;
 
 /**
-*   Module node class.
-*	Contain a module it's accessors and it's connections
-*/
-class Module_Node{
-	
-	public :
-		
-		/**
-		*	Module node constructor
-        *   @param mod pointer to the node's module
-		*/
-		Module_Node(Module* mod);
-        Module_Node(Module* mod, int id);
-		~Module_Node();
-		
-		
-		
-		/**
-		*	Get node's module
-        *   @return pointer to node's module
-		*/
-		Module* 		get_module() const;
-        
-        int get_id() const;
-		
-    protected :
-    
-		Module *_mod;
-        
-        int id_;
-};
-
-/**
 *	Alias for vector of Module nodes
 */
-typedef std::vector<Module_Node*> Module_List;
+typedef std::vector<Module*> Module_List;
 typedef Module_List::iterator Module_iterator;
 
 #define END_NODE -55
@@ -444,7 +413,6 @@ class Module_Node_List{
         *   @param mod type of module to add_accessor
         *   @return 0 on success
         */
-        int add_module(MODULE_TYPE mod);
         int add_module(MODULE_TYPE mod, int id);
 
         /**
@@ -495,7 +463,7 @@ class Module_Node_List{
         * It id it given at node creation and will never change
         * @param id module's id
         */
-        Module_Node* get( int id );
+        Module* get( int id );
         
         /**
         *   Add, remove or get connection at i
@@ -510,7 +478,7 @@ class Module_Node_List{
         Module_List list_;
         int count_;
         
-        Module_Node *begin_, *end_;
+        Module *begin_, *end_;
         
     protected :
         

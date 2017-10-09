@@ -1,0 +1,135 @@
+Preset={
+    Name=Homeworld
+    Version=1.2
+}
+Module={
+    Type=7
+    ID=0
+    Bank={
+        Size=9
+        Data={ 0 1 2.25 200 400 0.01 1 0.0031 1 }
+    }
+}
+Module={
+    Type=0
+    ID=1
+    Bank={
+        Size=18
+        Data={ 0 1 0 0 0 1 1 0 0 0 0 0 0 350 1500 0.5 6.4 13.2 }
+    }
+}
+Module={
+    Type=4
+    ID=2
+    Bank={
+        Size=7
+        Data={ 0 0.3 150 800 0.5 3.1 10.1 }
+    }
+}
+Module={
+    Type=1
+    ID=3
+    Bank={
+        Size=5
+        Data={ 0 1 641 0.5 0.4 }
+    }
+}
+Module={
+    Type=6
+    ID=4
+    Bank={
+        Size=16
+        Data={ 0 1 0.02 0.8 2 1000 10 13 18 23 28 1 1 1 1 1 }
+    }
+}
+Module={
+    Type=2
+    ID=5
+    Bank={
+        Size=10
+        Data={ 0 1 0 4.3 0 1 0 0 0.8 0.25 }
+    }
+}
+Module={
+    Type=0
+    ID=11
+    Bank={
+        Size=18
+        Data={ 0 1 0 0 0 1 1 0 0 0 0 0 0 600 5000 0.5 6.4 16.2 }
+    }
+}
+Module={
+    Type=4
+    ID=12
+    Bank={
+        Size=7
+        Data={ 0 0.3 150 800 0.5 3.1 10.1 }
+    }
+}
+Module={
+    Type=1
+    ID=13
+    Bank={
+        Size=5
+        Data={ 0 1 427 0.5 0.4 }
+    }
+}
+Module={
+    Type=6
+    ID=14
+    Bank={
+        Size=16
+        Data={ 0 1 -0.02 0.8 2 1000 10 13 18 23 28 1 1 1 1 1 }
+    }
+}
+Module={
+    Type=2
+    ID=15
+    Bank={
+        Size=10
+        Data={ 0 1 2 2.5 0 1 0 0 0.8 0.75 }
+    }
+}
+Module={
+    Type=4
+    ID=20
+    Bank={
+        Size=7
+        Data={ 0 1 300 5000 0.05 0.5 1 }
+    }
+}
+Module={
+    Type=4
+    ID=30
+    Bank={
+        Size=7
+        Data={ 0 1 300 5000 0.05 0.5 1 }
+    }
+}
+Connection={ -98 0   0 0 }
+
+Connection={   0 0   3 0 }
+Connection={   3 0   1 0 }
+Connection={   1 0   2 0 }
+Connection={   2 0   4 0 }
+Connection={   4 0 -55 0 }
+
+Connection={   5 0   4 1 }
+Connection={  15 0   4 2 }
+
+Connection={   0 0  13 0 }
+Connection={  13 0  11 0 }
+Connection={  11 0  12 0 }
+Connection={  12 0  14 0 }
+Connection={  14 0 -55 1 }
+
+Connection={  15 0  14 1 }
+Connection={   5 0  14 2 }
+
+Connection={  21 0  20 1 }
+Connection={  31 0  30 1 }
+
+Connection={   3 1  20 0 }
+Connection={  20 0  13 1 }
+Connection={  13 1  30 0 }
+Connection={  30 0   3 1 }

@@ -29,7 +29,7 @@ class EndModule : public Module{
         *   @param server JACK server
         *   @param t module type, MOD_FIRST for capture module or MOD_LAST for playback module
         */
-        EndModule( MODULE_TYPE t );
+        EndModule( MODULE_TYPE t, int id );
         
         /**
         *   Function called by main loop for verify if output is staturated
