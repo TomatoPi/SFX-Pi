@@ -3,7 +3,7 @@
 
 #include "mcp23017.h"
 
-#include "../core/Modules.h"
+#include "../core/ModulesGraph.h"
 
 #include "./menu/Menu.h"
 
@@ -16,13 +16,13 @@
 *   Set coresponding ports to inputs and reverse their state
 *   @param version current program version
 */
-void io_init_frontPanel();
+int io_init_frontPanel();
 
 /**
 *   Check if a front button has been pushed.
-* 	@param graph pointer to process graph
-* 	@param pot potentiometers array
+*   @param graph pointer to process graph
+*   @param pot potentiometers array
 */
-void io_update_frontPanel( Module_Node_List* & graph );
+void io_update_frontPanel();
 
 #endif

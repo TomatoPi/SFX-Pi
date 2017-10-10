@@ -82,24 +82,24 @@ void func_exit_select_module(){
  *      Main node
  **********************************************************************/
 
-void main_select_module_enter( Module_Node_List* graph ){
+void main_select_module_enter(){
 
     cout << "Menu : Enter Select Module" << endl;
     current_id = -1;
-    current_module = graph->list_.end();
+    current_module = Module_Node_List::Get().list_.end();
 }
 
-MenuIterator main_select_module_do( Move_flag action, MenuIterator itr, Module_Node_List* & graph, IO_Potentiometer pot[SPI_POTAR_COUNT] ){
+MenuIterator main_select_module_do( Move_flag action, MenuIterator itr, IO_Potentiometer pot[SPI_POTAR_COUNT] ){
 
     if ( action == MOVE_UP ){
         
         itr.prev();
-        (*itr.get().enter_)( graph );
+        (*itr.get().enter_)();
     }
     else if ( action == MOVE_DOWN ){
         
         itr.next();
-        (*itr.get().enter_)( graph );
+        (*itr.get().enter_)();
     }
     else if ( action == MOVE_NEXT ){
         
@@ -113,13 +113,13 @@ MenuIterator main_select_module_do( Move_flag action, MenuIterator itr, Module_N
 
         // If current module is selected enter, else do nothing
         itr.child();
-        (*itr.get().enter_)( graph );
+        (*itr.get().enter_)();
     }
     else if ( action == MOVE_ESC ){
 
         // Clear curent positions inside menu;
         itr.parent();
-        (*itr.get().enter_)( graph );
+        (*itr.get().enter_)();
     }
     return itr;
 }
@@ -132,27 +132,27 @@ MenuIterator main_select_module_do( Move_flag action, MenuIterator itr, Module_N
 /**
  * Change Current Bank
  */
-void selmod_change_bank_enter( Module_Node_List* graph ){
+void selmod_change_bank_enter(){
 
     cout << "Menu : Enter Select Bank" << endl;
 }
 
-MenuIterator selmod_change_bank_do( Move_flag action, MenuIterator itr, Module_Node_List* & graph, IO_Potentiometer pot[SPI_POTAR_COUNT] ){
+MenuIterator selmod_change_bank_do( Move_flag action, MenuIterator itr, IO_Potentiometer pot[SPI_POTAR_COUNT] ){
 
     if ( action == MOVE_UP ){
         
         itr.prev();
-        (*itr.get().enter_)( graph );
+        (*itr.get().enter_)();
     }
     else if ( action == MOVE_DOWN ){
         
         itr.next();
-        (*itr.get().enter_)( graph );
+        (*itr.get().enter_)();
     }
     else if ( action == MOVE_ESC ){
 
         itr.parent();
-        (*itr.get().enter_)( graph );
+        (*itr.get().enter_)();
     }
     return itr;
 }
@@ -160,27 +160,27 @@ MenuIterator selmod_change_bank_do( Move_flag action, MenuIterator itr, Module_N
 /**
  * Add new Bank
  */
-void selmod_add_bank_enter( Module_Node_List* graph ){
+void selmod_add_bank_enter(){
 
      cout << "Menu : Enter Add Bank" << endl;
 }
 
-MenuIterator selmod_add_bank_do( Move_flag action, MenuIterator itr, Module_Node_List* & graph, IO_Potentiometer pot[SPI_POTAR_COUNT] ){
+MenuIterator selmod_add_bank_do( Move_flag action, MenuIterator itr, IO_Potentiometer pot[SPI_POTAR_COUNT] ){
 
     if ( action == MOVE_UP ){
         
         itr.prev();
-        (*itr.get().enter_)( graph );
+        (*itr.get().enter_)();
     }
     else if ( action == MOVE_DOWN ){
         
         itr.next();
-        (*itr.get().enter_)( graph );
+        (*itr.get().enter_)();
     }
     else if ( action == MOVE_ESC ){
 
         itr.parent();
-        (*itr.get().enter_)( graph );
+        (*itr.get().enter_)();
     }
     return itr;
 }
@@ -188,32 +188,32 @@ MenuIterator selmod_add_bank_do( Move_flag action, MenuIterator itr, Module_Node
 /**
  * Edit Current Bank
  */
-void selmod_edit_bank_enter( Module_Node_List* graph ){
+void selmod_edit_bank_enter(){
 
      cout << "Menu : Enter Edit Bank" << endl;
 }
 
-MenuIterator selmod_edit_bank_do( Move_flag action, MenuIterator itr, Module_Node_List* & graph, IO_Potentiometer pot[SPI_POTAR_COUNT] ){
+MenuIterator selmod_edit_bank_do( Move_flag action, MenuIterator itr, IO_Potentiometer pot[SPI_POTAR_COUNT] ){
 
     if ( action == MOVE_UP ){
         
         itr.prev();
-        (*itr.get().enter_)( graph );
+        (*itr.get().enter_)();
     }
     else if ( action == MOVE_DOWN ){
         
         itr.next();
-        (*itr.get().enter_)( graph );
+        (*itr.get().enter_)();
     }
     else if ( action == MOVE_ENTER ){
 
         itr.child();
-        (*itr.get().enter_)( graph );
+        (*itr.get().enter_)();
     }
     else if ( action == MOVE_ESC ){
 
         itr.parent();
-        (*itr.get().enter_)( graph );
+        (*itr.get().enter_)();
     }
     return itr;
 }
@@ -225,22 +225,22 @@ MenuIterator selmod_edit_bank_do( Move_flag action, MenuIterator itr, Module_Nod
 /**
  * Select Current param
  */
-void selmod_editb_selpar_enter( Module_Node_List* graph ){
+void selmod_editb_selpar_enter(){
 
     cout << "Menu : Enter Select Param" << endl;
 }
 
-MenuIterator selmod_editb_selpar_do( Move_flag action, MenuIterator itr, Module_Node_List* & graph, IO_Potentiometer pot[SPI_POTAR_COUNT] ){
+MenuIterator selmod_editb_selpar_do( Move_flag action, MenuIterator itr, IO_Potentiometer pot[SPI_POTAR_COUNT] ){
 
     if ( action == MOVE_ENTER ){
 
         itr.child();
-        (*itr.get().enter_)( graph );
+        (*itr.get().enter_)();
     }
     else if ( action == MOVE_ESC ){
 
         itr.parent();
-        (*itr.get().enter_)( graph );
+        (*itr.get().enter_)();
     }
     return itr;
 }
@@ -248,17 +248,17 @@ MenuIterator selmod_editb_selpar_do( Move_flag action, MenuIterator itr, Module_
 /**
  * Modify Choosen Param
  */
-void selmod_editb_editpar_enter( Module_Node_List* graph ){
+void selmod_editb_editpar_enter(){
 
     cout << "Menu : Enter Edit Param" << endl;
 }
 
-MenuIterator selmod_editb_editpar_do( Move_flag action, MenuIterator itr, Module_Node_List* & graph, IO_Potentiometer pot[SPI_POTAR_COUNT] ){
+MenuIterator selmod_editb_editpar_do( Move_flag action, MenuIterator itr, IO_Potentiometer pot[SPI_POTAR_COUNT] ){
 
     if ( action == MOVE_ESC ){
 
         itr.parent();
-        (*itr.get().enter_)( graph );
+        (*itr.get().enter_)();
     }
     return itr;
 }

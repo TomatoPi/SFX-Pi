@@ -17,7 +17,7 @@
 *   Enum of avaiables ports types
 */
 enum MODULE_PORT_TYPE{
-    
+
     AUDIO_I,
     AUDIO_O,
     MIDI_I,
@@ -32,26 +32,9 @@ enum MODULE_PORT_TYPE{
 int mod_Process_Callback(jack_nframes_t nframes, void *u);
 
 /**
-*	Enum of all avaiable modules
+*   Get formated name of given module type
 */
-typedef enum{
-	
-	MOD_DRIVE	=0, 
-	MOD_DELAY   =1, 
-	MOD_LFO	    =2, 
-	MOD_RINGM	=3, 
-	MOD_TONE	=4, 
-	MOD_REV	    =5,
-	MOD_CHORUS	=6,
-    MOD_COMP    =7,
-    MOD_LAST,
-    MOD_FIRST
-}MODULE_TYPE;
-
-/**
-*	Get formated name of given module type
-*/
-std::string modtype_to_string(MODULE_TYPE type);
+//std::string modtype_to_string(MODULE_TYPE type);
 
 /**
 *   Alias for vector of param array used by modules.
@@ -68,12 +51,12 @@ typedef std::vector<float*> ModBank;
 #define MOD_VOLUME 1
 
 /*
-*	Basic class for all modules
+*   Basic class for all modules
 */
 class Module{
-	
-	public:
-    
+
+    public:
+
         /**
         *   Module basic constructor.
         *   It create jack client for module, alloc and register it's ports
@@ -89,9 +72,9 @@ class Module{
         *   @param mo unmber of midi outputs
         *   @param ... names of ports in order
         */
-		Module( MODULE_TYPE type, int id, int pc, int ai, int ao, int mi, int mo, ... );
-		virtual ~Module();
-		
+        Module( std::string name, int type, int id, int pc, int ai, int ao, int mi, int mo, ... );
+        virtual ~Module();
+
         /**
         *   Process callback called by jack when module is active
         *
@@ -99,37 +82,37 @@ class Module{
         *   @param arg pointer to this module, unused
         *   @return 0
         */
-		int process(jack_nframes_t nframes, void *arg);
-	
+        int process(jack_nframes_t nframes, void *arg);
+
         /**
         *   Set module status
         *   @param state true for bypass module
         */
-		void 	set_bypass(bool state);
+        void    set_bypass(bool state);
         /**
         *   Get module status
         *   @return true if module is bypassed
         */
-		bool 	get_bypass() const;
-		
+        bool    get_bypass() const;
+
         /**
         *   Get module JACK's client
         *   @return module's client
         */
-		jack_client_t* 	get_client() const;
-		
+        jack_client_t*  get_client() const;
+
         /**
         *   Get module's type
         *   @return module's type
         */
-		MODULE_TYPE get_type();
-        
+        int get_type();
+
         /**
         *   Get module's name
         *   @return module's name
         */
-        char* get_name();
-        
+        std::string get_name();
+
         /**
         *   Change a single module's param.
         *   Check if given idx corrspond to a param, do nothing if not
@@ -145,7 +128,7 @@ class Module{
         *   @param values params array
         */
         void set_param(int count, const float *values);
-        
+
         /**
         *   Get number of parameters
         *   @return number of params
@@ -157,7 +140,7 @@ class Module{
         *   @return given param value or 0 if not found
         */
         float get_param(int idx) const;
-        
+
         /**
         *   Get formated name of given param.
         *   Used in user interface for navigate between params
@@ -166,7 +149,7 @@ class Module{
         *   @return param's name or empty string if index is not valid
         */
         std::string get_param_name(int idx);
-        
+
         /**
         *   Get parame name followed by it value.
         *   Returned string is maximum 11 caracters long for screen
@@ -174,7 +157,7 @@ class Module{
         *   @return formated string or NONE if given param not found
         */
         std::string get_formated_param(int idx);
-        
+
         /**
         *   Get module's port.
         *   @param type port's type
@@ -183,7 +166,7 @@ class Module{
         *   @see MODULE_PORT_TYPE
         */
         jack_port_t* get_port(MODULE_PORT_TYPE type, int idx);
-        
+
         /**
         *   Get number of given port type
         *   @param type port's type
@@ -191,7 +174,7 @@ class Module{
         *   @see MODULE_PORT_TYPE
         */
         int get_port_count(MODULE_PORT_TYPE type);
-        
+
         /**
         *   Add a bank to the module.
         *   @see ModBank
@@ -199,12 +182,12 @@ class Module{
         *   @param bank bank to add
         */
         void add_bank(int size, const float *bank);
-        
+
         /**
         *   Add a bank with default params values to the module.
         */
         void add_bank();
-        
+
         /**
         *   Remove current bank from module.
         */
@@ -239,7 +222,7 @@ class Module{
         *   @return current bank index
         */
         int get_bank();
-        
+
         /**
         *   Add modulation port
         */
@@ -249,54 +232,53 @@ class Module{
         *   @param idx port's index to remove
         */
         void del_mod(int idx);
-        
+
         int get_id() const;
-        
-	protected:
-    
+
+    protected:
+
         virtual inline int do_process(jack_nframes_t nframes) { return 0; };
-    
+
         virtual void change_param(int idx, float value) {}; /**< @see set_param(int idx, float value) */
         virtual void change_param(const float *values)  {}; /**< @see set_param(float *values) */
-    
+
         virtual std::string return_param_name(int idx)     { return std::string(""); };   /**< @see get_param_name(int idx) */
         virtual std::string return_formated_param(int idx) { return std::string(""); };   /**< @see get_formated_param(int idx) */
-    
+
         virtual void new_bank() {};    /**< @see add_bank() */
-    
-		jack_client_t 	*client_;	/**< JACK's Client */
-		char* 			name_;		/**< Client unique name */
-		MODULE_TYPE 	type_;		/**< Module's type */
-		
-		bool 			is_bypassed_;	/**< True if Module is bypassed */
-        
+
+        jack_client_t   *client_;   /**< JACK's Client */
+        char*           name_;      /**< Client unique name */
+        int             type_;      /**< Module's type */
+
+        bool            is_bypassed_;   /**< True if Module is bypassed */
+
         jack_port_t **audio_in_, **audio_out_;  /**< JACK's audio ports */
         int ai_, ao_;                           /**< number of audio ports*/
         jack_port_t **midi_in_, **midi_out_;    /**< JACK's midi ports */
         int mi_, mo_;                           /**< number of midi ports*/
-        
+
         float *param_;  /**< Pointer to current's bank begin */
         int param_c_;   /**< Number of params */
-        
+
         ModBank bank_;  /**< Vector of avaiable params sets */
         int bank_idx_;  /**< Curent bank index */
-        
+
         std::vector<jack_port_t*> mod_port_; /**< vector of modulation ports */
-        
+
         int id_;
 };
 
 typedef enum{
-	
-	CURVE_LIN,
-	CURVE_SIG,
-	CURVE_COS
+
+    CURVE_LIN,
+    CURVE_SIG,
+    CURVE_COS
 }IO_CURVE;
 
-float curve_lin(float v);	//	Identity tranfer function
-float curve_sig(float v);	//	Tanh transfert function scaled between 0 and 1
-float curve_cos(float v);	//	Hanning window function
-//float curveihan(float v);	//	1 - Hanning window
+float curve_lin(float v);   //  Identity tranfer function
+float curve_sig(float v);   //  Tanh transfert function scaled between 0 and 1
+float curve_cos(float v);   //  Hanning window function
 
 /**
 *   Accessor are structure that store values for modify parameters dynamically
@@ -307,9 +289,9 @@ float curve_cos(float v);	//	Hanning window function
 *   A trasfert curve between modulation signal and modulated param
 */
 class Accessor{
- 
-	public :
-	
+
+    public :
+
         /**
         *   Accessor constructor
         *
@@ -321,8 +303,8 @@ class Accessor{
         *   @param isdb true if min and max are in db
         *   @param isrelative true if modulation is relative to param value
         */
-		Accessor(int target=-1, int targetp=-1, float min=-1, float max=-1, IO_CURVE curve=CURVE_LIN, bool isdb=false, bool isrelative=false);
-        
+        Accessor(int target=-1, int targetp=-1, float min=-1, float max=-1, IO_CURVE curve=CURVE_LIN, bool isdb=false, bool isrelative=false);
+
         /**
         *   Function that map input.
         *
@@ -331,7 +313,7 @@ class Accessor{
         *   @return modulated param
         */
         float compute( float input , float ref );
-        
+
         /**
         *   Get current accessor's curve
         *   @return current accessor curve
@@ -342,154 +324,20 @@ class Accessor{
         *   @param new curve
         */
         void set_curve( IO_CURVE curve );
-	
+
         int target_;
         int targetp_;
-        
+
         float min_;
         float max_;
-        
+
         bool isdb_;
         bool isrlt_;
-    
-	private :
-    
-		float (*curve_func_)(float value);
+
+    private :
+
+        float (*curve_func_)(float value);
         IO_CURVE curve_;
-};
-
-/**
-*   Connection struct.
-*   Store the signature of a JACK connection between two modules
-*/
-typedef struct{
-	
-	short s;    /**< Source's index */
-	short sp;   /**< Source's port index */
-	short t;    /**< Target's index */
-	short tp;   /**< Target's port index */
-}Connection;
-
-/**
-*	Alias for vector of Connection
-*/
-typedef std::vector<Connection> Connection_List;
-typedef Connection_List::iterator Connection_iterator;
-
-/**
-*	Alias for vector of Module nodes
-*/
-typedef std::vector<Module*> Module_List;
-typedef Module_List::iterator Module_iterator;
-
-#define END_NODE -55
-#define BEGIN_NODE -98
-
-/**
-*   Main graph class.
-*/
-class Module_Node_List{
-	
-	public :
-    
-        /**
-         * Module Graph Constructor.
-         * @param tmp : true for create a temp graph, without input and output nodes
-         */
-        Module_Node_List();
-        /**
-         * Copy constructor of module node list
-         * It only copy Graph and connections, but don't copy begin and
-         * end modules
-         */
-        void copy( Module_Node_List* graph );
-        
-        ~Module_Node_List();
-    
-        /**
-        *   Main function used to create new module.
-        *   Instantiate a new module of given type and add it to the graph
-        *   
-        *   @param mod type of module to add_accessor
-        *   @return 0 on success
-        */
-        int add_module(MODULE_TYPE mod, int id);
-
-        /**
-        *   Remove module at idx.
-        *   
-        *   @param idx index of module to remove
-        *   @return 0 on success
-        */
-        int del_module(int idx);
-
-        /**
-        *   Function for connect two module nodes.
-        *	
-        *	source_idx = -1 for System_Capture ports
-        *	target_idx = -1 for System_Playback ports
-        */
-        int add_connection(short source_id, short is, short target_id, short id);
-        int add_connection( Connection c );
-        int del_connection(short source_id, short is, short target_id, short id);
-        
-        /**
-        *   Disable output from graph.
-        *   @param m true for mute graph ( set output volume to 0 )
-        */
-        void mute( bool m );
-        /**
-        *   @return true if graph is muted
-        */
-        bool mute();
-        
-        /**
-        *   Cycle to next bank for all modules
-        */
-        void next_bank();
-        
-        /**
-        *   Cycle to prev bank for all modules
-        */
-        void prev_bank();
-        
-        /**
-        * Change output volume
-        */
-        void set_out_volume( float vol );
-        
-        /**
-        * Get node by it id
-        * It id it given at node creation and will never change
-        * @param id module's id
-        */
-        Module* get( int id );
-        
-        /**
-        *   Add, remove or get connection at i
-        */
-		void			connection_add(Connection c);
-		void			connection_remove(int i);
-		Connection 		connection_get(int i) const;
-		Connection_List	connection_get_list();
-
-        void clear_graph();
-
-        Module_List list_;
-        int count_;
-        
-        Module *begin_, *end_;
-        
-    protected :
-        
-        bool mute_;
-        
-        float outvl_, outvr_;
-        float outv_;
-
-        bool tmp_;
-        
-		Connection_List connection_list_;
 };
 
 #endif

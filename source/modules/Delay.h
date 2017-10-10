@@ -5,27 +5,30 @@
 #include "../core/Utility.h"
 #include "../core/Buffer.h"
 
+#include "../core/ModuleFactory.h"
+#include "../consts.h"
+
 /*
-*	Delay's params count and param's index
+*   Delay's params count and param's index
 */
 #define DELAY_DELAY  MOD_COUNT + 0
 #define DELAY_FEEDB  MOD_COUNT + 1
 #define DELAY_DRYWET MOD_COUNT + 2
 
 /*
-*	Default values for delay
+*   Default values for delay
 */
 static const int    DELAY_PARAMS_COUNT = 3;
 static const float  DELAY_DEFAULT_PARAMS[MOD_COUNT+DELAY_PARAMS_COUNT] = {0, 1, 333, 0.6f, 0.2f};
-static const string DELAY_PARAM_NAMES[MOD_COUNT+DELAY_PARAMS_COUNT] = {"Volume", "Delay", "Feedb", "DryWet"};
+static const std::string DELAY_PARAM_NAMES[MOD_COUNT+DELAY_PARAMS_COUNT] = {"Volume", "Delay", "Feedb", "DryWet"};
 
 /*
-*	Functuion for register write callback
+*   Functuion for register write callback
 */
 int delay_Process_Callback(jack_nframes_t nframes, void *u);
 
 /**
-*	Single tape delay module.
+*   Single tape delay module.
 *   A delay module is formed by two submodules
 *   The first one is the reading head, delay normal input is here
 *   It read data comming from delay's buffer and send normal output
@@ -36,15 +39,15 @@ int delay_Process_Callback(jack_nframes_t nframes, void *u);
 *
 *   When delay is bypassed the read head continue it normal job but stop send
 *   normal input to buffer ( only the feddback loop is maintained )
-*   And the write head 
+*   And the write head
 */
 class Delay : public Module{
 
-	public:
-	
-		Delay( int id );
+    public:
+
+        Delay( int id );
         ~Delay();
-        
+
         /**
         *   Delay's second process callback.
         *   Process called by delay's second part for write data in buffer
@@ -54,28 +57,30 @@ class Delay : public Module{
         *   @see process(jack_nframes_t nframes, void *arg)
         */
         int process_2(jack_nframes_t nframes, void *arg);
-		//virtual int bypass(jack_nframes_t nframes, void *arg);
-	
-	protected :
-        
-		virtual inline int do_process(jack_nframes_t nframes);
-    
+        //virtual int bypass(jack_nframes_t nframes, void *arg);
+
+    protected :
+
+        virtual inline int do_process(jack_nframes_t nframes);
+
         virtual void change_param(int idx, float value); /**< @see set_param(int idx, float value) */
         virtual void change_param(const float *values);        /**< @see set_param(float *values) */
-    
+
         virtual string return_param_name(int idx);       /**< @see get_param_name(int idx) */
         virtual string return_formated_param(int idx);   /**< @see get_formated_param(int idx) */
-  
+
         virtual void new_bank();    /**< @see add_bank() */
-    
-		jack_client_t *client_2_;
-		char* name_2_;
-	
+
+        jack_client_t *client_2_;
+        char* name_2_;
+
         int samplerate_;
-	
-		jack_port_t *p_send_, *p_return_;	/**< Private port connected between read client and write client*/
-		
-		Buffer_S *buffer_;
+
+        jack_port_t *p_send_, *p_return_;   /**< Private port connected between read client and write client*/
+
+        Buffer_S *buffer_;
 };
+
+Module* build_delay( int id );
 
 #endif

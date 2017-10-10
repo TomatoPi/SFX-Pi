@@ -2,7 +2,7 @@
 #define DEF_DECLARATION_H
 
 #include "../../core/Tree/Tree.h"
-#include "../../core/Modules.h"
+#include "../../core/ModulesGraph.h"
 
 #include "../Potar.h"
 #include "../Button.h"
@@ -12,13 +12,13 @@
  * Used as nodes id inside menu's tree
  **********************************************************************/
 typedef enum{
-    
+
     /** Outside of main Menu */
     MAIN_MENU_FLAG,
 
         /** Submenu for change current presset */
         MAIN_CHANGE_PRESSET,
-        
+
         /** Submenu for select a module to Modify */
         MAIN_SELECT_MODULE,
 
@@ -28,7 +28,7 @@ typedef enum{
             SELMOD_ADD_BANK,
             /** Edit Selected bank */
             SELMOD_EDIT_BANK,
-            
+
                 /** Select param to modify */
                 SELMOD_EDITB_SELPAR,
                     /** Modify choosen param */
@@ -61,7 +61,7 @@ typedef enum{
 
             /** Add an accessor to selected pot */
             EDITPOT_ADD_ACCESSOR,
-            
+
                 EDITPOT_CHOOSE_TARGET_M,
                 EDITPOT_CHOOSE_TARGET_P,
                 EDITPOT_CHOOSE_MIN,
@@ -72,7 +72,7 @@ typedef enum{
 
             /** Change an accessor of selected pot */
             EDITPOT_EDIT_ACCESSOR,
-            
+
                 EDITPOT_EDIT_TARGET_M,
                 EDITPOT_EDIT_TARGET_P,
                 EDITPOT_EDIT_MIN,
@@ -80,7 +80,7 @@ typedef enum{
                 EDITPOT_EDIT_CURVE,
                 EDITPOT_EDIT_ISDB,
                 EDITPOT_EDIT_ISRLT
-    
+
 }Status;
 
 /**********************************************************************
@@ -88,18 +88,18 @@ typedef enum{
  * Each movement is ascociated with a specific button
  **********************************************************************/
 typedef enum{
-    
+
     MOVE_UP     =0,
     MOVE_DOWN   =1,
-    
+
     MOVE_NEXT   =2,
     MOVE_PREV   =3,
-    
+
     MOVE_ADD    =4,
     MOVE_DEL    =5,
-    
+
     MOVE_ENTER  =6,
-    
+
     MOVE_ESC    =7,
     MOVE_OK     =8
 
@@ -125,18 +125,18 @@ struct Submenu{
     /**
      * Function Called when move into this submenu
      */
-    void (*enter_)(Module_Node_List*);
+    void (*enter_)();
     /**
      * Function Called when a button is pressed inside this submenu
      */
-    MenuIterator (*do_)( Move_flag, MenuIterator, Module_Node_List* &, IO_Potentiometer[SPI_POTAR_COUNT] );
+    MenuIterator (*do_)( Move_flag, MenuIterator, IO_Potentiometer[SPI_POTAR_COUNT] );
 
 };
 
 /**
  * Menu's root node functions
  */
-void main_menu_exit_menu( Module_Node_List* );
-MenuIterator main_menu_do( Move_flag, MenuIterator, Module_Node_List* &, IO_Potentiometer[SPI_POTAR_COUNT] );
+void main_menu_exit_menu( );
+MenuIterator main_menu_do( Move_flag, MenuIterator, IO_Potentiometer[SPI_POTAR_COUNT] );
 
 #endif

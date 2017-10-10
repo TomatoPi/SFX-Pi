@@ -1,10 +1,11 @@
 #ifndef DEF_BUTTON_H
 #define DEF_BUTTON_H
 
-#include "../core/Modules.h"
+#include "../core/ModulesGraph.h"
+#include "io.h"
 
 typedef enum{
-    
+
     PUSH,
     PULL,
     PP
@@ -26,7 +27,7 @@ typedef enum{
 class IO_Adress{
 
     public :
-    
+
         /**
          * Adress Constructor
          */
@@ -86,19 +87,19 @@ class IO_Button{
         /**
          * Compute given structure depending on curent button's mode
          */
-        void* compute( Module_Node_List* graph );
+        void* compute();
 
         /**
          * Get Button adress
          */
         IO_Adress get_adr() const;
-        
+
 
     protected :
 
         IO_PUSH_TYPE type_;
         IO_BUTTON_FUNCTION func_;
-        
+
         IO_Adress adr_;
 };
 
@@ -117,7 +118,7 @@ namespace HEX{
 
     #define MASK_ADRRA_MENU 0xc0// mask for select only Menu buttons
     #define MASK_ADRRB_MENU 0xff// mask for select only Menu buttons
-    
+
     #define HEX_FOOT_NEXT 0x20  // MCP0 GPIOA 10
     #define HEX_FOOT_PREV 0x10  // MCP0 GPIOA 11
 

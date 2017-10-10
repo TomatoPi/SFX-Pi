@@ -39,11 +39,11 @@ void io_init_potar_tab( IO_Potentiometer pot[SPI_POTAR_COUNT] ){
     pot[5].add_accessor( Accessor( END_NODE, END_LEFT, vmin, vmax, CURVE_LIN, true, false ) );
 }
 
-void io_update_potar_tab( IO_Potentiometer pot[SPI_POTAR_COUNT], Module_Node_List* graph ){
+void io_update_potar_tab( IO_Potentiometer pot[SPI_POTAR_COUNT] ){
 	
 	for(int i = 0; i < SPI_POTAR_COUNT; i++){
 		
-		pot[i].update( graph, IO_Potentiometer::D_ALL );
+		pot[i].update( IO_Potentiometer::D_ALL );
 	}
 }
 
@@ -96,7 +96,7 @@ float IO_Potentiometer::get_max() const{
     return max_;
 }
 
-void IO_Potentiometer::update( Module_Node_List* graph , int disp){
+void IO_Potentiometer::update( int disp ){
     
     // Read potentiometer's value
     float value = analogRead(SPI_BASE + this->idx_);
@@ -121,9 +121,9 @@ void IO_Potentiometer::update( Module_Node_List* graph , int disp){
             /*
             * Get pointer to target module
             */
-            if ( graph->get( cr.target_ ) != NULL ){
+            if ( Module_Node_List::Get().get( cr.target_ ) != NULL ){
              
-                mod = graph->get( cr.target_ );
+                mod = Module_Node_List::Get().get( cr.target_ );
                 //cout << "Target : " << mod->get_name() << endl;
             }
             else{

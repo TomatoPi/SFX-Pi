@@ -12,8 +12,11 @@
 #include "../core/Filter.h"
 #include "../core/Modules.h"
 
+#include "../core/ModuleFactory.h"
+#include "../consts.h"
+
 /*
-*	Drive's params count and param's index
+*   Drive's params count and param's index
 */
 #define DRIVE_ABS       MOD_COUNT + 0
 #define DRIVE_ASM       MOD_COUNT + 1
@@ -36,24 +39,25 @@
 #define DRIVE_F_GHIGH MOD_COUNT + 15
 
 /*
-*	Default values for drive module
+*   Default values for drive module
 */
 static const int    DRIVE_PARAM_COUNT = 16;
-static const float  DRIVE_DEFAULT_PARAMS[MOD_COUNT+DRIVE_PARAM_COUNT] = {0, 1, 
+static const float  DRIVE_DEFAULT_PARAMS[MOD_COUNT+DRIVE_PARAM_COUNT] = {0, 1,
                                             0, 0, 0,
-                                            198, 1, 22, 0.29f, 
-                                            63, 1, 15, 0.1f, 
+                                            198, 1, 22, 0.29f,
+                                            63, 1, 15, 0.1f,
                                             200, 1000, 0.5f, 2.0f, 3.0f};
-static const string DRIVE_PARAM_NAMES[MOD_COUNT+DRIVE_PARAM_COUNT] = {"Bypass", "Volume", 
+static const std::string DRIVE_PARAM_NAMES[MOD_COUNT+DRIVE_PARAM_COUNT] = {"Bypass", "Volume",
                                             "Fullwave", "Asymetric", "Offset",
-											"Gain-p", "Type-p", "Soft-p", "Shape-p",
-											"Gain-n", "Type-n", "Soft-n", "Shape-n",
-											"Lowcut", "Highcut", "Lowgain", "Midgain", "Hghgain"};
+                                            "Gain-p", "Type-p", "Soft-p", "Shape-p",
+                                            "Gain-n", "Type-n", "Soft-n", "Shape-n",
+                                            "Lowcut", "Highcut", "Lowgain", "Midgain", "Hghgain"};
+
 /**
  * List of Avaiable distortions
  */
 typedef enum{
-    
+
     SOFT_CLIP   =0,
     HARD_CLIP   =1,
     POW2        =2,
@@ -61,37 +65,39 @@ typedef enum{
 }DISTORTION_FORM;
 
 /**
-* 	Drive, Soft & Hard Clipping effects
-*	EQ pre-drive
-*	Possibility of asymmetrical clipping
+*   Drive, Soft & Hard Clipping effects
+*   EQ pre-drive
+*   Possibility of asymmetrical clipping
 */
 class Drive : public Module{
-	
-	public:	
-		
-		Drive( int id );
-		//virtual int bypass(jack_nframes_t nframes, void *arg);
-	
-	protected :
-		
-		virtual int do_process(jack_nframes_t nframes);
-    
+
+    public:
+
+        Drive( int id );
+        //virtual int bypass(jack_nframes_t nframes, void *arg);
+
+    protected :
+
+        virtual int do_process(jack_nframes_t nframes);
+
         virtual void change_param(int idx, float value); /**< @see set_param(int idx, float value) */
         virtual void change_param(const float *values);        /**< @see set_param(float *values) */
-    
+
         virtual string return_param_name(int idx);       /**< @see get_param_name(int idx) */
         virtual string return_formated_param(int idx);   /**< @see get_formated_param(int idx) */
 
         virtual void new_bank();    /**< @see add_bank() */
-    
+
         void update();  /**< Convert boolean params to valid value */
-        
+
         Filter_3EQ filter_;     /**< Drive's filter @see Filter_3EQ */
-        
+
         void set_clipping( DISTORTION_FORM formp , DISTORTION_FORM formn );
-        
+
         sample_t (*clip_p_)( sample_t, float, float);
         sample_t (*clip_n_)( sample_t, float, float);
 };
+
+Module* build_drive( int id );
 
 #endif

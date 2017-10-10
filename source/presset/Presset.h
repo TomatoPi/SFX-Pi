@@ -9,7 +9,7 @@
 #include <dirent.h>
 
 #include "../core/Modules.h"
-#include "../modules/ModuleList.h"
+#include "../core/ModulesGraph.h"
 
 #include "../io/Potar.h"
 #include "../io/Button.h"
@@ -17,9 +17,9 @@
 using namespace std;
 /*
 *   ---------------------------------------------------------------------------
-*	---------------------------------------------------------------------------
-*	                        Preset Managing stuff
-*	---------------------------------------------------------------------------
+*   ---------------------------------------------------------------------------
+*                           Preset Managing stuff
+*   ---------------------------------------------------------------------------
 *   ---------------------------------------------------------------------------
 */
 
@@ -55,9 +55,8 @@ using namespace std;
 *   @param pot list of potentiometers
 *   @return 0 on success
 */
-int save_preset(    string const name, 
-                    Module_Node_List *list, 
-                    IO_Potentiometer pot[SPI_POTAR_COUNT] 
+int save_preset(    string const name,
+                    IO_Potentiometer pot[SPI_POTAR_COUNT]
                     );
 /**
 *   Function used to load a preset file.
@@ -74,11 +73,11 @@ int save_preset(    string const name,
 *
 *   @warning if presset loaded successful it will cause a brief sound's interuption
 */
-int load_preset(string const name, Module_Node_List* & list, IO_Potentiometer pot[SPI_POTAR_COUNT] );
+int load_preset(string const name, IO_Potentiometer pot[SPI_POTAR_COUNT] );
 
 /**
 *   Function used for create new empty presset file
-*   
+*
 *   @param name file name
 *   @param version current program version
 *   @return 0 on success
@@ -103,7 +102,7 @@ int save_module(string const name, Module* mod);
 *   It verify that file passed is a module file
 *   Then verify program version and if given module is the same type as file's one
 *   If file is valid, delete all module's banks, and load new ones
-*   
+*
 *   @param name file name
 *   @param version current program version
 *   @param mod module to save
@@ -121,6 +120,6 @@ int load_module(string const name, Module* mod, bool del);
 *
 *   @return 0 if returned non empty list
 */
-int list_files(string const dir, vector<string> & list);
+int list_files(string const dir, vector<string> & list, bool log = false);
 
 #endif

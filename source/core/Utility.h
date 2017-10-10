@@ -12,56 +12,90 @@
 
 using namespace std;
 
-/*
+/**
 * Simplify jack_default_audio_sample_t writing
 */
 typedef jack_default_audio_sample_t sample_t;
 
-/*
+/**
 *	Constrain given sample between min and max, ( Hard-Clipping )
 */
-sample_t spi_clip(sample_t in, float min, float max);
+inline sample_t spi_clip(sample_t in, float min, float max){
+	
+	return (in > max)? max : ((in < min)?min : in);
+}
 
-/*
+/**
 *	Compute dual tanh soft clipping, see wiki for more information
 */
-sample_t spi_soft(sample_t in, float max, float soft, float shape);
+inline sample_t spi_soft(sample_t in, float max, float soft, float shape){
+	
+	return max * ((1 - shape)*tanh(in) + shape * tanh(in/soft));
+}
 
-/*
+/**
 * Compute absolute value of given sample
 */
-sample_t spi_abs(sample_t in);
+inline sample_t spi_abs(sample_t in){
+	
+	return (in < 0)?-in:in;
+}
 
-/*
+/**
 * Mix between dry and wet signal with a : amout of wet signal
 */
-sample_t spi_dry_wet(sample_t dry, sample_t wet, float a);
+inline sample_t spi_dry_wet(sample_t dry, sample_t wet, float a){
+	
+	return ( (1-(a*a)) * dry) + (a * a * wet);
+}
 
-/*
+/**
 * Convert db to gain ( ex : +20dB ==> *100 )
 */
-float spi_dbtorms(float d);
+inline float spi_dbtorms(float d){
+	
+	return pow(10, d/20.0f);
+}
 
-/*
+/**
 * Convert gain to db ( ex : *0.5 ==> -3dB )
 */
-float spi_rmstodb(float g); 
+inline float spi_rmstodb(float g){
+	
+	return 20.0f * log10(g);
+}
 
 
-/*
+/**
 * Convert a length in ms to sample
 */
-int spi_mstos(int ms, int sr);
+inline int spi_mstos(float ms, int sr){
+	
+	return (int)( (ms*sr) / 1000.0f );
+}
 
-/*
+/**
 * Convert a length in sample to ms
 */
-int spi_stoms(int sample, int sr);
+inline int spi_stoms(float sample, int sr){
+	
+	return (int)( (sample * 1000.0f) / (float)(sr) );
+}
 
-/*
+/**
 * Return random float between min and max
 */
-float spi_frand(float min, float max);
+inline float spi_frand(float min, float max){
+	
+	if(max < min){
+	
+		float a = min;
+		min = max;
+		max = a;
+	}
+	
+	return ((float)rand()/(float)RAND_MAX) * (max - min) + min;
+}
 
 /**
 * Convert given float in a string of 4 char length

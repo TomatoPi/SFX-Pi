@@ -5,6 +5,9 @@
 #include "../core/Utility.h"
 #include "../core/Modules.h"
 
+#include "../core/ModuleFactory.h"
+#include "../consts.h"
+
 #define COMP_RATIO  MOD_COUNT + 0
 #define COMP_ATT    MOD_COUNT + 1
 #define COMP_REL    MOD_COUNT + 2
@@ -22,32 +25,34 @@ static const float  COMP_DEFAULT_PARAM[MOD_COUNT+COMP_PARAMS_COUNT] = {0, 1, 2.2
                                                                     1, 0.0031f, 1};
 
 class Compressor : public Module{
-    
+
     public :
-    
+
         Compressor( int id );
-        
+
     protected :
-		
+
         virtual inline int do_process(jack_nframes_t nframes);
-    
+
         virtual void change_param(int idx, float value); /**< @see set_param(int idx, float value) */
         virtual void change_param(const float *values);  /**< @see set_param(float *values) */
-    
+
         virtual string return_param_name(int idx);       /**< @see get_param_name(int idx) */
         virtual string return_formated_param(int idx);   /**< @see get_formated_param(int idx) */
 
         virtual void new_bank();    /**< @see add_bank() */
-        
+
         Buffer_R buffer_;   /**< Running summ buffer */
-        
+
         float ramp_;    /**< Store duration since last threshold reach */
         float ik_;      /**< Inverse of compression ration, used for accellerate calculations */
         float isr_;     /**< Inverse of samplerate, used for accellerate calculations */
         float thr2_;    /**< Threshold squared */
-        
+
         bool last_;     /**< Used for check if threshold has been reached */
-    
+
 };
+
+Module* build_comp( int id );
 
 #endif

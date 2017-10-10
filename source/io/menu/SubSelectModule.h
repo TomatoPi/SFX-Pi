@@ -6,7 +6,7 @@
 
 
 #include "../../core/Tree/Tree.h"
-#include "../../core/Modules.h"
+#include "../../core/ModulesGraph.h"
 
 #include "../io.h"
 
@@ -22,13 +22,13 @@ MenuIterator menu_init_select_module( MenuTree *menu, MenuIterator pos );
 /**********************************************************************
  *      Main node
  **********************************************************************/
- 
-/** 
+
+/**
  * Function called when enter this submenu
  */
-void main_select_module_enter( Module_Node_List* );
-MenuIterator main_select_module_do( Move_flag, MenuIterator, Module_Node_List* &, IO_Potentiometer[SPI_POTAR_COUNT] );
-                                    
+void main_select_module_enter();
+MenuIterator main_select_module_do( Move_flag, MenuIterator, IO_Potentiometer[SPI_POTAR_COUNT] );
+
 /**********************************************************************
  * Module's edition Branch
  **********************************************************************/
@@ -36,20 +36,20 @@ MenuIterator main_select_module_do( Move_flag, MenuIterator, Module_Node_List* &
 /**
  * Change Current Bank
  */
-void selmod_change_bank_enter( Module_Node_List* );
-MenuIterator selmod_change_bank_do( Move_flag, MenuIterator, Module_Node_List* &, IO_Potentiometer[SPI_POTAR_COUNT] );
+void selmod_change_bank_enter();
+MenuIterator selmod_change_bank_do( Move_flag, MenuIterator, IO_Potentiometer[SPI_POTAR_COUNT] );
 
 /**
  * Add new Bank
  */
-void selmod_add_bank_enter( Module_Node_List* );
-MenuIterator selmod_add_bank_do( Move_flag, MenuIterator, Module_Node_List* &, IO_Potentiometer[SPI_POTAR_COUNT] );
+void selmod_add_bank_enter();
+MenuIterator selmod_add_bank_do( Move_flag, MenuIterator, IO_Potentiometer[SPI_POTAR_COUNT] );
 
 /**
  * Edit Current Bank
  */
-void selmod_edit_bank_enter( Module_Node_List* );
-MenuIterator selmod_edit_bank_do( Move_flag, MenuIterator, Module_Node_List* &, IO_Potentiometer[SPI_POTAR_COUNT] );
+void selmod_edit_bank_enter();
+MenuIterator selmod_edit_bank_do( Move_flag, MenuIterator, IO_Potentiometer[SPI_POTAR_COUNT] );
 
 /**********************************************************************
  * Param Edition Branch
@@ -58,13 +58,13 @@ MenuIterator selmod_edit_bank_do( Move_flag, MenuIterator, Module_Node_List* &, 
 /**
  * Select Current param
  */
-void selmod_editb_selpar_enter( Module_Node_List* );
-MenuIterator selmod_editb_selpar_do( Move_flag, MenuIterator, Module_Node_List* &, IO_Potentiometer[SPI_POTAR_COUNT] );
+void selmod_editb_selpar_enter();
+MenuIterator selmod_editb_selpar_do( Move_flag, MenuIterator, IO_Potentiometer[SPI_POTAR_COUNT] );
 
 /**
  * Modify Choosen Param
  */
-void selmod_editb_editpar_enter( Module_Node_List* );
-MenuIterator selmod_editb_editpar_do( Move_flag, MenuIterator, Module_Node_List* &, IO_Potentiometer[SPI_POTAR_COUNT] );
+void selmod_editb_editpar_enter();
+MenuIterator selmod_editb_editpar_do( Move_flag, MenuIterator, IO_Potentiometer[SPI_POTAR_COUNT] );
 
 #endif

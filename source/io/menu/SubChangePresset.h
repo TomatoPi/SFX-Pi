@@ -8,7 +8,7 @@
 #include "../../consts.h"
 
 #include "../../core/Tree/Tree.h"
-#include "../../core/Modules.h"
+#include "../../core/ModulesGraph.h"
 #include "../../presset/Presset.h"
 
 #include "../io.h"
@@ -25,11 +25,11 @@ MenuIterator menu_init_change_presset( MenuTree *menu, MenuIterator pos );
 /**
  * Function called for enter inside change presset submenu
  */
-void main_change_presset_enter( Module_Node_List* );
+void main_change_presset_enter();
 
 /**
  * Function called when inside change presset submenu
  */
-MenuIterator main_change_presset_do( Move_flag, MenuIterator, Module_Node_List* &, IO_Potentiometer[SPI_POTAR_COUNT] );
+MenuIterator main_change_presset_do( Move_flag, MenuIterator, IO_Potentiometer[SPI_POTAR_COUNT] );
 
 #endif

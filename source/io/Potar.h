@@ -6,7 +6,7 @@
 #include <wiringShift.h>
 #include <mcp3004.h>
 
-#include "../core/Modules.h"
+#include "../core/ModulesGraph.h"
 #include "../modules/EndModule.h"
 
 #include "io.h"
@@ -33,17 +33,17 @@ float io_map(float val, float fmin, float fmax, float tmin, float tmax);
 /**
 * Class used for store data about potentiometers.
 * One instance of this class is created for each potentiometer ( actually 6 )
-* Each potentiometer have a display name, a display plage and 
+* Each potentiometer have a display name, a display plage and
 * a vector of accessors, used for modulate module's params
 */
 class IO_Potentiometer{
-	
-	public :
-        
+
+    public :
+
         static const int D_NAME; // Flag for display potentiometer Name
         static const int D_VAL;  // Flag used for display pot value
         static const int D_ALL;  // Flag used for display everything
-		
+
         /**
         * Potentiometer Constructor.
         * @param idx potentiometer's idx , must be inferior than SPI_POTAR_COUNT
@@ -51,44 +51,44 @@ class IO_Potentiometer{
         * @param min display min
         * @param max display max
         */
-		IO_Potentiometer( int idx=0, std::string name=std::string("DPot"), float min=0, float max=999 );
-        
+        IO_Potentiometer( int idx=0, std::string name=std::string("DPot"), float min=0, float max=999 );
+
         /**
         * Change potentiomer's index
         * @param idx new potentiometer's index
         */
         void set_index( int idx );
-		
+
         /**
         * Change potentiomer's name
         * @param name new name, must be 11 characters length max
         */
-		void set_name( std::string name );
+        void set_name( std::string name );
         /**
         * Get Potentiometer's name
         * @return potentiomer's name
         */
         std::string get_name() const;
-        
+
         /**
         * Change potentiometer's display plage
         * @param min display min
         * @param max display max
         */
-		void set_plage( float min, float max );
-        
+        void set_plage( float min, float max );
+
         /**
         * Get minimal display value
         * @return minimal display value
         */
         float get_min() const;
-        
+
         /**
         * Get maximal display value
         * @param maximal display value
         */
         float get_max() const;
-		
+
         /**
         * Update potentiometer's value.
         * Read actual value using gpio and update it if it differs from the old one
@@ -96,46 +96,46 @@ class IO_Potentiometer{
         * @param graph module's graph
         * @param disp flag used for specify what will be displayed
         */
-		void update( Module_Node_List* graph , int disp=0 );
-        
+        void update( int disp=0 );
+
         /**
         * Return current potentiometer's value.
         * @return current value mapped between -1 and 1;
         */
-		float 	get_value() const;
-        
+        float   get_value() const;
+
         /**
         * Add given accessor to accessor list
         * @param acc accessor to add
         */
         void add_accessor( Accessor acc );
-        
+
         /**
         * Delete given accessor if exist
         * @param given accessor idx
         */
         void del_accessor( int idx );
-        
+
         int get_accessor_count();
-        
+
         std::vector<Accessor> get_accessor();
-        
-		
-	private :
-        
+
+
+    private :
+
         void display( int flag );
-		
-		string  name_;
-		int 	idx_;
-		
-		float 	min_, max_;
-		
-		int 	value_;
-        
+
+        string  name_;
+        int     idx_;
+
+        float   min_, max_;
+
+        int     value_;
+
         std::vector< Accessor > accs_;
 };
 
 void io_init_potar_tab( IO_Potentiometer pot[SPI_POTAR_COUNT] );
-void io_update_potar_tab( IO_Potentiometer pot[SPI_POTAR_COUNT], Module_Node_List* graph );
+void io_update_potar_tab( IO_Potentiometer pot[SPI_POTAR_COUNT] );
 
 #endif

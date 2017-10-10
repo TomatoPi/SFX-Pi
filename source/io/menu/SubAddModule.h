@@ -6,7 +6,7 @@
 #define DEF_SUB_ADD_MODULE_H
 
 #include "../../core/Tree/Tree.h"
-#include "../../core/Modules.h"
+#include "../../core/ModulesGraph.h"
 
 #include "../io.h"
 
@@ -26,13 +26,13 @@ MenuIterator menu_init_add_module( MenuTree *menu, MenuIterator pos );
 /**
  * Add Module to the graph
  */
-void main_add_module_enter( Module_Node_List* );
-MenuIterator main_add_module_do( Move_flag, MenuIterator, Module_Node_List* &, IO_Potentiometer[SPI_POTAR_COUNT] );
+void main_add_module_enter();
+MenuIterator main_add_module_do( Move_flag, MenuIterator, IO_Potentiometer[SPI_POTAR_COUNT] );
 
 /**
  * Choose module type
  */
-void addmod_choose_type_enter( Module_Node_List* );
-MenuIterator addmod_choose_type_do( Move_flag, MenuIterator, Module_Node_List* &, IO_Potentiometer[SPI_POTAR_COUNT] );
+void addmod_choose_type_enter();
+MenuIterator addmod_choose_type_do( Move_flag, MenuIterator, IO_Potentiometer[SPI_POTAR_COUNT] );
 
 #endif

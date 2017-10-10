@@ -1,10 +1,14 @@
 Preset={
-    Name=Homeworld
-    Version=1.2
+    Name=Test
+    Version=0.4
 }
 Module={
     Type=0
     ID=0
+    Bank={
+        Size=18
+        Data={ 0 1 0 0 0 5 0 10 0.4 0 0 0 0 450 900 1 3 8 }
+    }
     Bank={
         Size=18
         Data={ 0 1 0 0 0 100 0 10 0.2 0 0 0 0 450 900 5 3 1 }
@@ -13,6 +17,10 @@ Module={
 Module={
     Type=0
     ID=10
+    Bank={
+        Size=18
+        Data={ 0 1 0 0 0 5 0 20 0.2 0 0 0 0 250 600 2 4 5.2 }
+    }
     Bank={
         Size=18
         Data={ 0 1 0 0 0 100 1 10 0.2 0 0 0 0 250 600 8 1 1.2 }
@@ -25,10 +33,18 @@ Module={
         Size=7
         Data={ 0 0.5 10 10 0 0 1 }
     }
+    Bank={
+        Size=7
+        Data={ 0 0.5 10 10 0 0 1 }
+    }
 }
 Module={
     Type=4
     ID=11
+    Bank={
+        Size=7
+        Data={ 0 0.5 10 10 0 0 1 }
+    }
     Bank={
         Size=7
         Data={ 0 0.5 10 10 0 0 1 }
@@ -39,7 +55,11 @@ Module={
     ID=2
     Bank={
         Size=16
-        Data={ 0 1 -0.02 0.8 2 100 10 13 18 23 28 1 2 1 1 1 }
+        Data={ 1 1 -0.02 0.8 2 480 10 13 18 23 28 1 2 1 1 1 }
+    }
+    Bank={
+        Size=16
+        Data={ 1 1 -0.02 0.8 2 480 10 13 18 23 28 1 2 1 1 1 }
     }
 }
 Module={
@@ -47,7 +67,11 @@ Module={
     ID=12
     Bank={
         Size=16
-        Data={ 0 1 0.02 0.8 2 100 10 13 18 23 28 1 2 1 1 1 }
+        Data={ 1 1 0.02 0.8 2 480 10 13 18 23 28 1 2 1 1 1 }
+    }
+    Bank={
+        Size=16
+        Data={ 1 1 0.02 0.8 2 480 10 13 18 23 28 1 2 1 1 1 }
     }
 }
 Module={
@@ -55,7 +79,11 @@ Module={
     ID=30
     Bank={
         Size=10
-        Data={ 0 1 2 1.0 0 1 10 0 0.7 0.25 }
+        Data={ 0 1 2 0.6 0 1 10 0 0.7 0.25 }
+    }
+    Bank={
+        Size=10
+        Data={ 0 1 2 0.6 0 1 10 0 0.7 0.25 }
     }
 }
 Module={
@@ -63,7 +91,11 @@ Module={
     ID=31
     Bank={
         Size=10
-        Data={ 0 1 2 0.7 0 1 10 0 0.8 0.75 }
+        Data={ 0 1 2 0.5 0 1 10 0 0.8 0.75 }
+    }
+    Bank={
+        Size=10
+        Data={ 0 1 2 0.5 0 1 10 0 0.8 0.75 }
     }
 }
 Connection={ -98 0   0 0 }

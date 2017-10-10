@@ -21,4 +21,8 @@
 
 #include "./core/Tree/Tree.h"
 
+#include "./core/ModuleFactory.h"
+
+#include "./modules/ModuleList.h"
+
 #endif

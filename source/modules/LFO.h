@@ -4,10 +4,11 @@
 #include <jack/jack.h>
 #include <iostream>
 
-using namespace std;
-
 #include "../core/Utility.h"
 #include "../core/Modules.h"
+
+#include "../core/ModuleFactory.h"
+#include "../consts.h"
 
 /*
 *   LFO's params count and param's index
@@ -25,7 +26,7 @@ using namespace std;
 #define LFO_PHO     MOD_COUNT + 7
 
 static const int    LFO_PARAMS_COUNT = 8;
-static const string LFO_PARAM_NAMES[MOD_COUNT+LFO_PARAMS_COUNT] = {"Volume", "Waveform", "Freq", "Phase", "Sign", "Param1", "Param2", "Ph-Dist", "Ph-Fix"};
+static const std::string LFO_PARAM_NAMES[MOD_COUNT+LFO_PARAMS_COUNT] = {"Volume", "Waveform", "Freq", "Phase", "Sign", "Param1", "Param2", "Ph-Dist", "Ph-Fix"};
 static const float  LFO_DEFAULT_PARAMS[MOD_COUNT+LFO_PARAMS_COUNT] = {0, 1, 2, 2.0f, 0.0f, 1, 0.0f, 0.0f, 0.5f, 0.0f};
 
 /**
@@ -80,9 +81,11 @@ class LFO : public Module{
 
         int samplerate_;
         float ramp_;
-        
+
         float rbs_;
 };
+
+Module* build_LFO( int id );
 
 /*
 *   Waveform functions, see wiki
