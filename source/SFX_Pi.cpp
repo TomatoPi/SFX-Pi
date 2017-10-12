@@ -16,10 +16,17 @@ int last_vol = 0;
 int main(int argc, char *argv[]){
 
     cout << endl;
-    cout << "************************************************************" << endl;
-    cout << "Bienvenu dans le fantastique et magnifique software Space-FX" << endl;
-    cout << "VERSION:" << PROG_VERSION << " -- Run:" << PROG_RUN << endl;
-    cout << "************************************************************" << endl;
+    cout << "************************************************************************" << endl;
+    cout << "************************************************************************" << endl;
+    cout << "***   Bienvenu dans le fantastique et magnifique software Space-FX   ***" << endl;
+    cout << "***                                                                  ***" << endl;
+    cout << "***   VERSION : " << PROG_VERSION;
+    cout <<                    "                                                  ***" << endl;
+    cout << "***   Run : " << PROG_RUN;
+    cout <<                 "                                                     ***" << endl;
+    cout << "***                                                                  ***" << endl;
+    cout << "************************************************************************" << endl;
+    cout << "************************************************************************" << endl;
     cout << endl;
 
     IOS::init_screen();
@@ -50,7 +57,9 @@ int main(int argc, char *argv[]){
     Module_Node_List::Create();
 
     cout << endl;
-    cout << "************************Base Setup OK***********************" << endl;
+    cout << "************************************************************************" << endl;
+    cout << "***                            Base Setup OK                         ***" << endl;
+    cout << "************************************************************************" << endl;
     cout << endl;
 
     /*

@@ -135,6 +135,16 @@ class IO_Potentiometer{
         std::vector< Accessor > accs_;
 };
 
+class PotarArray : public Singleton<PotarArray>{
+
+    public :
+
+
+    private :
+
+
+}
+
 void io_init_potar_tab( IO_Potentiometer pot[SPI_POTAR_COUNT] );
 void io_update_potar_tab( IO_Potentiometer pot[SPI_POTAR_COUNT] );
 

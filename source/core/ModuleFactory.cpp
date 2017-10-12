@@ -28,8 +28,8 @@ void ModuleFactory::register_module( int type, MODULE_REG r ){
         reg_[type] = r;
 
         string t = ""; t += to_string(type); t.resize(2);
-        cout << "Module Type : ( " << t << " ) Registered";
-        cout << " -- Formated name : \"" << r.name_ << "\"" << endl;
+        cout << "ModuleFactory : Registered TC( " << t << " )";
+        cout << " : Formated Name ( " << r.name_ << " )" << endl;
     }
     else{
 

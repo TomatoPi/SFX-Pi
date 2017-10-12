@@ -78,33 +78,7 @@ Module_Node_List::Module_Node_List():
     free(port);
     cout << "Graph OK" << endl;
 }
-/*
-void Module_Node_List::copy( Module_Node_List* graph ){
 
-    cout << "Entered Copy Constructor" << endl;
-
-    list_ = graph->list_;
-    count_ = graph->count_;
-
-    mute_ = graph->mute_;
-
-    outvl_ = graph->outvl_;
-    outvr_ = graph->outvr_;
-
-    outv_ = graph->outv_;
-
-    cout << "Copy constructor Start Copy COnnections" << endl;
-
-    Connection_List l = graph->connection_list_;
-    for ( Connection_iterator itr = l.begin(); itr != l.end(); ++itr ){
-
-        this->add_connection( *itr );
-        cout << "Test" << endl;
-    }
-
-    cout << "Copy constructor Finished Copy Connections" << endl;
-}
-*/
 Module_Node_List::~Module_Node_List(){
 
     this->clear_graph();
