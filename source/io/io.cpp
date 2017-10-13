@@ -137,8 +137,4 @@ void IOS::printm( string msg, int t , int flag){
         //cout << "    New Message sent : " << buffer << endl;
         RS232_cputs(io_screen_port, buffer.c_str());
     }
-    else{
-        
-        cout << "Failed send message : Screen not OK" << endl;
-    }
 }
