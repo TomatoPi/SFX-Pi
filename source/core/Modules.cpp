@@ -11,36 +11,7 @@ int mod_Process_Callback(jack_nframes_t nframes, void *u){
 
     return static_cast<Module*>(u)->process(nframes, u);
 }
-/*
-string modtype_to_string(MODULE_TYPE type){
 
-    switch(type){
-
-        case MOD_DRIVE:
-            return string("Drive");
-        case MOD_DELAY:
-            return string("Delay");
-        case MOD_LFO:
-            return string("LFO");
-        case MOD_RINGM:
-            return string("RingMod");
-        case MOD_TONE:
-            return string("Tonestack");
-        case MOD_REV:
-            return string("Reverb");
-        case MOD_CHORUS:
-            return string("Chorus");
-        case MOD_COMP:
-            return string("Compressor");
-        case MOD_LAST :
-            return string("Playback");
-        case MOD_FIRST :
-            return string("Capture");
-        default:
-            return string("Mod");
-    }
-}
-*/
 Module::Module( string p_name, int type, int id, int pc, int ai, int ao, int mi, int mo, ...):
     type_(type),
     is_bypassed_(false),
@@ -375,6 +346,9 @@ bool Module::set_bank(int idx){
         is_bypassed_ = !!bank_.at ( bank_idx_ )[MOD_BYPASS];
 
         this->change_param( bank_.at(bank_idx_) );
+
+        if ( FULL_LOG )
+            cout << "    Module : " << name_ << " Bank Moved to :" << bank_idx_ << endl;
 
         return true;
     }

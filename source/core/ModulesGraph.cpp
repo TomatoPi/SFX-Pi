@@ -29,7 +29,7 @@ Module_Node_List::Module_Node_List():
     /*
     *   Connect begin module to capture ports
     */
-    //cout << "Connect begin module to capture ports -- ";
+    if ( FULL_LOG ) cout << "Connect begin module to capture ports -- ";
     port = jack_get_ports (begin_->get_client(), NULL, NULL, JackPortIsPhysical|JackPortIsOutput);
     if (port == NULL) {
 
@@ -50,12 +50,12 @@ Module_Node_List::Module_Node_List():
     }
     //cout << port[1] << " -> " << jack_port_name( begin_->get_port(AUDIO_I, 1)) << " ok -- ";
     free(port);
-    //cout << "Connection made" << endl;
+    if ( FULL_LOG ) cout << "Connection made" << endl;
 
     /*
     *   Connect end module to playback ports
     */
-    //cout << "Connect End module to Playback ports -- ";
+    if ( FULL_LOG ) cout << "Connect End module to Playback ports -- ";
     port = jack_get_ports (end_->get_client(), NULL, NULL, JackPortIsPhysical|JackPortIsInput);
     if (port == NULL) {
 
@@ -76,6 +76,7 @@ Module_Node_List::Module_Node_List():
     }
     //cout << port[1] << " -> " << jack_port_name( end_->get_port(AUDIO_O, 1)) << " ok -- ";
     free(port);
+    if ( FULL_LOG ) cout << "Connection made" << endl;
     cout << "Graph OK" << endl;
 }
 
@@ -134,6 +135,12 @@ int Module_Node_List::del_module(int idx){
 }
 
 int Module_Node_List::add_connection(short source_id, short is, short target_id, short id){
+
+    if ( FULL_LOG ) {
+
+        cout << "Request Connection From : " << source_id << "." << is;
+        cout << " To : " << target_id << "." << id << endl;
+    }
 
     if(source_id < 0 && source_id != BEGIN_NODE)return 1;
     if(target_id < 0 && target_id != END_NODE  )return 1;
@@ -238,6 +245,7 @@ int Module_Node_List::del_connection(short source_id, short is, short target_id,
 
 void Module_Node_List::mute( bool m ){
 
+    if ( FULL_LOG ) cout << "Graph Muted" << endl;
     mute_ = m;
     if ( mute_ ){
 
@@ -271,6 +279,8 @@ void Module_Node_List::next_bank(){
             once = false;
         }
     }
+
+    if ( FULL_LOG ) cout << "Graph Moved to Next Bank" << endl;
 }
 
 void Module_Node_List::prev_bank(){
@@ -285,6 +295,8 @@ void Module_Node_List::prev_bank(){
             once = false;
         }
     }
+
+    if ( FULL_LOG ) cout << "Graph Moved to Previous Bank" << endl;
 }
 
 int Module_Node_List::get_bank(){

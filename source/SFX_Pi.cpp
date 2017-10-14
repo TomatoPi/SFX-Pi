@@ -8,6 +8,8 @@ template<class T> bool Singleton<T>::ok_ = false;
 
 int last_vol = 0;
 
+bool PROG_CONST::FULL_LOG = false;
+
 /*
 *   ---------------------------------------------------------------------------
 *   Main programm function
@@ -29,7 +31,26 @@ int main(int argc, char *argv[]){
     cout << "************************************************************************" << endl;
     cout << endl;
 
-    IOS::init_screen();
+    bool arg_screen = true;
+
+    for ( int i = 0; i < argc; i++ ){
+
+        if ( argv[i] == ARG_NO_SCREEN ){
+
+            arg_screen = false;
+            cout << "Screenless Run : Redirect Output to Standard log" << endl;
+        }
+        else if ( argv[i] == ARG_FULL_LOG ){
+
+            FULL_LOG = true;
+            cout << "Full Log Run : All Important Actions Will be Displayed" << endl;
+        }
+    }
+
+    if ( arg_screen ){
+
+        IOS::init_screen();
+    }
 
     cout << endl;
 
@@ -280,33 +301,15 @@ int main(int argc, char *argv[]){
     MAIN_LIST_MODULE->add_connection(13, 0, END_NODE, 1);
     */
 
-
-    //save_preset( string("DefaultPreset"), VERSION, MAIN_LIST_MODULE, MAIN_POTAR_TAB );
-    /*
-    for ( int i = 0 ; i <  MAIN_LIST_MODULE->list_.size() ; i++ ){
-
-        MAIN_LIST_MODULE->list_[i]->set_bank(0);
-    }
-    */
-    //load_preset( string("DefaultPreset"), VERSION, &MAIN_LIST_MODULE, MAIN_POTAR_TAB );
-    //save_preset( string("DefaultPresetCpy"), VERSION, MAIN_LIST_MODULE, MAIN_POTAR_TAB );
-
-
     /*
     *   ---------------------Main Loop-------------------------------
     */
     while(1){
 
         /*
-        *   Read potar values and store values in MAIN_POTAR_VALUES
-        */
-        //io_update_potar_tab(MAIN_POTAR_TAB, MAIN_LIST_MODULE);
-
-        /*
         *   Update front pannel stuff
         */
         io_update_frontPanel();
-
 
         /*
         * Check if input is saturated
