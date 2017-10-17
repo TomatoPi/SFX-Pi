@@ -9,7 +9,7 @@ namespace PROG_CONST{
      * Misc Constants for program
      */
     const std::string PROG_VERSION = "0.4";
-    const std::string PROG_RUN = "0095";
+    const std::string PROG_RUN = "0096";
     const std::string PROG_SPLASH_SCREEN = "Space-Fx";
     const std::string PROG_JACK_SERVER = "Space_Fx";
 

@@ -150,7 +150,7 @@ void Chorus::new_bank(){
 
     this->add_bank( MOD_COUNT + CHORUS_PARAMS_COUNT, CHORUS_DEFAULT_PARAMS);
 }
-
+/*
 string Chorus::return_param_name(int idx){
 
     return CHORUS_PARAM_NAMES[idx];
@@ -185,3 +185,4 @@ string Chorus::return_formated_param(int idx){
 
     return n;
 }
+*/

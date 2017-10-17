@@ -93,10 +93,10 @@ int save_preset(string const name, IO_Potentiometer pot[SPI_POTAR_COUNT]){
                     do{
 
                         flux << TAB << NMOD_BANK << "={" << endl;
-                        flux << TAB << TAB << NMOD_SIZE << "=" << mod->get_param_count() << endl;
+                        flux << TAB << TAB << NMOD_SIZE << "=" << ModuleFactory::get_pcount( mod->get_type() ) << endl;
                         flux << TAB << TAB << NMOD_DATA << "={";
 
-                        for ( int i = 0; i < mod->get_param_count(); i++ ){
+                        for ( int i = 0; i < ModuleFactory::get_pcount( mod->get_type() ); i++ ){
 
                             flux << " " << mod->get_param(i);
                         }
@@ -190,7 +190,7 @@ int save_module(string const name, Module *mod){
                 // Save each bank
                 do{
 
-                    int param_count = mod->get_param_count();
+                    int param_count = ModuleFactory::get_pcount( mod->get_type() );
 
                     flux << "    " << NODE_PARAM << " " << param_count ;
                     for(int n = 0; n < param_count; n++) flux << " " << mod->get_param(n);

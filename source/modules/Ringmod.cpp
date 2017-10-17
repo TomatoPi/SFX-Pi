@@ -80,7 +80,7 @@ void Ringmod::new_bank(){
 
     this->add_bank( MOD_COUNT + RINGMOD_PARAMS_COUNT, RINGMOD_DEFAULT_PARAMS);
 }
-
+/*
 string Ringmod::return_param_name(int idx){
 
     return RINGMOD_PARAM_NAMES[idx];
@@ -110,3 +110,4 @@ string Ringmod::return_formated_param(int idx){
 
     return n;
 }
+*/

@@ -63,7 +63,7 @@ void EndModule::reset_saturated(){
 void EndModule::change_param(int idx, float value){}
 
 void EndModule::change_param(const float *values){}
-
+/*
 string EndModule::return_param_name(int idx){
 
     return END_PARAM_NAMES[idx];
@@ -93,7 +93,7 @@ string EndModule::return_formated_param(int idx){
 
     return n;
 }
-
+*/
 void EndModule::new_bank(){
 
     this->add_bank( MOD_COUNT + END_PARAM_COUNT, END_DEFAULT_PARAMS );

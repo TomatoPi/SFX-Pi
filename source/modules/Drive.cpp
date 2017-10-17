@@ -112,7 +112,7 @@ void Drive::new_bank(){
 
     this->add_bank( MOD_COUNT + DRIVE_PARAM_COUNT, DRIVE_DEFAULT_PARAMS);
 }
-
+/*
 string Drive::return_param_name(int idx){
 
     return DRIVE_PARAM_NAMES[idx];
@@ -216,7 +216,7 @@ string Drive::return_formated_param(int idx){
 
     return n;
 }
-
+*/
 void Drive::update(){
 
     param_[DRIVE_TYPE_P] = (int)param_[DRIVE_TYPE_P];

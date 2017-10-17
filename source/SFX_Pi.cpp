@@ -62,16 +62,16 @@ int main(int argc, char *argv[]){
 
     cout << endl;
 
-    ModuleFactory::register_module( TC_DRIVE,   create_reg( MN_DRIVE,   build_drive ) );
-    ModuleFactory::register_module( TC_DELAY,   create_reg( MN_DELAY,   build_delay ) );
-    ModuleFactory::register_module( TC_LFO,     create_reg( MN_LFO,     build_LFO ) );
+    ModuleFactory::register_module( TC_DRIVE,   create_reg( MN_DRIVE,   build_drive,    DRIVE_PARAM_NAMES,  DRIVE_PARAM_COUNT ) );
+    ModuleFactory::register_module( TC_DELAY,   create_reg( MN_DELAY,   build_delay,    DELAY_PARAM_NAMES,  DELAY_PARAMS_COUNT ) );
+    ModuleFactory::register_module( TC_LFO,     create_reg( MN_LFO,     build_LFO,      LFO_PARAM_NAMES,    LFO_PARAMS_COUNT ) );
 
-    ModuleFactory::register_module( TC_RING,    create_reg( MN_RING,    build_ring ) );
-    ModuleFactory::register_module( TC_TONE,    create_reg( MN_TONE,    build_tone ) );
-    ModuleFactory::register_module( TC_REV,     create_reg( MN_REV,     build_rev ) );
+    ModuleFactory::register_module( TC_RING,    create_reg( MN_RING,    build_ring,     RINGMOD_PARAM_NAMES,RINGMOD_PARAMS_COUNT ) );
+    ModuleFactory::register_module( TC_TONE,    create_reg( MN_TONE,    build_tone,     TONE_PARAM_NAMES,   TONE_PARAMS_COUNT ) );
+    ModuleFactory::register_module( TC_REV,     create_reg( MN_REV,     build_rev,      REVERB_PARAM_NAMES, REVERB_PARAMS_COUNT ) );
 
-    ModuleFactory::register_module( TC_CHORUS,  create_reg( MN_CHORUS,  build_chorus ) );
-    ModuleFactory::register_module( TC_COMP,    create_reg( MN_COMP,    build_comp ) );
+    ModuleFactory::register_module( TC_CHORUS,  create_reg( MN_CHORUS,  build_chorus,   CHORUS_PARAM_NAMES, CHORUS_PARAMS_COUNT ) );
+    ModuleFactory::register_module( TC_COMP,    create_reg( MN_COMP,    build_comp,     COMP_PARAM_NAMES,   COMP_PARAMS_COUNT ) );
 
     cout << endl;
 

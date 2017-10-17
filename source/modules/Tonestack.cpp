@@ -87,7 +87,7 @@ void Tonestack::new_bank(){
 
     this->add_bank( MOD_COUNT + TONE_PARAMS_COUNT, TONE_DEFAULT_PARAM);
 }
-
+/*
 string Tonestack::return_param_name(int idx){
 
     return TONE_PARAM_NAMES[idx];
@@ -141,3 +141,4 @@ string Tonestack::return_formated_param(int idx){
 
     return n;
 }
+*/

@@ -140,7 +140,7 @@ void Compressor::change_param(const float *values){
     ik_ = 1.0f / param_[COMP_RATIO];
     thr2_ = param_[COMP_THR] * param_[COMP_THR];
 }
-
+/*
 string Compressor::return_param_name(int idx){
 
     return COMP_PARAM_NAMES[idx];
@@ -162,7 +162,7 @@ string Compressor::return_formated_param(int idx){
 
     return n;
 }
-
+*/
 void Compressor::new_bank(){
 
     this->add_bank( MOD_COUNT + COMP_PARAMS_COUNT, COMP_DEFAULT_PARAM );

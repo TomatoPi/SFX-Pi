@@ -14,7 +14,7 @@
 #define TONE_GH     MOD_COUNT + 4
 
 static const int    TONE_PARAMS_COUNT    = 5;
-static const std::string TONE_PARAM_NAMES[MOD_COUNT+TONE_PARAMS_COUNT]   = {"Volume", "Lowcut", "Highcut", "Lowgain", "Midgain", "Hghgain"};
+static const std::string TONE_PARAM_NAMES[TONE_PARAMS_COUNT]   = {"Lowcut", "Highcut", "Lowgain", "Midgain", "Hghgain"};
 static const float  TONE_DEFAULT_PARAM[MOD_COUNT+TONE_PARAMS_COUNT] = {0, 1, 200, 1200, 0.75f, 3.0f, 7.0f};
 
 class Tonestack : public Module{
@@ -31,8 +31,8 @@ class Tonestack : public Module{
         virtual void change_param(int idx, float value); /**< @see set_param(int idx, float value) */
         virtual void change_param(const float *values);  /**< @see set_param(float *values) */
 
-        virtual string return_param_name(int idx);       /**< @see get_param_name(int idx) */
-        virtual string return_formated_param(int idx);   /**< @see get_formated_param(int idx) */
+        //virtual string return_param_name(int idx);       /**< @see get_param_name(int idx) */
+        //virtual string return_formated_param(int idx);   /**< @see get_formated_param(int idx) */
 
         virtual void new_bank();    /**< @see add_bank() */
 

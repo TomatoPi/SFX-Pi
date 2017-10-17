@@ -20,7 +20,7 @@
 */
 static const int    DELAY_PARAMS_COUNT = 3;
 static const float  DELAY_DEFAULT_PARAMS[MOD_COUNT+DELAY_PARAMS_COUNT] = {0, 1, 333, 0.6f, 0.2f};
-static const std::string DELAY_PARAM_NAMES[MOD_COUNT+DELAY_PARAMS_COUNT] = {"Volume", "Delay", "Feedb", "DryWet"};
+static const std::string DELAY_PARAM_NAMES[DELAY_PARAMS_COUNT] = {"Delay", "Feedb", "DryWet"};
 
 /*
 *   Functuion for register write callback
@@ -66,8 +66,8 @@ class Delay : public Module{
         virtual void change_param(int idx, float value); /**< @see set_param(int idx, float value) */
         virtual void change_param(const float *values);        /**< @see set_param(float *values) */
 
-        virtual string return_param_name(int idx);       /**< @see get_param_name(int idx) */
-        virtual string return_formated_param(int idx);   /**< @see get_formated_param(int idx) */
+        //virtual string return_param_name(int idx);       /**< @see get_param_name(int idx) */
+        //virtual string return_formated_param(int idx);   /**< @see get_formated_param(int idx) */
 
         virtual void new_bank();    /**< @see add_bank() */
 

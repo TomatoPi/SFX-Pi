@@ -32,11 +32,6 @@ enum MODULE_PORT_TYPE{
 int mod_Process_Callback(jack_nframes_t nframes, void *u);
 
 /**
-*   Get formated name of given module type
-*/
-//std::string modtype_to_string(MODULE_TYPE type);
-
-/**
 *   Alias for vector of param array used by modules.
 *   Banks are used to save different sets of param's values for a module
 */
@@ -49,6 +44,8 @@ typedef std::vector<float*> ModBank;
 
 #define MOD_BYPASS 0
 #define MOD_VOLUME 1
+
+static const std::string MOD_PARAMS[MOD_COUNT] = {"Bypass", "Volume"};
 
 /*
 *   Basic class for all modules
@@ -133,7 +130,7 @@ class Module{
         *   Get number of parameters
         *   @return number of params
         */
-        int get_param_count() const;
+        //int get_param_count() const;
         /**
         *   Get given param's value
         *   @param idx param's index
@@ -148,7 +145,7 @@ class Module{
         *   @param idx param's index
         *   @return param's name or empty string if index is not valid
         */
-        std::string get_param_name(int idx);
+        //std::string get_param_name(int idx);
 
         /**
         *   Get parame name followed by it value.
@@ -156,7 +153,7 @@ class Module{
         *   @param idx param's index
         *   @return formated string or NONE if given param not found
         */
-        std::string get_formated_param(int idx);
+        //std::string get_formated_param(int idx);
 
         /**
         *   Get module's port.
@@ -242,8 +239,8 @@ class Module{
         virtual void change_param(int idx, float value) {}; /**< @see set_param(int idx, float value) */
         virtual void change_param(const float *values)  {}; /**< @see set_param(float *values) */
 
-        virtual std::string return_param_name(int idx)     { return std::string(""); };   /**< @see get_param_name(int idx) */
-        virtual std::string return_formated_param(int idx) { return std::string(""); };   /**< @see get_formated_param(int idx) */
+        //virtual std::string return_param_name(int idx)     { return std::string(""); };   /**< @see get_param_name(int idx) */
+        //virtual std::string return_formated_param(int idx) { return std::string(""); };   /**< @see get_formated_param(int idx) */
 
         virtual void new_bank() {};    /**< @see add_bank() */
 

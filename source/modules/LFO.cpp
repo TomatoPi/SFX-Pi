@@ -100,7 +100,7 @@ void LFO::new_bank(){
 
     this->add_bank( MOD_COUNT + LFO_PARAMS_COUNT, LFO_DEFAULT_PARAMS);
 }
-
+/*
 string LFO::return_param_name(int idx) {
 
     return LFO_PARAM_NAMES[idx];
@@ -203,7 +203,7 @@ string LFO::return_formated_param(int idx){
 
     return n;
 }
-
+*/
 void LFO::update_type(LFO_wave type){
 
     switch(type){

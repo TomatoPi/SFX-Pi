@@ -235,12 +235,12 @@ void Module::set_param(int count, const float *values){
         this->change_param(values);
     }
 }
-
+/*
 int Module::get_param_count() const{
 
     return param_c_;
 }
-
+*/
 float Module::get_param(int idx) const{
 
     if (idx < param_c_){
@@ -359,7 +359,7 @@ int Module::get_bank(){
 
     return bank_idx_;
 }
-
+/*
 string Module::get_param_name(int idx){
 
     if (idx < param_c_){
@@ -379,7 +379,7 @@ string Module::get_formated_param(int idx){
         return string("NONE");
     }
 }
-
+*/
 jack_port_t* Module::get_port(MODULE_PORT_TYPE type, int idx){
 
     switch (type) {

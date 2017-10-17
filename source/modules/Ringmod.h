@@ -11,7 +11,7 @@
 #define RING_DEPTH MOD_COUNT + 0
 
 static const int    RINGMOD_PARAMS_COUNT = 1;
-static const std::string RINGMOD_PARAM_NAMES[MOD_COUNT+RINGMOD_PARAMS_COUNT] = {"Volume", "Depth"};
+static const std::string RINGMOD_PARAM_NAMES[RINGMOD_PARAMS_COUNT] = {"Depth"};
 static const float  RINGMOD_DEFAULT_PARAMS[MOD_COUNT+RINGMOD_PARAMS_COUNT] = {0, 1, 1.0f};
 
 class Ringmod : public Module{
@@ -28,8 +28,8 @@ class Ringmod : public Module{
         virtual void change_param(int idx, float value); /**< @see set_param(int idx, float value) */
         virtual void change_param(const float *values);        /**< @see set_param(float *values) */
 
-        virtual string return_param_name(int idx);       /**< @see get_param_name(int idx) */
-        virtual string return_formated_param(int idx);   /**< @see get_formated_param(int idx) */
+        //virtual string return_param_name(int idx);       /**< @see get_param_name(int idx) */
+        //virtual string return_formated_param(int idx);   /**< @see get_formated_param(int idx) */
 
         virtual void new_bank();    /**< @see add_bank() */
 };

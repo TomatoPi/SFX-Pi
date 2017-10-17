@@ -170,7 +170,7 @@ void Delay::new_bank(){
 
     this->add_bank( MOD_COUNT + DELAY_PARAMS_COUNT, DELAY_DEFAULT_PARAMS);
 }
-
+/*
 string Delay::return_param_name(int idx){
 
     return DELAY_PARAM_NAMES[idx];
@@ -210,3 +210,4 @@ string Delay::return_formated_param(int idx){
 
     return n;
 }
+*/

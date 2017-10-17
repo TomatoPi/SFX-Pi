@@ -2,8 +2,10 @@
 #define DEF_MODULE_FACTORY_H
 
 #include <map>
+#include <vector>
 
 #include "Modules.h"
+#include "../consts.h"
 
 /**
 *   Enum of all avaiable modules
@@ -19,10 +21,12 @@ typedef struct{
 
     Module* (*builder_)(int);
     std::string name_;
+    std::vector<std::string> params_;
+    int count_;
 
 }MODULE_REG;
 
-MODULE_REG create_reg( std::string, Module* (*builder)(int) );
+MODULE_REG create_reg( std::string, Module* (*builder)(int), const std::string*, int );
 
 class ModuleFactory{
 
@@ -51,6 +55,16 @@ class ModuleFactory{
          * Return "BadType" if given type identifier is invalid
          */
         static std::string get_name( int type );
+
+        /**
+         * Function Used for get List of Module's Parameters of Given type
+         */
+        static std::vector<std::string> get_params( int type );
+
+        /**
+         * Function Used for get Number of Params of Given type
+         */
+        static int get_pcount( int type );
 
     private :
 

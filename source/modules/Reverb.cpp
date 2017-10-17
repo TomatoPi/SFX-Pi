@@ -168,7 +168,7 @@ void Reverb::new_bank(){
 
     this->add_bank( MOD_COUNT + REVERB_PARAMS_COUNT, REVERB_DEFAULT_PARAMS);
 }
-
+/*
 string  Reverb::return_param_name(int idx){
 
     return REVERB_PARAM_NAMES[idx];
@@ -222,7 +222,7 @@ string Reverb::return_formated_param(int idx){
 
     return n;
 }
-
+*/
 void Reverb::update(){
 
     for(int i = 0; i < COMBCOUNT; i++){

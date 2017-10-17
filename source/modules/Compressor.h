@@ -19,7 +19,7 @@
 #define COMP_WINDOW 30
 
 static const int    COMP_PARAMS_COUNT = 7;
-static const string COMP_PARAM_NAMES[MOD_COUNT+COMP_PARAMS_COUNT] = {"Volume", "Ratio", "Attack", "Release", "Thrsld",
+static const string COMP_PARAM_NAMES[COMP_PARAMS_COUNT] = {"Ratio", "Attack", "Release", "Thrsld",
                                                                     "Gate", "GateCut", "DryWet"};
 static const float  COMP_DEFAULT_PARAM[MOD_COUNT+COMP_PARAMS_COUNT] = {0, 1, 2.25f, 200, 400, 0.1,
                                                                     1, 0.0031f, 1};
@@ -37,8 +37,8 @@ class Compressor : public Module{
         virtual void change_param(int idx, float value); /**< @see set_param(int idx, float value) */
         virtual void change_param(const float *values);  /**< @see set_param(float *values) */
 
-        virtual string return_param_name(int idx);       /**< @see get_param_name(int idx) */
-        virtual string return_formated_param(int idx);   /**< @see get_formated_param(int idx) */
+        //virtual string return_param_name(int idx);       /**< @see get_param_name(int idx) */
+        //virtual string return_formated_param(int idx);   /**< @see get_formated_param(int idx) */
 
         virtual void new_bank();    /**< @see add_bank() */
 

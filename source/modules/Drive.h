@@ -47,7 +47,7 @@ static const float  DRIVE_DEFAULT_PARAMS[MOD_COUNT+DRIVE_PARAM_COUNT] = {0, 1,
                                             198, 1, 22, 0.29f,
                                             63, 1, 15, 0.1f,
                                             200, 1000, 0.5f, 2.0f, 3.0f};
-static const std::string DRIVE_PARAM_NAMES[MOD_COUNT+DRIVE_PARAM_COUNT] = {"Bypass", "Volume",
+static const std::string DRIVE_PARAM_NAMES[DRIVE_PARAM_COUNT] = {
                                             "Fullwave", "Asymetric", "Offset",
                                             "Gain-p", "Type-p", "Soft-p", "Shape-p",
                                             "Gain-n", "Type-n", "Soft-n", "Shape-n",
@@ -83,8 +83,8 @@ class Drive : public Module{
         virtual void change_param(int idx, float value); /**< @see set_param(int idx, float value) */
         virtual void change_param(const float *values);        /**< @see set_param(float *values) */
 
-        virtual string return_param_name(int idx);       /**< @see get_param_name(int idx) */
-        virtual string return_formated_param(int idx);   /**< @see get_formated_param(int idx) */
+        //virtual string return_param_name(int idx);       /**< @see get_param_name(int idx) */
+        //virtual string return_formated_param(int idx);   /**< @see get_formated_param(int idx) */
 
         virtual void new_bank();    /**< @see add_bank() */
 

@@ -30,7 +30,7 @@ static const int    CHORUS_PARAMS_COUNT = 4 + 2*MAX_CHORUS_SIZE;
 static const float  CHORUS_DEFAULT_PARAMS[MOD_COUNT+CHORUS_PARAMS_COUNT] = {0, 1, 1, 1, 1, 10,
                                                             10, 13, 18, 23, 28, 1, 1, 1, 1, 1};
 
-static const std::string CHORUS_PARAM_NAMES[MOD_COUNT+CHORUS_PARAMS_COUNT] = {"Volume", "Depth", "Drywet", "Size",
+static const std::string CHORUS_PARAM_NAMES[CHORUS_PARAMS_COUNT] = {"Depth", "Drywet", "Size",
                                                             "D1", "D2", "D3", "D4", "D5", "W1", "W2", "W3", "W4", "W5"};
 
 static const int    CHORUS_DELAYS_LENGTH[2*MAX_CHORUS_SIZE] = {10, 10, 13, 13, 18, 18, 23, 23, 28, 28};
@@ -49,8 +49,8 @@ class Chorus : public Module{
         virtual void change_param(int idx, float value); /**< @see set_param(int idx, float value) */
         virtual void change_param(const float *values);  /**< @see set_param(float *values) */
 
-        virtual string return_param_name(int idx);       /**< @see get_param_name(int idx) */
-        virtual string return_formated_param(int idx);   /**< @see get_formated_param(int idx) */
+        //virtual string return_param_name(int idx);       /**< @see get_param_name(int idx) */
+        //virtual string return_formated_param(int idx);   /**< @see get_formated_param(int idx) */
 
         virtual void new_bank();    /**< @see add_bank() */
 

@@ -26,7 +26,7 @@
 #define LFO_PHO     MOD_COUNT + 7
 
 static const int    LFO_PARAMS_COUNT = 8;
-static const std::string LFO_PARAM_NAMES[MOD_COUNT+LFO_PARAMS_COUNT] = {"Volume", "Waveform", "Freq", "Phase", "Sign", "Param1", "Param2", "Ph-Dist", "Ph-Fix"};
+static const std::string LFO_PARAM_NAMES[LFO_PARAMS_COUNT] = {"Waveform", "Freq", "Phase", "Sign", "Param1", "Param2", "Ph-Dist", "Ph-Fix"};
 static const float  LFO_DEFAULT_PARAMS[MOD_COUNT+LFO_PARAMS_COUNT] = {0, 1, 2, 2.0f, 0.0f, 1, 0.0f, 0.0f, 0.5f, 0.0f};
 
 /**
@@ -70,8 +70,8 @@ class LFO : public Module{
         virtual void change_param(int idx, float value); /**< @see set_param(int idx, float value) */
         virtual void change_param(const float *values);        /**< @see set_param(float *values) */
 
-        virtual string return_param_name(int idx);       /**< @see get_param_name(int idx) */
-        virtual string return_formated_param(int idx);   /**< @see get_formated_param(int idx) */
+        //virtual string return_param_name(int idx);       /**< @see get_param_name(int idx) */
+        //virtual string return_formated_param(int idx);   /**< @see get_formated_param(int idx) */
 
         virtual void new_bank();    /**< @see add_bank() */
 
