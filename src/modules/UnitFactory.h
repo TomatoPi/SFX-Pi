@@ -24,7 +24,7 @@ class UnitFactory{
     class UnitFactoryReg;
 
     /** Prototype for the builder function **/
-    typedef AbstractEffectUnit* (*builder_f)(uint8_t type, uint8_t id);
+    typedef AbstractEffectUnit* (*builder_f)(uint8_t id, uint8_t type);
 
     /** Alias For String Vector **/
     typedef std::vector<std::string> NameArray;
@@ -42,9 +42,9 @@ class UnitFactory{
          **/
         static void registerEffect(uint8_t type,
                     std::string name, builder_f builder,
-                    std::string* paramNames, size_t paramCount,
-                    std::string* portNames, 
-                    size_t ai, size_t ao, size_t mi, size_t mo);
+                    const std::string* paramNames, uint8_t paramCount,
+                    const std::string* portNames, 
+                    uint8_t ai, uint8_t ao, uint8_t mi, uint8_t mo);
 
         /**
          * Function that must be used by the program to create new effect.
@@ -65,14 +65,14 @@ class UnitFactory{
          * @return Empty vector if invalid type
          **/
         static NameArray getParamNames(uint8_t type);
-        static size_t getParamCount(uint8_t type);
+        static uint8_t getParamCount(uint8_t type);
 
         /**
          * Get ports name's array of given type
          * @return Empty vector if invalid type
          **/
         static NameArray getPortNames(uint8_t type);
-        static size_t getPortCount(uint8_t type, size_t ptype);
+        static uint8_t getPortCount(uint8_t type, uint8_t ptype);
 
         /**
          * Function used to get complete name of a port
@@ -87,7 +87,7 @@ class UnitFactory{
          **/
         static std::string buildPortName(AbstractEffectUnit* source,
                                             uint8_t type,
-                                            size_t ptype, uint8_t idx);
+                                            uint8_t ptype, uint8_t idx);
         
     private :
 
@@ -97,9 +97,9 @@ class UnitFactory{
 
                 UnitFactoryReg();
                 UnitFactoryReg(std::string name, builder_f builder,
-                    std::string* paramNames, size_t paramCount,
-                    std::string* portNames,
-                    size_t ai, size_t ao, size_t mi, size_t mo);
+                    const std::string* paramNames, uint8_t paramCount,
+                    const std::string* portNames,
+                    uint8_t ai, uint8_t ao, uint8_t mi, uint8_t mo);
 
             public :
             
@@ -109,7 +109,7 @@ class UnitFactory{
 
                 NameArray m_paramNames;
                 NameArray m_portNames;
-                size_t    m_portCount[4];
+                uint8_t   m_portCount[4];
         };
 
         static std::map<uint8_t, UnitFactoryReg> m_reg;

@@ -9,8 +9,12 @@
 #define DEF_SFX_PI_H
 
 #include <iostream>
+#include <unistd.h>
+
+#include "Const.h"
  
 #include "./modules/UnitFactory.h"
-#include "./modules/core/filter/MultibandEQ.h"
+
+#include "./modules/effects/List.h"
 
 #endif

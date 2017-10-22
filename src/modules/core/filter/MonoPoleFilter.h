@@ -15,8 +15,8 @@
 
 /**
  * Single Pole Filter.
- * Used For compute a 4th order Filtering low or high pass
- * of a given Signal
+ * Used For compute a 4th order ( -24dB/decade ) Filtering
+ * low or high pass a given Signal
  **/
 class SinglePoleFilter : public AFilterBase{
 
@@ -29,7 +29,7 @@ class SinglePoleFilter : public AFilterBase{
         }FilterType;
 
         SinglePoleFilter(float freq, float samplerate, FilterType type);
-        ~SinglePoleFilter();
+        virtual ~SinglePoleFilter();
 
         float compute(float in, float g1, float g2);
 

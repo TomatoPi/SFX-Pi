@@ -29,7 +29,7 @@ class AbstractEffectUnit{
          * @throw string if a construction step has failed
          * @see JACKUnit.h
          **/
-        AbstractEffectUnit(uint8_t id, uint8_t type, size_t bankSize, size_t paramSize);
+        AbstractEffectUnit(uint8_t id, uint8_t type, uint8_t bankSize, uint8_t paramSize);
         virtual ~AbstractEffectUnit();
 
         /**
@@ -41,9 +41,9 @@ class AbstractEffectUnit{
          * Do Nothing if given index is too big or length differs from
          * bank size
          **/
-        void setParam(size_t idx, float value);
-        void setParam(size_t size, const float *values);
-        float getParam(size_t idx)  const;
+        void setParam(uint8_t idx, float value);
+        void setParam(uint8_t size, const float *values);
+        float getParam(uint8_t idx)  const;
 
         /**
          * Add or Delete Given Bank.
@@ -54,7 +54,7 @@ class AbstractEffectUnit{
          * 
          * TODO Decider du comportement si ID deja present dans bankArray
          **/
-        void addBank(uint8_t id, size_t size, const float *values);
+        void addBank(uint8_t id, uint8_t size, const float *values);
         void removeBank(uint8_t id);
         uint8_t getCurrentBank() const;
 
@@ -117,10 +117,10 @@ class AbstractEffectUnit{
         
         ModBankArray            m_bankArray;
         ModBankArray::iterator  m_currentBank;
-        size_t                  m_bankSize;
+        uint8_t                 m_bankSize;
 
-        float* m_paramArray;
-        size_t m_paramSize;
+        float*  m_paramArray;
+        uint8_t m_paramSize;
 };
 
 /**
@@ -128,12 +128,14 @@ class AbstractEffectUnit{
  **/
 namespace EUCST{
 
-    const size_t C_PARAM_COUNT = 2;
+    const uint8_t C_PARAM_COUNT = 2;
     
-    const size_t C_IDX_BYPASS  = 0;
-    const size_t C_IDX_VOLUME  = 1;
+    const uint8_t C_IDX_BYPASS  = 0;
+    const uint8_t C_IDX_VOLUME  = 1;
 
     const std::string C_NAME[C_PARAM_COUNT] = {"Bypass", "Volume"};
+
+    const std::string JACK_SERVER = "Space_Fx";
     
     /** Error Code if Unit Contains no Banks */
     const uint8_t BANK_ID_ERR = 0xff;

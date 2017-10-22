@@ -15,6 +15,9 @@
  * Interface for encapsulate FilterPole class
  * Herited by Single and Multi pole filters
  * It has a Pure Virtual Destructor used to make class non instanciable
+ * All Functions provided except constructors are inline to save function
+ * calls
+ * https://en.wikipedia.org/wiki/Inline_expansion
  **/
 class AFilterBase{
 
@@ -25,7 +28,7 @@ class AFilterBase{
         
         float m_sm1, m_sm2, m_sm3; /**< Filter's last samples */
 
-        inline void suffleBuffer( float in ){
+        inline void shuffleBuffer( float in ){
 
             m_sm3 = m_sm2;
             m_sm2 = m_sm1;
@@ -44,8 +47,6 @@ class AFilterBase{
                 FilterPole(float freq, float samplerate);
                 
             private :
-
-                static const float vsa;
                 
                 inline static float scaleFrequency(float f, float sr){
 
@@ -60,6 +61,8 @@ class AFilterBase{
                 float m_p0, m_p1, m_p2, m_p3;
 
             public :
+
+                static const float vsa;
             
                 inline float compute(float in){
 
