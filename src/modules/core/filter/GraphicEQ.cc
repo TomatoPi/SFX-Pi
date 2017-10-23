@@ -72,21 +72,12 @@ void GraphicEQ::setFrequency(uint8_t idx, float f, float sr){
 }
 void GraphicEQ::setFrequency(uint8_t poleCount, float* poles, float sr){
 
-    if ( poleCount != m_poleCount ){
+    if ( poleCount == m_poleCount ){
 
-        delete m_band;
-        delete m_pole;
+        for ( uint8_t i = 0; i < poleCount; i++ ){
 
-        m_band      = new float[poleCount+1];
-        m_bandCount = poleCount+1;
-        
-        m_pole      = new FilterPole[poleCount];
-        m_poleCount = poleCount;
-    }
-
-    for ( uint8_t i = 0; i < poleCount; i++ ){
-
-        m_pole[i].setFrequency(poles[i], sr);
+            m_pole[i].setFrequency(poles[i], sr);
+        }
     }
 }
 float GraphicEQ::getFrequency(uint8_t idx) const{

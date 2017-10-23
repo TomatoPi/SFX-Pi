@@ -38,6 +38,7 @@ class GraphicEQ : public AFilterBase{
 
         /**
          * Change EQ Configuration
+         * Cannot be used to change bands count
          **/
         void setFrequency(uint8_t idx, float f, float sr);
         void setFrequency(uint8_t poleCount, float* poles, float sr);

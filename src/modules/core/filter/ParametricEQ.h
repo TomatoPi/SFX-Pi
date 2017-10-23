@@ -31,7 +31,7 @@ class ParametricEQ : public AFilterBase{
          * Compute given input and output mix of all bands
          * Use getBand function for get a specific band value
          **/
-        float compute(float in, uint8_t bandCount, float* gains);
+        float compute(float in, uint8_t poleCount, float* gains);
         float getBand(uint8_t idx);
 
         /**
@@ -55,11 +55,10 @@ class ParametricEQ : public AFilterBase{
         /**
          * Scale Given Band's poles from it center Frenquency and Q factor
          **/
-        void updatePole(uint8_t idx, float cf, float qf);
+        void updatePole(uint8_t idx, float cf, float qf, float sr);
 
         /** Store non Scalled Bands **/
         float  *m_band;
-        uint8_t m_bandCount;
 
         /** EQ Poles **/
         float      *m_qf;

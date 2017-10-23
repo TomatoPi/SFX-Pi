@@ -35,38 +35,28 @@
 #define OMG     (OFFP + 17)
 #define OHG     (OFFP + 18)
 
-const std::string DriveEffect::NAME = "Drive";
+const std::string DriveReg::NAME = "Drive";
 
-AbstractEffectUnit* DriveEffect::BUILDER(uint8_t id, uint8_t type){
+AbstractEffectUnit* DriveReg::BUILDER(uint8_t id, uint8_t type){
 
     return new DriveEffect( id, type );
 }
 
-const std::string DriveEffect::PARNAMES[] = {"Asymetrical",
+const std::string DriveReg::PARNAMES[] = {"Asymetrical",
     "Gain-p", "Type-p", "Soft-p", "Shape-p",
     "Gain-n", "Type-n", "Soft-n", "Shape-n",
     "In-Lowcut", "In-Highcut", "In-Lowgain", "In-Midgain", "In-Highgain",
     "Out-Lowcut", "Out-Highcut", "Out-Lowgain", "Out-Midgain", "Out-Highgain"
     };
-const uint8_t DriveEffect::PARCOUNT = 19;
+const uint8_t DriveReg::PARCOUNT = 19;
 
-const std::string DriveEffect::PORNAMES[] = {"Input", "Output"};
-const uint8_t DriveEffect::AI = 1;
-const uint8_t DriveEffect::AO = 1;
-const uint8_t DriveEffect::MI = 0;
-const uint8_t DriveEffect::MO = 0;
+const std::string DriveReg::PORNAMES[] = {"Input", "Output"};
+const uint8_t DriveReg::AI = 1;
+const uint8_t DriveReg::AO = 1;
+const uint8_t DriveReg::MI = 0;
+const uint8_t DriveReg::MO = 0;
 
-const uint8_t DriveEffect::PARSIZE = DriveEffect::PARCOUNT;
-
-inline sample_t clipHard( sample_t in, float p1, float p2 ){
-
-    return (in<-1)?-1:(in>1)?1:in;
-}
-
-inline sample_t clipSoft( sample_t in, float soft, float shape ){
-
-    return (1 - shape)*tanh( in ) + shape*tanh( in / soft );
-}
+const uint8_t DriveReg::PARSIZE = DriveReg::PARCOUNT;
 
 /* *************************** DriveEffect ************************** */
 DriveEffect::DriveEffect(uint8_t id, uint8_t type):
@@ -86,9 +76,9 @@ DriveEffect::DriveEffect(uint8_t id, uint8_t type):
     // Setup JACKUnit
     try{
 
-        m_jackU = new JACKUnit( EUCST::JACK_SERVER, DriveEffect::NAME );
+        m_jackU = new JACKUnit( EUCST::JACK_SERVER, DriveReg::NAME );
 
-        m_jackU->registerPorts( DriveEffect::PORNAMES );
+        m_jackU->registerPorts( DriveReg::PORNAMES );
 
         m_jackU->registerCallback( DriveEffect::process, this );
 
@@ -155,19 +145,6 @@ void DriveEffect::update(){
     m_toneIn->setFrequency ( 2, m_paramArray+ILC, m_jackU->getSamplerate() );
     m_toneOut->setFrequency( 2, m_paramArray+OLC, m_jackU->getSamplerate() );
 
-    m_clipP = DriveEffect::castClipper( static_cast<DriveEffect::TYPE>((int)m_paramArray[TP]) );
-    m_clipN = DriveEffect::castClipper( static_cast<DriveEffect::TYPE>((int)m_paramArray[TN]) );
-}
-
-DriveEffect::clip_f DriveEffect::castClipper( DriveEffect::TYPE type ){
-
-    if ( type == DriveEffect::SOFT ){
-
-        return clipHard;
-    }
-    else if ( type == DriveEffect::HARD ){
-
-        return clipSoft;
-    }
-    return clipHard;
+    m_clipP = AbstractDriveBase::castClipper( static_cast<AbstractDriveBase::TYPE>((int)m_paramArray[TP]) );
+    m_clipN = AbstractDriveBase::castClipper( static_cast<AbstractDriveBase::TYPE>((int)m_paramArray[TN]) );
 }

@@ -21,7 +21,7 @@ int main(int argc, char* argv[]){
     "******************************************************************"
     << std::endl << std::endl;
 
-    UnitFactory::registerEffect( SFXP::TC_DRIVE, DriveEffect::NAME, DriveEffect::BUILDER, DriveEffect::PARNAMES, DriveEffect::PARCOUNT, DriveEffect::PORNAMES, DriveEffect::AI, DriveEffect::AO, DriveEffect::MI, DriveEffect::MO);
+    UnitFactory::registerEffect( SFXP::TC_DRIVE, DriveReg::NAME, DriveReg::BUILDER, DriveReg::PARNAMES, DriveReg::PARCOUNT, DriveReg::PORNAMES, DriveReg::AI, DriveReg::AO, DriveReg::MI, DriveReg::MO);
     
     std::cout << std::endl <<
     "******************************************************************"

@@ -16,7 +16,15 @@
 #include "../core/AbstractEffectUnit.h"
 #include "../core/filter/GraphicEQ.h"
 
-class DriveEffect : public AbstractEffectUnit{
+#include "../RegistrableUnit.h"
+
+#include "DriveBase.h"
+
+typedef RegistrableUnit<DriveEffect> DriveReg;
+
+class DriveEffect : public AbstractEffectUnit, public AbstractDriveBase,
+    public RegistrableUnit<DriveEffect>
+{
 
     public :
 
@@ -28,27 +36,6 @@ class DriveEffect : public AbstractEffectUnit{
 
         static int process(jack_nframes_t nframes, void* arg);
 
-        typedef enum{
-            SOFT,
-            HARD
-        }TYPE;
-
-        /**
-         * Consts for UnitFactory Register
-         **/
-        static const std::string NAME;
-        
-        static AbstractEffectUnit* BUILDER(uint8_t id, uint8_t type);
-
-        static const std::string PARNAMES[];
-        static const uint8_t PARCOUNT;
-
-        static const std::string PORNAMES[];
-        static const uint8_t AI;
-        static const uint8_t AO;
-        static const uint8_t MI;
-        static const uint8_t MO;
-
     private :
 
         static const uint8_t PARSIZE;
@@ -56,9 +43,6 @@ class DriveEffect : public AbstractEffectUnit{
         virtual void update();
 
     private :
-
-        typedef sample_t (*clip_f)( sample_t, float, float );
-        static clip_f castClipper( TYPE );
 
         GraphicEQ *m_toneIn;
         GraphicEQ *m_toneOut;
