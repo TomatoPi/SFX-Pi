@@ -20,8 +20,6 @@
 
 #include "DriveBase.h"
 
-typedef RegistrableUnit<DriveEffect> DriveReg;
-
 class DriveEffect : public AbstractEffectUnit, public AbstractDriveBase,
     public RegistrableUnit<DriveEffect>
 {
@@ -37,8 +35,6 @@ class DriveEffect : public AbstractEffectUnit, public AbstractDriveBase,
         static int process(jack_nframes_t nframes, void* arg);
 
     private :
-
-        static const uint8_t PARSIZE;
     
         virtual void update();
 
@@ -47,10 +43,10 @@ class DriveEffect : public AbstractEffectUnit, public AbstractDriveBase,
         GraphicEQ *m_toneIn;
         GraphicEQ *m_toneOut;
 
-        float m_samplerate;
-
         clip_f m_clipP;
         clip_f m_clipN;
 };
+
+typedef RegistrableUnit<DriveEffect> DriveReg;
 
 #endif

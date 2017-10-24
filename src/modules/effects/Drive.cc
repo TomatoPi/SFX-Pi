@@ -35,35 +35,36 @@
 #define OMG     (OFFP + 17)
 #define OHG     (OFFP + 18)
 
-const std::string DriveReg::NAME = "Drive";
+template<> const std::string DriveReg::NAME = "Drive";
 
-AbstractEffectUnit* DriveReg::BUILDER(uint8_t id, uint8_t type){
+template<> AbstractEffectUnit* DriveReg::BUILDER(uint8_t id, uint8_t type){
 
     return new DriveEffect( id, type );
 }
 
-const std::string DriveReg::PARNAMES[] = {"Asymetrical",
+template<> const std::string DriveReg::PARNAMES[] = {
+    "Asymetrical",
     "Gain-p", "Type-p", "Soft-p", "Shape-p",
     "Gain-n", "Type-n", "Soft-n", "Shape-n",
     "In-Lowcut", "In-Highcut", "In-Lowgain", "In-Midgain", "In-Highgain",
     "Out-Lowcut", "Out-Highcut", "Out-Lowgain", "Out-Midgain", "Out-Highgain"
     };
-const uint8_t DriveReg::PARCOUNT = 19;
+template<> const uint8_t DriveReg::PARCOUNT = 19;
 
-const std::string DriveReg::PORNAMES[] = {"Input", "Output"};
-const uint8_t DriveReg::AI = 1;
-const uint8_t DriveReg::AO = 1;
-const uint8_t DriveReg::MI = 0;
-const uint8_t DriveReg::MO = 0;
+template<> const std::string DriveReg::PORNAMES[] = {"Input", "Output"};
 
-const uint8_t DriveReg::PARSIZE = DriveReg::PARCOUNT;
+template<> const uint8_t DriveReg::AI = 1;
+template<> const uint8_t DriveReg::AO = 1;
+template<> const uint8_t DriveReg::MI = 0;
+template<> const uint8_t DriveReg::MO = 0;
+
+template<> const uint8_t DriveReg::PARSIZE = DriveReg::PARCOUNT;
 
 /* *************************** DriveEffect ************************** */
 DriveEffect::DriveEffect(uint8_t id, uint8_t type):
     AbstractEffectUnit( id, type, PARCOUNT, PARSIZE),
     m_toneIn(NULL),
     m_toneOut(NULL),
-    m_samplerate(48000),
     m_clipP(clipHard),
     m_clipN(clipHard)
 {
@@ -76,9 +77,9 @@ DriveEffect::DriveEffect(uint8_t id, uint8_t type):
     // Setup JACKUnit
     try{
 
-        m_jackU = new JACKUnit( EUCST::JACK_SERVER, DriveReg::NAME );
+        m_jackU = new JACKUnit( EUCST::JACK_SERVER, DriveEffect::NAME );
 
-        m_jackU->registerPorts( DriveReg::PORNAMES );
+        m_jackU->registerPorts( DriveEffect::PORNAMES );
 
         m_jackU->registerCallback( DriveEffect::process, this );
 

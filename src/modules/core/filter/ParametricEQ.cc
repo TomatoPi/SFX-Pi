@@ -14,8 +14,6 @@
  **********************************************************************/
 #include "ParametricEQ.h"
 
-const float ln22 = 2.88539008f; // 2/ln(2)
-
 ParametricEQ::ParametricEQ(uint8_t poleCount, float* poles, float* qf, float samplerate):
     AFilterBase(),
     m_band(new float[poleCount]),
@@ -50,11 +48,11 @@ ParametricEQ::~ParametricEQ(){
 **/
 float ParametricEQ::compute(float in, uint8_t poleCount, float* gains){
 
-    if ( poleCount != m_poleCount ) return in;
+    if ( poleCount > m_poleCount ) return in;
     
     // Compute Each Band
     float out = 0;
-    for ( uint8_t i = 0; i < m_poleCount; i++ ){
+    for ( uint8_t i = 0; i < poleCount; i++ ){
         
         // Each band is a BandPass Filtering between High and Low Pole
         m_band[i] = m_poleH[i].compute(in) - m_poleL[i].compute(in);
@@ -67,15 +65,31 @@ float ParametricEQ::compute(float in, uint8_t poleCount, float* gains){
     
     return out;
 }
+float ParametricEQ::compute(float in, uint8_t idx){
+
+    if ( idx < m_poleCount ){
+
+        m_band[idx] = m_poleH[idx].compute(in) - m_poleL[idx].compute(in);
+        return m_band[idx];
+    }
+    return in;
+}
 float ParametricEQ::getBand(uint8_t idx){
 
-    if ( idx < m_bandCount ){
+    if ( idx < m_poleCount ){
         
         return m_band[idx];
     }
     return 0;
 }
 
+void ParametricEQ::setPole(uint8_t idx, float f, float q, float sr){
+
+    if ( idx < m_poleCount ){
+        
+        this->updatePole( idx, f, q, sr );
+    }
+}
 /**
 * Change EQ Configuration
 **/
@@ -88,7 +102,7 @@ void ParametricEQ::setFrequency(uint8_t idx, float f, float sr){
 }
 void ParametricEQ::setFrequency(uint8_t poleCount, float* poles, float sr){
 
-    if ( idx == m_poleCount ){
+    if ( poleCount == m_poleCount ){
         
         for ( uint8_t i = 0; i < poleCount; i++ ){
 
@@ -117,7 +131,7 @@ void ParametricEQ::setQFactor(uint8_t idx, float qf, float sr){
 }
 void ParametricEQ::setQFactor(uint8_t poleCount, float* qf, float sr){
 
-    if ( idx == m_poleCount ){
+    if ( poleCount == m_poleCount ){
         
         for ( uint8_t i = 0; i < poleCount; i++ ){
 
@@ -147,12 +161,20 @@ void ParametricEQ::updatePole(uint8_t idx, float cf, float qf, float sr){
         m_cf[idx] = cf;
         m_qf[idx] = qf;
 
+        std::cout << "Center(" << std::to_string(m_cf[idx]) << ") : ";
+        std::cout << "QFactor(" << std::to_string(m_qf[idx]) << ")" << std::endl;
+
         // Bandwith in octave
-        float bw = ln22 * asinh( 0.5f / (qf + AFilterBase::FilterPole::vsa) );
+        float bw = 2.01977305724f * asinh( 1.25f / (qf + AFilterBase::FilterPole::vsa) );
+        std::cout << "BW(" << std::to_string(bw) << ")" << std::endl;
 
         // Scale Poles pairs, centered at cf ( Center Frequency )
         // by converting bandwidth to frequency ratio
         m_poleL[idx] = FilterPole(m_cf[idx] * pow( 2, -bw/2.0f ), sr);
         m_poleH[idx] = FilterPole(m_cf[idx] * pow( 2,  bw/2.0f ), sr);
+
+        std::cout << "Filter Updated : lf(" << std::to_string(m_poleL[idx].getFrequency());
+        std::cout << ") : hf(" << std::to_string(m_poleH[idx].getFrequency());
+        std::cout << ")" << std::endl;
     }
 }

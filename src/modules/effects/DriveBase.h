@@ -8,6 +8,8 @@
 #ifndef DEF_EFFECT_DRIVE_BASE_H
 #define DEF_EFFECT_DRIVE_BASE_H
 
+#include <math.h>
+
 #include "../core/JACKUnit.h" // Get sample_t typedef
 
 class AbstractDriveBase{
@@ -19,10 +21,10 @@ class AbstractDriveBase{
         /** Typedef Clipping function **/
         typedef sample_t (*clip_f)( sample_t, float, float );
 
-        typedef enum{
-            SOFT,
-            HARD
-        }TYPE;
+        enum TYPE{
+            SOFT=0,
+            HARD=1
+        };
         
         /** Convert an TYPE to correct function pointer **/
         static clip_f castClipper( TYPE );

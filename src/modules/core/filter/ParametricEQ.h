@@ -32,7 +32,10 @@ class ParametricEQ : public AFilterBase{
          * Use getBand function for get a specific band value
          **/
         float compute(float in, uint8_t poleCount, float* gains);
+        float compute(float in, uint8_t idx);
         float getBand(uint8_t idx);
+
+        void setPole(uint8_t idx, float f, float q, float sr);
 
         /**
          * Change EQ Configuration

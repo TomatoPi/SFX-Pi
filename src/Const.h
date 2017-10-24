@@ -9,4 +9,5 @@
 namespace SFXP{
 
     const uint8_t TC_DRIVE = 0;
+    const uint8_t TC_MDRIVE = 1;
 };

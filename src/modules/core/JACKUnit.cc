@@ -121,7 +121,7 @@ void JACKUnit::connect(std::string source, std::string target){
     }
     if ( jack_connect( m_client, source.c_str(), target.c_str() ) ){
 
-        throw std::string("Cannot Connect Ports");
+        throw std::string("Cannot Connect Ports : " + source + " to : " + target);
     }
 }
 

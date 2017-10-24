@@ -1,14 +1,8 @@
 /**********************************************************************
- * @file List.h
+ * @file CommandParser.cc
  * @author TomatoPi
  * @version 1.0
  *
- * Include of all available effects
+ * Parser
  **********************************************************************/
-#ifndef DEF_EFFECT_LIST_H
-#define DEF_EFFECT_LIST_H
-
-#include "Drive.h"
-#include "MatrixDrive.h"
-
-#endif
+#include "CommandParser.h"

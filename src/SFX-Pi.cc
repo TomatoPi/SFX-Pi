@@ -21,7 +21,10 @@ int main(int argc, char* argv[]){
     "******************************************************************"
     << std::endl << std::endl;
 
-    UnitFactory::registerEffect( SFXP::TC_DRIVE, DriveReg::NAME, DriveReg::BUILDER, DriveReg::PARNAMES, DriveReg::PARCOUNT, DriveReg::PORNAMES, DriveReg::AI, DriveReg::AO, DriveReg::MI, DriveReg::MO);
+    Listener::Create();
+
+    UnitFactory::registerEffect( SFXP::TC_DRIVE, DriveEffect::NAME, DriveEffect::BUILDER, DriveEffect::PARNAMES, DriveEffect::PARCOUNT, DriveEffect::PORNAMES, DriveEffect::AI, DriveEffect::AO, DriveEffect::MI, DriveEffect::MO);
+    UnitFactory::registerEffect( SFXP::TC_MDRIVE, MatrixDriveEffect::NAME, MatrixDriveEffect::BUILDER, MatrixDriveEffect::PARNAMES, MatrixDriveEffect::PARCOUNT, MatrixDriveEffect::PORNAMES, MatrixDriveEffect::AI, MatrixDriveEffect::AO, MatrixDriveEffect::MI, MatrixDriveEffect::MO);
     
     std::cout << std::endl <<
     "******************************************************************"
@@ -31,17 +34,20 @@ int main(int argc, char* argv[]){
     "******************************************************************"
     << std::endl << std::endl;
 
-    AbstractEffectUnit *test = UnitFactory::createEffect( SFXP::TC_DRIVE, 0);
+    while (1){
 
-    const float test2[21] = { 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 300, 1000, 1, 1, 1, 300, 1000, 1, 1, 1};
-    test->setParam( 21, test2 );
+        std::string cmd = Listener::Get().getBuffer();
+        if ( cmd.size() != 0 ){
 
-    test->getJACKUnit()->connect( "system:capture_1", UnitFactory::buildPortName( test, SFXP::TC_DRIVE, 0, 0) );
-    test->getJACKUnit()->connect( UnitFactory::buildPortName( test, SFXP::TC_DRIVE, 1, 0), "system:playback_1");
-    test->getJACKUnit()->connect( UnitFactory::buildPortName( test, SFXP::TC_DRIVE, 1, 0), "system:playback_2");
+            std::cout << "Héhéhéhéhé : " << cmd << std::endl;
+            Listener::Get().clearBuffer();
 
-    while (1);
+            if ( !cmd.compare( "exit" ) ){
 
-    delete test;
+                break;
+            }
+        }
+    };
+    
     return 0;
 }

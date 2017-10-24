@@ -12,21 +12,26 @@
 template <class T>
 class RegistrableUnit{
 
-    /**
-     * Consts for UnitFactory Register
-     **/
-    static const std::string NAME;
-    
-    static AbstractEffectUnit* BUILDER(uint8_t id, uint8_t type);
+    public :
+        /**
+         * Consts for UnitFactory Register
+         **/
+        static const std::string NAME;
+        
+        static AbstractEffectUnit* BUILDER(uint8_t id, uint8_t type);
 
-    static const std::string PARNAMES[];
-    static const uint8_t PARCOUNT;
+        static const std::string PARNAMES[];
+        static const uint8_t PARCOUNT;
 
-    static const std::string PORNAMES[];
-    static const uint8_t AI;
-    static const uint8_t AO;
-    static const uint8_t MI;
-    static const uint8_t MO;
+        static const std::string PORNAMES[];
+        static const uint8_t AI;
+        static const uint8_t AO;
+        static const uint8_t MI;
+        static const uint8_t MO;
+
+    protected :
+
+        static const uint8_t PARSIZE;
 };
 
 #endif
