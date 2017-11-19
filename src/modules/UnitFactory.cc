@@ -7,16 +7,16 @@
  **********************************************************************/
 #include "UnitFactory.h"
 
-std::map<uint8_t, UnitFactory::UnitFactoryReg> UnitFactory::m_reg = std::map<uint8_t, UnitFactory::UnitFactoryReg>();
+std::map<id1_t, UnitFactory::UnitFactoryReg> UnitFactory::m_reg = std::map<id1_t, UnitFactory::UnitFactoryReg>();
 
 /* ****************************************************************** */
 /* ******************* Registration and Creation ******************** */
 /* ****************************************************************** */
-void UnitFactory::registerEffect(uint8_t type,
+void UnitFactory::registerEffect(id1_t type,
                     std::string name, builder_f builder,
-                    const std::string* paramNames, uint8_t paramCount,
+                    const std::string* paramNames, size_t paramCount,
                     const std::string* portNames, 
-                    uint8_t ai, uint8_t ao, uint8_t mi, uint8_t mo){
+                    size_t ai, size_t ao, size_t mi, size_t mo){
 
     if ( m_reg.find(type) == m_reg.end() ){
 
@@ -24,7 +24,7 @@ void UnitFactory::registerEffect(uint8_t type,
                                         paramNames, paramCount,
                                         portNames, ai, ao, mi, mo );
 
-        printf("UnitFactory : Registered : TC( %3u ) : Name( %-18s ) : ParamCount( %2lu ) : PortCount( %u %u %u %u )\n",
+        printf("UnitFactory : Registered : TC( %3u ) : Name( %-18s ) : ParamCount( %2lu ) : PortCount( %lu %lu %lu %lu )\n",
             type,
             name.c_str(),
             m_reg[type].m_paramNames.size(),
@@ -37,7 +37,7 @@ void UnitFactory::registerEffect(uint8_t type,
     }
 }
 
-AbstractEffectUnit* UnitFactory::createEffect(uint8_t type, uint8_t id){
+AbstractEffectUnit* UnitFactory::createEffect(id1_t type, id1_t id){
 
     if ( m_reg.find(type) != m_reg.end() ){
 
@@ -49,7 +49,7 @@ AbstractEffectUnit* UnitFactory::createEffect(uint8_t type, uint8_t id){
 /* ****************************************************************** */
 /* ************************ Getters and Setters ********************* */
 /* ****************************************************************** */
-std::string UnitFactory::getName(uint8_t type){
+std::string UnitFactory::getName(id1_t type){
 
     if ( m_reg.find(type) != m_reg.end() ){
 
@@ -58,7 +58,7 @@ std::string UnitFactory::getName(uint8_t type){
     return std::string();
 }
 
-UnitFactory::NameArray UnitFactory::getParamNames(uint8_t type){
+UnitFactory::NameArray UnitFactory::getParamNames(id1_t type){
 
     if ( m_reg.find(type) != m_reg.end() ){
 
@@ -66,7 +66,7 @@ UnitFactory::NameArray UnitFactory::getParamNames(uint8_t type){
     }
     return UnitFactory::NameArray();
 }
-uint8_t UnitFactory::getParamCount(uint8_t type){
+size_t UnitFactory::getParamCount(id1_t type){
 
     if ( m_reg.find(type) != m_reg.end() ){
 
@@ -75,7 +75,7 @@ uint8_t UnitFactory::getParamCount(uint8_t type){
     return 0;
 }
 
-UnitFactory::NameArray UnitFactory::getPortNames(uint8_t type){
+UnitFactory::NameArray UnitFactory::getPortNames(id1_t type){
 
     if ( m_reg.find(type) != m_reg.end() ){
 
@@ -83,7 +83,7 @@ UnitFactory::NameArray UnitFactory::getPortNames(uint8_t type){
     }
     return UnitFactory::NameArray();
 }
-uint8_t UnitFactory::getPortCount(uint8_t type, uint8_t ptype){
+size_t UnitFactory::getPortCount(id1_t type, id1_t ptype){
 
     if ( m_reg.find(type) != m_reg.end() && ptype < 4 ){
 
@@ -93,14 +93,14 @@ uint8_t UnitFactory::getPortCount(uint8_t type, uint8_t ptype){
 }
 
 std::string UnitFactory::buildPortName(AbstractEffectUnit* source,
-                                    uint8_t ptype, uint8_t idx){
+                                    id1_t ptype, size_t idx){
 
-    uint8_t type = source->getType();
+    id1_t type = source->getType();
     
     if ( m_reg.find(type) != m_reg.end() ){
 
-        uint8_t pidx = 0;
-        for( uint8_t i = 0; i < ptype; i++){
+        size_t pidx = 0;
+        for( size_t i = 0; i < ptype; i++){
 
              pidx += m_reg[type].m_portCount[i];
         }
@@ -127,9 +127,9 @@ UnitFactory::UnitFactoryReg::UnitFactoryReg():
     m_portCount[3] = 0;
 }
 UnitFactory::UnitFactoryReg::UnitFactoryReg(std::string name, builder_f builder,
-                    const std::string* paramNames, uint8_t paramCount,
+                    const std::string* paramNames, size_t paramCount,
                     const std::string* portNames, 
-                    uint8_t ai, uint8_t ao, uint8_t mi, uint8_t mo):
+                    size_t ai, size_t ao, size_t mi, size_t mo):
     m_name(name),
     m_builder(builder),
     m_paramNames(NameArray()),
@@ -141,19 +141,19 @@ UnitFactory::UnitFactoryReg::UnitFactoryReg(std::string name, builder_f builder,
     m_portCount[3] = mo;
     
     // Copy Common param names and effect's param names
-    const uint8_t cpc = EUCST::C_PARAM_COUNT;
+    const size_t cpc = EUCST::C_PARAM_COUNT;
     
-    for ( uint8_t i = 0; i < cpc; i++ ){
+    for ( size_t i = 0; i < cpc; i++ ){
 
         m_paramNames.push_back(EUCST::C_NAME[i]);
     }
-    for ( uint8_t i = cpc; i < paramCount + cpc ; i++ ){
+    for ( size_t i = cpc; i < paramCount + cpc ; i++ ){
 
         m_paramNames.push_back(paramNames[i-cpc]);
     }
 
     // Copy Ports Names
-    for ( uint8_t i = 0; i < ai + ao + mi + mo; i++ ){
+    for ( size_t i = 0; i < ai + ao + mi + mo; i++ ){
 
         m_portNames.push_back(portNames[i]);
     }

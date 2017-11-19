@@ -12,6 +12,8 @@
 
 #include "../../core/JACKUnit.h" // Get sample_t typedef
 
+#include "../../../Const.h"
+
 class AbstractDriveBase{
     
     protected :

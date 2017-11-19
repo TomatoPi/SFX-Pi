@@ -14,6 +14,8 @@ Command::Command(std::string key, std::string help):
 {
 }
 
+Command::~Command()=default;
+
 std::string Command::getKey() const{
 
     return m_key;
@@ -24,7 +26,7 @@ std::string Command::getHelp() const{
 }
 
 /* ******************** Constant Arg Count Command ****************** */
-StrictArgCommand::StrictArgCommand(std::string key, std::string help, uint8_t argCount):
+StrictArgCommand::StrictArgCommand(std::string key, std::string help, size_t argCount):
     Command(key, help),
     m_argCount(argCount)
 {
@@ -42,7 +44,7 @@ void StrictArgCommand::tryPerform(std::vector<std::string> arg){
 }
 
 /* ******************** Variable Arg Count Command ****************** */
-VarArgCommand::VarArgCommand(std::string key, std::string help, uint8_t minArg, uint8_t maxArg):
+VarArgCommand::VarArgCommand(std::string key, std::string help, size_t minArg, size_t maxArg):
     Command(key, help),
     m_minArg(minArg),
     m_maxArg(maxArg)

@@ -52,7 +52,7 @@ void CmdLoadEffect::perform(std::vector<std::string> arg){
     else{
 
         bool override = arg.size() == 2;
-        if ( ProcessGraph::Get().addEffect(unit, override) && !override ){
+        if ( ProcessGraph::addEffect(unit, override) && !override ){
 
             printf("Given effect is already present, delete it, see help to permit override\n");
             delete unit;
@@ -68,7 +68,7 @@ CmdSaveEffect::CmdSaveEffect():
 }
 void CmdSaveEffect::perform(std::vector<std::string> arg){
 
-    if ( Preset::saveEffect(arg[0], ProcessGraph::Get().getEffect(std::stoi(arg[1]))) ){
+    if ( Preset::saveEffect(arg[0], ProcessGraph::getEffect(std::stoi(arg[1]))) ){
 
         printf("try another filename or verify permissions inside preset directory");
     }

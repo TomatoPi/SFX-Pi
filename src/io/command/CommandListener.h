@@ -12,7 +12,7 @@
 #include <iostream>
 #include <string>
 
-#include "../../core/Singleton.h"
+//#include "../../core/Singleton.h"
 #include "../core/Listener.h"
 
 /**
@@ -20,16 +20,16 @@
  * When a line has been passed throught terminal, it can be accessed
  * with getBuffer function
  **/
-class CommandListener : public AbstractListener,
-    public Singleton<CommandListener>
+class CommandListener : public AbstractListener
 {
-
-    friend class Singleton<CommandListener>;
 
     public :
 
-        std::string getBuffer();
-        void clearBuffer();
+        static int create();
+        static int kill();
+
+        static std::string getBuffer();
+        static void clearBuffer();
 
     private :
 
@@ -39,6 +39,8 @@ class CommandListener : public AbstractListener,
         virtual ~CommandListener();
         
         std::string m_buffer;
+
+        static CommandListener *m_instance;
 };
 
 #endif

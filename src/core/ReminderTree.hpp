@@ -15,7 +15,7 @@
  * Tree Constructor, take value or object that will be returned
  * as error and valid Value for all tree's functions
  **/
-template <typename Val, uint8_t Depth>
+template <typename Val, size_t Depth>
 ReminderTree<Val,Depth>::ReminderTree( Val okVal, Val errVal ):
     m_root(new ReminderTree<Val,Depth>::Node<Val>()),
     m_okValue(okVal),
@@ -24,14 +24,14 @@ ReminderTree<Val,Depth>::ReminderTree( Val okVal, Val errVal ):
     //printf("New Reminder Tree Created\n");
 }
 
-template <typename Val, uint8_t Depth>
+template <typename Val, size_t Depth>
 ReminderTree<Val,Depth>::~ReminderTree(){
 
     this->clear();
     delete m_root;
 }
 
-template <typename Val, uint8_t Depth>
+template <typename Val, size_t Depth>
 void ReminderTree<Val,Depth>::clear(){
 
     eraseNode(m_root);
@@ -42,13 +42,13 @@ void ReminderTree<Val,Depth>::clear(){
  * valid Value if given sequence exist
  * error Value if not
  **/
-template <typename Val, uint8_t Depth>
+template <typename Val, size_t Depth>
 Val ReminderTree<Val,Depth>::find( Val seq[Depth] ){
 
     //printf("Search for Given sequence inside the Tree\n");
     Node<Val> *cur = m_root;
 
-    for ( uint8_t i = 0; i < Depth; i++ ){
+    for ( size_t i = 0; i < Depth; i++ ){
 
         //printf("  Depth ( %d ) Search for Node ( %d ) -- ", i, seq[i] );
         if ( cur->m_node.find(seq[i]) == cur->m_node.end() ){
@@ -66,13 +66,13 @@ Val ReminderTree<Val,Depth>::find( Val seq[Depth] ){
  * Add given sequence to the tree
  * Return error value if given sequence already exist
  **/
-template <typename Val, uint8_t Depth>
+template <typename Val, size_t Depth>
 Val ReminderTree<Val,Depth>::add( Val seq[Depth] ){
 
     //printf("Add Given Sequence to the Tree :\n");
     Node<Val> *cur = m_root;
     
-    for ( uint8_t i = 0; i < Depth; i++ ){
+    for ( size_t i = 0; i < Depth; i++ ){
 
         if ( cur->m_node.find(seq[i]) == cur->m_node.end() ){
 
@@ -91,13 +91,13 @@ Val ReminderTree<Val,Depth>::add( Val seq[Depth] ){
  * Remove given sequence from the tree
  * Return error value if given sequence don't exist
  **/
-template <typename Val, uint8_t Depth>
-Val ReminderTree<Val,Depth>::remove( Val seq[Depth], uint8_t depth ){
+template <typename Val, size_t Depth>
+Val ReminderTree<Val,Depth>::remove( Val seq[Depth], size_t depth ){
 
     Node<Val> *cur = m_root;
 
     // Search for node to remove
-    for ( uint8_t i = 0; i < Depth; i++ ){
+    for ( size_t i = 0; i < Depth; i++ ){
 
         //printf("  Depth ( %d ) Search for Node ( %d ) -- ", i, seq[i] );
         if ( cur->m_node.find(seq[i]) == cur->m_node.end() ){
@@ -130,7 +130,7 @@ Val ReminderTree<Val,Depth>::remove( Val seq[Depth], uint8_t depth ){
 /**
  * Function used to get back list of all stored sequencies
  **/
-template <typename Val, uint8_t Depth>
+template <typename Val, size_t Depth>
 std::vector<Val*> ReminderTree<Val,Depth>::getBackTree() const{
 
     Val d[Depth];
@@ -140,7 +140,7 @@ std::vector<Val*> ReminderTree<Val,Depth>::getBackTree() const{
 /**
  * Show current Tree Content
  **/
-template <typename Val, uint8_t Depth>
+template <typename Val, size_t Depth>
 void ReminderTree<Val,Depth>::print() const{
 
     printf("Print Tree Content :\n");
@@ -153,8 +153,8 @@ void ReminderTree<Val,Depth>::print() const{
  * Depth indication represent current depth inside tree and is
  * only used for output indentation
  **/
-template <typename Val, uint8_t Depth>
-void ReminderTree<Val,Depth>::printNode( Node<Val> *node, uint8_t d ) const{
+template <typename Val, size_t Depth>
+void ReminderTree<Val,Depth>::printNode( Node<Val> *node, size_t d ) const{
 
     for( typename std::map<Val,Node<Val>*>::iterator cur = node->m_node.begin()
             ; cur != node->m_node.end()
@@ -175,13 +175,13 @@ void ReminderTree<Val,Depth>::printNode( Node<Val> *node, uint8_t d ) const{
  *
  * @return passed vector pushed front newly recovered sequencies
  **/
-template <typename Val, uint8_t Depth>
+template <typename Val, size_t Depth>
 std::vector<Val*> ReminderTree<Val,Depth>::getNode
     (
     Node<Val> *node,
     std::vector<Val*> out,
     Val prefix[Depth],
-    uint8_t depth
+    size_t depth
     ) const
 {
     // For each Entries inside node add current position to prefix
@@ -205,7 +205,7 @@ std::vector<Val*> ReminderTree<Val,Depth>::getNode
     return out;
 }
 
-template <typename Val, uint8_t Depth>
+template <typename Val, size_t Depth>
 void ReminderTree<Val,Depth>::eraseNode( Node<Val> *node ){
 
     //printf("Erasing node ... ");

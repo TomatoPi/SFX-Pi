@@ -18,7 +18,7 @@
 /* ***************************** Const ****************************** */
 template<> const std::string DelayReg::NAME = "Delay";
 
-template<> AbstractEffectUnit* DelayReg::BUILDER(uint8_t id, uint8_t type){
+template<> AbstractEffectUnit* DelayReg::BUILDER(id1_t id, id1_t type){
 
     return new DelayEffect( id, type );
 }
@@ -28,21 +28,21 @@ template<> const std::string DelayReg::PARNAMES[] = {
     "Feedback",
     "Dry-Wet"
     };
-template<> const uint8_t DelayReg::PARCOUNT = 3;
+template<> const size_t DelayReg::PARCOUNT = 3;
 
 template<> const std::string DelayReg::PORNAMES[] = {"Input","Output"};
 
-template<> const uint8_t DelayReg::AI = 1;
-template<> const uint8_t DelayReg::AO = 1;
-template<> const uint8_t DelayReg::MI = 0;
-template<> const uint8_t DelayReg::MO = 0;
+template<> const size_t DelayReg::AI = 1;
+template<> const size_t DelayReg::AO = 1;
+template<> const size_t DelayReg::MI = 0;
+template<> const size_t DelayReg::MO = 0;
 
-template<> const uint16_t DelayReg::PARSIZE = DelayReg::PARCOUNT;
+template<> const size_t DelayReg::PARSIZE = DelayReg::PARCOUNT;
 
 /* ******************************* Delay **************************** */
-DelayEffect::DelayEffect(uint8_t id, uint8_t type):
+DelayEffect::DelayEffect(id1_t id, id1_t type):
     AbstractEffectUnit( id, type, PARCOUNT, PARSIZE),
-    m_buffer(new Buffer<sample_t,MAX_DELAY>())
+    m_buffer(new Buffer<MAX_DELAY>())
 {
     // Setup JACKUnit
     try{

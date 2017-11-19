@@ -18,12 +18,12 @@
 
 namespace{
 
-    const uint16_t BIN = 1 << (SFXP::JACK_BLOCK_SIZE-1);
+    const size_t BIN = 1 << (SFXP::JACK_BLOCK_SIZE-1);
 }
 /* ***************************** Consts ***************************** */
 template<>  const std::string FFTFilterReg::NAME =  "FFT-Filter";
 
-template<> AbstractEffectUnit* FFTFilterReg::BUILDER(uint8_t id, uint8_t type){
+template<> AbstractEffectUnit* FFTFilterReg::BUILDER(id1_t id, id1_t type){
 
     return new FFTFilter( id, type );
 }
@@ -33,22 +33,22 @@ template<> const std::string FFTFilterReg::PARNAMES[] = {
     "Order",
     "Type"
     };
-template<> const uint8_t FFTFilterReg::PARCOUNT = 3;
+template<> const size_t FFTFilterReg::PARCOUNT = 3;
 
 template<> const std::string FFTFilterReg::PORNAMES[] = {
     "Input", "Output"};
 
-template<> const uint8_t FFTFilterReg::AI = 1;
-template<> const uint8_t FFTFilterReg::AO = 1;
-template<> const uint8_t FFTFilterReg::MI = 0;
-template<> const uint8_t FFTFilterReg::MO = 0;
+template<> const size_t FFTFilterReg::AI = 1;
+template<> const size_t FFTFilterReg::AO = 1;
+template<> const size_t FFTFilterReg::MI = 0;
+template<> const size_t FFTFilterReg::MO = 0;
 
-template<> const uint16_t FFTFilterReg::PARSIZE = BIN;
+template<> const size_t FFTFilterReg::PARSIZE = BIN;
 /* ************************* FFTComplexifier ************************ */
 /**
  * Constructor and Process Callback
  **/
-FFTFilter::FFTFilter(uint8_t id, uint8_t type):
+FFTFilter::FFTFilter(id1_t id, id1_t type):
     AbstractEffectUnit( id, type, PARCOUNT, PARSIZE)
 {
     // Setup JACKUnit
@@ -115,7 +115,7 @@ void FFTFilter::update(){
     // If filter is highpass
     if ( type == HIGHPASS ){
 
-        for ( uint16_t i = 0; i < m_paramSize; i++ ){
+        for ( size_t i = 0; i < m_paramSize; i++ ){
 
             // Calculate filter coef
             float x = ((float)(i)*sr2) / ((float)(BIN)*freq);
@@ -130,7 +130,7 @@ void FFTFilter::update(){
     // If filter is bandpass
     else if ( type == BANDPASS ){
 
-        for ( uint16_t i = 0; i < m_paramSize-OFFP; i++ ){
+        for ( size_t i = 0; i < m_paramSize-OFFP; i++ ){
 
             // Calculate filter coef
             float x = ((float)(BIN)*freq) / ((float)(i)*sr2);
@@ -145,7 +145,7 @@ void FFTFilter::update(){
     // Else filter is by default lowpass
     else{
 
-        for ( uint16_t i = 0; i < m_paramSize-OFFP; i++ ){
+        for ( size_t i = 0; i < m_paramSize-OFFP; i++ ){
 
             // Calculate filter coef
             float x = ((float)(i)*sr2) / ((float)(BIN)*freq);

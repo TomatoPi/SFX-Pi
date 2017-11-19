@@ -22,7 +22,7 @@
  **/
 class AbstractEffectUnit{
 
-        typedef std::map<uint8_t, float*> ModBankArray;
+        typedef std::map<id1_t, float*> ModBankArray;
 
     public :
 
@@ -33,7 +33,7 @@ class AbstractEffectUnit{
          * @throw string if a construction step has failed
          * @see JACKUnit.h
          **/
-        AbstractEffectUnit(uint8_t id, uint8_t type, uint8_t bankSize, uint16_t paramSize);
+        AbstractEffectUnit(id1_t id, id1_t type, size_t bankSize, size_t paramSize);
         virtual ~AbstractEffectUnit();
 
         /**
@@ -45,9 +45,9 @@ class AbstractEffectUnit{
          * Do Nothing if given index is too big or length differs from
          * bank size
          **/
-        void setParam(uint8_t idx, float value);
-        void setParam(uint8_t size, const float *values);
-        float getParam(uint8_t idx)  const;
+        void setParam(size_t idx, float value);
+        void setParam(size_t size, const float *values);
+        float getParam(size_t idx)  const;
 
         /**
          * Add or Delete Given Bank.
@@ -58,12 +58,12 @@ class AbstractEffectUnit{
          * 
          * TODO Decider du comportement si ID deja present dans bankArray
          **/
-        int addBank(uint8_t id);
-        int addBank(uint8_t id, uint8_t size, const float *values);
-        void removeBank(uint8_t id);
-        uint8_t getCurrentBank() const;
+        int addBank(id1_t id);
+        int addBank(id1_t id, size_t size, const float *values);
+        void removeBank(id1_t id);
+        id1_t getCurrentBank() const;
         ModBankArray getAllBanks() const;
-        uint8_t getBankSize() const;
+        size_t getBankSize() const;
 
         /**
          * Change Current Bank.
@@ -73,7 +73,7 @@ class AbstractEffectUnit{
          **/
         bool nextBank();
         bool prevBank();
-        int changeBank(uint8_t id);
+        int changeBank(id1_t id);
 
         /**
          * Change Effect's Bypassed status
@@ -86,19 +86,19 @@ class AbstractEffectUnit{
         /**
          * Get Effect's Type Code
          **/
-        uint8_t getType() const;
+        id1_t getType() const;
 
         /**
          * Get Effect's ID
          **/
-        uint8_t getID() const;
+        id1_t getID() const;
         
         /**
          * Return JACK part of the EffectUnit
          * given number is index of an unit's port
          * return JACKUnit that own given port
          **/
-        virtual JACKUnit* getJACKUnit(uint8_t pidx);
+        virtual JACKUnit* getJACKUnit(size_t pidx);
 
         /**
          * Print Current Effect Unit Content
@@ -121,8 +121,8 @@ class AbstractEffectUnit{
          **/
         virtual void update() = 0;
 
-        uint8_t m_id;
-        uint8_t m_type;
+        id1_t m_id;
+        id1_t m_type;
 
     /* *** JACK Stuff *** */
     protected :
@@ -134,10 +134,10 @@ class AbstractEffectUnit{
         
         ModBankArray            m_bankArray;
         ModBankArray::iterator  m_currentBank;
-        uint8_t                 m_bankSize;
+        size_t                  m_bankSize;
 
         float*  m_paramArray;
-        uint16_t m_paramSize;
+        size_t  m_paramSize;
 };
 
 /**
@@ -146,17 +146,17 @@ class AbstractEffectUnit{
 namespace EUCST{
 
     /* ****** COMMON PARAMS FOR EFFECTS ****** */
-    const uint8_t C_PARAM_COUNT = 2;
+    const size_t C_PARAM_COUNT = 2;
     
-    const uint8_t IDXBYP  = 0;
-    const uint8_t IDXVOL  = 1;
+    const size_t IDXBYP  = 0;
+    const size_t IDXVOL  = 1;
 
     const std::string C_NAME[C_PARAM_COUNT] = {"Bypass", "Volume"};
 
     const std::string JACK_SERVER = "Space_Fx";
     
     /** Error Code if Unit Contains no Banks **/
-    const uint8_t BANK_ID_ERR = 0xff;
+    const id1_t BANK_ID_ERR = 0xff;
 };
 
 #endif

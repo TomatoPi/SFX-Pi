@@ -22,7 +22,7 @@ SinglePoleFilter::~SinglePoleFilter(){
 
 }
 
-float SinglePoleFilter::compute(float in, float g1, float g2){
+sample_t SinglePoleFilter::compute(sample_t in, float g1, float g2){
 
     float out = m_pole.compute(in);
 

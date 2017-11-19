@@ -16,7 +16,7 @@
 
 #include "../Const.h"
 
-#include "../core/Singleton.h"
+//#include "../core/Singleton.h"
 #include "../core/ReminderTree.h"
 
 #include "./core/AbstractEffectUnit.h"
@@ -25,71 +25,76 @@
 
 #include "UnitFactory.h"
 
-class ProcessGraph : public Singleton<ProcessGraph>{
-
-    friend class Singleton<ProcessGraph>;
+class ProcessGraph{
     
     public :
 
         struct Connection{
 
-            Connection( uint8_t si, uint8_t sp, uint8_t ti, uint8_t tp ):
+            Connection( id1_t si, id1_t sp, id1_t ti, id1_t tp ):
             m_si(si),m_sp(sp),m_ti(ti),m_tp(tp){}
             
-            uint8_t m_si, m_sp, m_ti, m_tp;
+            id1_t m_si, m_sp, m_ti, m_tp;
         };
+        
+        typedef std::map<id1_t, AbstractEffectUnit*> EffectList;
+        typedef ReminderTree<id1_t, 4> ConnectionTree;
+
+        static int create();
+        static int kill();
 
         /**
          * Add or remove given effect from the process graph
          **/
-        int addEffect( uint8_t type, uint8_t id );
-        int addEffect( AbstractEffectUnit* unit, bool override=false );
-        int removeEffect( uint8_t id );
-        AbstractEffectUnit* getEffect( uint8_t id );
-        std::vector<uint8_t> getEffectList() const;
+        static int addEffect( id1_t type, id1_t id );
+        static int addEffect( AbstractEffectUnit* unit, bool override=false );
+        static int removeEffect( id1_t id );
+        static AbstractEffectUnit* getEffect( id1_t id );
+        static std::vector<id1_t> getEffectList();
 
         /**
          * Add or remove connection from the process graph
          **/
-        int addConnection( Connection c );
-        int removeConnection( Connection c );
-        std::vector<Connection> getConnection();
+        static int addConnection( Connection c );
+        static int removeConnection( Connection c );
+        static std::vector<Connection> getConnection();
 
         /**
          * Change current bank
          **/
 
-        void clearGraph();
-        
-        void printGraph();
+        static void clearGraph();
+
+        /**
+         * Print Graph Content
+         **/
+        static void printGraph();
+
+        /**
+         * Get Capture and Playback Units
+         **/
+        static EndUnit* getCapture();
+        static EndUnit* getPlayback(); 
 
     public :
 
-        static const uint8_t ErrIdNotUnique   = 0x01;
-        static const uint8_t ErrInvalidEffect = 0x02;
-        static const uint8_t ErrIdNotFound    = 0x04;
-        static const uint8_t ErrInvalidId     = 0x08;
-
-    private :
+        static const id1_t ErrIdNotUnique   = 0x01;
+        static const id1_t ErrInvalidEffect = 0x02;
+        static const id1_t ErrIdNotFound    = 0x04;
+        static const id1_t ErrInvalidId     = 0x08;
 
         static const int ErrorValCo = -5;
         static const int ValidValCo = -1;
 
-        /**
-         * Private Constructor and Destructor for Singleton pattern
-         **/
-        ProcessGraph();
-        ~ProcessGraph();
+    private :
 
         /* ******* Connections Managment ******* */
-        typedef ReminderTree<int, 4> ConnectionTree;
 
-        ConnectionTree m_connectionList;
+        static ConnectionTree m_connectionList;
 
         /* ********** Effect Managment ********* */
-        typedef std::map<uint8_t, AbstractEffectUnit*> EffectList;
 
-        EffectList m_graph;
+        static EffectList m_graph;
 };
 
 #endif

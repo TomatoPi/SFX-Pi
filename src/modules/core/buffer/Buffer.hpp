@@ -5,14 +5,14 @@
  *
  * File Providing Stuff to store datas
  **********************************************************************/
-template <typename Data, size_t N>
-Buffer<Data,N>::Buffer():
-    m_buffer(new Data[N]),
+template <size_t N>
+Buffer<N>::Buffer():
+    m_buffer(new sample_t[N]),
     m_currentPos(0)
 {
 }
-template <typename Data, size_t N>
-Buffer<Data,N>::~Buffer(){
+template <size_t N>
+Buffer<N>::~Buffer(){
 
     delete[] m_buffer;
 }
@@ -21,8 +21,8 @@ Buffer<Data,N>::~Buffer(){
  * Write given block inside buffer
  * given block must be the same size as buffer template parameter
  **/
-template <typename Data, size_t N>
-void Buffer<Data,N>::write( Data const in ){
+template <size_t N>
+void Buffer<N>::write( sample_t const in ){
 
     // Move write head
     m_currentPos += 1;
@@ -35,8 +35,18 @@ void Buffer<Data,N>::write( Data const in ){
  * Get block at given delay from current block
  * given delay is in number of blocks
  **/
-template <typename Data, size_t N>
-Data Buffer<Data,N>::get( size_t r ){
+template <size_t N>
+sample_t Buffer<N>::get( size_t r ){
 
     return m_buffer[utils::absmod(m_currentPos-r, N)];
+}
+
+/**
+ * Get linear interpolation at wanted delay from current block
+ * given delay is number of blocks
+ **/
+template <size_t N>
+sample_t Buffer<N>::getLI( float r ){
+
+    return utils::linearInterpolation( get(floor(r)), get(ceil(r)), r );
 }

@@ -18,6 +18,8 @@
 #include "mod/LFO.h"
 
 #include "delay/Delay.h"
+#include "delay/Reverb.h"
+#include "delay/Chorus.h"
 
 #include "EndUnit.h"
 

@@ -37,7 +37,7 @@
 
 template<> const std::string DriveReg::NAME = "Drive";
 
-template<> AbstractEffectUnit* DriveReg::BUILDER(uint8_t id, uint8_t type){
+template<> AbstractEffectUnit* DriveReg::BUILDER(id1_t id, id1_t type){
 
     return new DriveEffect( id, type );
 }
@@ -49,19 +49,19 @@ template<> const std::string DriveReg::PARNAMES[] = {
     "In-Lowcut", "In-Highcut", "In-Lowgain", "In-Midgain", "In-Highgain",
     "Out-Lowcut", "Out-Highcut", "Out-Lowgain", "Out-Midgain", "Out-Highgain"
     };
-template<> const uint8_t DriveReg::PARCOUNT = 19;
+template<> const size_t DriveReg::PARCOUNT = 19;
 
 template<> const std::string DriveReg::PORNAMES[] = {"Input", "Output"};
 
-template<> const uint8_t DriveReg::AI = 1;
-template<> const uint8_t DriveReg::AO = 1;
-template<> const uint8_t DriveReg::MI = 0;
-template<> const uint8_t DriveReg::MO = 0;
+template<> const size_t DriveReg::AI = 1;
+template<> const size_t DriveReg::AO = 1;
+template<> const size_t DriveReg::MI = 0;
+template<> const size_t DriveReg::MO = 0;
 
-template<> const uint16_t DriveReg::PARSIZE = DriveReg::PARCOUNT;
+template<> const size_t DriveReg::PARSIZE = DriveReg::PARCOUNT;
 
 /* *************************** DriveEffect ************************** */
-DriveEffect::DriveEffect(uint8_t id, uint8_t type):
+DriveEffect::DriveEffect(id1_t id, id1_t type):
     AbstractEffectUnit( id, type, PARCOUNT, PARSIZE),
     m_toneIn(NULL),
     m_toneOut(NULL),

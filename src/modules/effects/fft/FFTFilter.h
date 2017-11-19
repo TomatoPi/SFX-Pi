@@ -35,7 +35,7 @@ class FFTFilter : public AbstractEffectUnit,
         /**
          * Constructor and Process Callback
          **/
-        FFTFilter(uint8_t id, uint8_t type);
+        FFTFilter(id1_t id, id1_t type);
         ~FFTFilter();
 
         static int process(jack_nframes_t nframes, void* arg);

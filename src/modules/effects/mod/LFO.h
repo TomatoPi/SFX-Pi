@@ -32,7 +32,7 @@ class LFOEffect : public AbstractEffectUnit,
         /**
          * Constructor and Process Callback
          **/
-        LFOEffect(uint8_t id, uint8_t type);
+        LFOEffect(id1_t id, id1_t type);
         ~LFOEffect();
 
         static int process(jack_nframes_t nframes, void* arg);

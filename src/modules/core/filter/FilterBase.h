@@ -11,6 +11,8 @@
 #include <cstring>
 #include <math.h>
 
+#include "../../../Const.h"
+
 /**
  * Interface for encapsulate FilterPole class
  * Herited by Single and Multi pole filters
@@ -26,9 +28,9 @@ class AFilterBase{
         AFilterBase();
         virtual ~AFilterBase() = 0;
         
-        float m_sm1, m_sm2, m_sm3; /**< Filter's last samples */
+        sample_t m_sm1, m_sm2, m_sm3; /**< Filter's last samples */
 
-        inline void shuffleBuffer( float in ){
+        inline void shuffleBuffer( sample_t in ){
 
             m_sm3 = m_sm2;
             m_sm2 = m_sm1;
@@ -58,13 +60,13 @@ class AFilterBase{
                 float m_f;
                 float m_fBak;
                 
-                float m_p0, m_p1, m_p2, m_p3;
+                sample_t m_p0, m_p1, m_p2, m_p3;
 
             public :
 
                 static const float vsa;
             
-                inline float compute(float in){
+                inline sample_t compute(sample_t in){
 
                     this->m_p0 += ( this->m_f * ( in - this->m_p0 ) ) + vsa;
                     this->m_p1 += ( this->m_f * ( this->m_p0 - this->m_p1 ) );

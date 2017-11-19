@@ -36,7 +36,7 @@ class FFTDelay : public AbstractEffectUnit,
         /**
          * Constructor and Process Callback
          **/
-        FFTDelay(uint8_t id, uint8_t type);
+        FFTDelay(id1_t id, id1_t type);
         ~FFTDelay();
 
         static int process(jack_nframes_t nframes, void* arg);

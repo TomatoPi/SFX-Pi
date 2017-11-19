@@ -31,7 +31,7 @@ class SinglePoleFilter : public AFilterBase{
         SinglePoleFilter(float freq, float samplerate, FilterType type);
         virtual ~SinglePoleFilter();
 
-        float compute(float in, float g1, float g2);
+        sample_t compute(sample_t in, float g1, float g2);
 
         void setFrequency(float f, float sr);
         float getFrequency() const;

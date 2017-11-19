@@ -34,7 +34,7 @@ namespace Parser{
     };
 
     static std::vector<std::string> parseSimpleString( std::string input,
-        const char* sperator );
+        const char* sperator, const char antiseparator );
 
     template <typename T>
     static bool vectorContains(T obj, std::vector<T> list);

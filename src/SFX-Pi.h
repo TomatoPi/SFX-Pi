@@ -28,9 +28,18 @@
 
 #include "./modules/effects/List.h"
 
-// Include IO
-#include "./io/command/CommandListener.h"
+// Include Commands
+#include "./io/command/CommandManager.h"
+#include "./io/command/CommandManagerCommands.h"
 #include "./io/command/CommandParser.h"
 #include "./io/command/Commands.h"
+
+// Include Logic IO
+#include "./io/logic/LogicManager.h"
+#include "./io/logic/LogicManagerCommands.h"
+
+#include "./io/UIManager.h"
+#include "./io/UIManagerCommands.h"
+
 
 #endif

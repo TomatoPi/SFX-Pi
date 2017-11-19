@@ -26,7 +26,7 @@
 /* ************************* Register Stuff ************************* */
 template<> const std::string MDriveReg::NAME = "MatrixDrive";
 
-template<> AbstractEffectUnit* MDriveReg::BUILDER(uint8_t id, uint8_t type){
+template<> AbstractEffectUnit* MDriveReg::BUILDER(id1_t id, id1_t type){
 
     return new MatrixDriveEffect( id, type );
 }
@@ -41,22 +41,22 @@ template<> const std::string MDriveReg::PARNAMES[] = {
     "Soft-1",       "Soft-2",       "Soft-3",       "Soft-4",       "Soft-5", 
     "Shape-1",      "Shape-2",      "Shape-3",      "Shape-4",      "Shape-5"
     };
-template<> const uint8_t MDriveReg::PARCOUNT = 36;
+template<> const size_t MDriveReg::PARCOUNT = 36;
 
 template<> const std::string MDriveReg::PORNAMES[] = {
     "Input", "MainOut",
     "Out-1", "Out-2", "Out-3", "Out-4", "Out-5"
     };
 
-template<> const uint8_t MDriveReg::AI = 1;
-template<> const uint8_t MDriveReg::AO = 6;
-template<> const uint8_t MDriveReg::MI = 0;
-template<> const uint8_t MDriveReg::MO = 0;
+template<> const size_t MDriveReg::AI = 1;
+template<> const size_t MDriveReg::AO = 6;
+template<> const size_t MDriveReg::MI = 0;
+template<> const size_t MDriveReg::MO = 0;
 
-template<> const uint16_t MDriveReg::PARSIZE = MDriveReg::PARCOUNT;
+template<> const size_t MDriveReg::PARSIZE = MDriveReg::PARCOUNT;
 
 /* *********************** Matrix Drive Stuff *********************** */
-MatrixDriveEffect::MatrixDriveEffect(uint8_t id, uint8_t type):
+MatrixDriveEffect::MatrixDriveEffect(id1_t id, id1_t type):
     AbstractEffectUnit( id, type, PARCOUNT, PARSIZE),
     m_eq(NULL)
 {
@@ -94,14 +94,14 @@ int MatrixDriveEffect::process(jack_nframes_t nframes, void* arg){
 
     MatrixDriveEffect* unit = (MatrixDriveEffect*)(arg);
 
-    const uint8_t bandCount = (uint8_t)unit->m_paramArray[BC];
+    const size_t bandCount = (size_t)unit->m_paramArray[BC];
 
     sample_t *in, *out[bandCount];
     in     = (sample_t*)jack_port_get_buffer( unit->m_jackU->getPorts()[0], nframes );
     out[0] = (sample_t*)jack_port_get_buffer( unit->m_jackU->getPorts()[1], nframes );
 
     // Collect Bands ouput Ports
-    for ( uint8_t i = 0; i < bandCount; i++ ){
+    for ( size_t i = 0; i < bandCount; i++ ){
 
         out[i+1] = (sample_t*)jack_port_get_buffer( unit->m_jackU->getPorts()[1+i], nframes );
     }
@@ -114,7 +114,7 @@ int MatrixDriveEffect::process(jack_nframes_t nframes, void* arg){
         for ( jack_nframes_t i = 0; i < nframes; i++ ){
 
             // Distort each band and add add it to main output
-            for ( uint8_t k = 0; k < bandCount; k++ ){
+            for ( size_t k = 0; k < bandCount; k++ ){
 
                 // Compute EQ Filtering
                 out[k+1][i] = unit->m_eq->compute( in[i], k );
@@ -133,7 +133,7 @@ int MatrixDriveEffect::process(jack_nframes_t nframes, void* arg){
 
         // If module is bypassed copy input to all outs
         memcpy( out[0], in, nframes * sizeof(sample_t) );
-        for ( uint8_t i = 1; i < bandCount; i++ ){
+        for ( size_t i = 1; i < bandCount; i++ ){
             
             memcpy( out[i], in, nframes * sizeof(sample_t) );
         }
@@ -152,7 +152,7 @@ void MatrixDriveEffect::update(){
     m_paramArray[BC] = (m_paramArray[BC] < 0)?0:(m_paramArray[BC]>= MXBC)?MXBC-1:m_paramArray[BC];
 
     // Update Parametric Equalizer
-    for ( uint8_t i = 0; i < (uint8_t)m_paramArray[BC]; i++ ){
+    for ( size_t i = 0; i < (size_t)m_paramArray[BC]; i++ ){
 
         m_eq->setPole( i, m_paramArray[CF + i], m_paramArray[QF + i], m_jackU->getSamplerate() );
 
@@ -162,9 +162,12 @@ void MatrixDriveEffect::update(){
     }
     
     // Rescale weigths to have summ equal to 1
-    for ( uint8_t i = 0; i < (uint8_t)m_paramArray[BC]; i++ ){
+    for ( size_t i = 0; i < (size_t)m_paramArray[BC]; i++ ){
 
         m_paramArray[W + i] /= weigthSumm;
-        std::cout << "Weigth[" << std::to_string(i) << "]=" << std::to_string(m_paramArray[W + i]) << std::endl;
+        
+        if ( SFXP::GlobalIsDebugEnabled ){
+            std::cout << "Weigth[" << std::to_string(i) << "]=" << std::to_string(m_paramArray[W + i]) << std::endl;
+        }
     }
 }

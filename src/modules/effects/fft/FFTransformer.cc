@@ -13,47 +13,47 @@
 /* ***************************** Consts ***************************** */
 template<>  const std::string FFTCReg::NAME =  "FFT-Complexifier";
 
-template<> AbstractEffectUnit* FFTCReg::BUILDER(uint8_t id, uint8_t type){
+template<> AbstractEffectUnit* FFTCReg::BUILDER(id1_t id, id1_t type){
 
     return new FFTComplexifier( id, type );
 }
 
 template<> const std::string FFTCReg::PARNAMES[] = {};
-template<> const uint8_t FFTCReg::PARCOUNT = 0;
+template<> const size_t FFTCReg::PARCOUNT = 0;
 
 template<> const std::string FFTCReg::PORNAMES[] = {
     "Input-Real", "Output-Complex"};
 
-template<> const uint8_t FFTCReg::AI = 1;
-template<> const uint8_t FFTCReg::AO = 1;
-template<> const uint8_t FFTCReg::MI = 0;
-template<> const uint8_t FFTCReg::MO = 0;
+template<> const size_t FFTCReg::AI = 1;
+template<> const size_t FFTCReg::AO = 1;
+template<> const size_t FFTCReg::MI = 0;
+template<> const size_t FFTCReg::MO = 0;
 
-template<> const uint16_t FFTCReg::PARSIZE = FFTCReg::PARCOUNT;
+template<> const size_t FFTCReg::PARSIZE = FFTCReg::PARCOUNT;
 
 /* ***************************** Consts ***************************** */
 template<>  const std::string FFTRReg::NAME =  "FFT-Realizer";
 
-template<> AbstractEffectUnit* FFTRReg::BUILDER(uint8_t id, uint8_t type){
+template<> AbstractEffectUnit* FFTRReg::BUILDER(id1_t id, id1_t type){
 
     return new FFTRealizer( id, type );
 }
 
 template<> const std::string FFTRReg::PARNAMES[] = {};
-template<> const uint8_t FFTRReg::PARCOUNT = 0;
+template<> const size_t FFTRReg::PARCOUNT = 0;
 
 template<> const std::string FFTRReg::PORNAMES[] = {
     "Input-Complex", "Output-Real"};
 
-template<> const uint8_t FFTRReg::AI = 1;
-template<> const uint8_t FFTRReg::AO = 1;
-template<> const uint8_t FFTRReg::MI = 0;
-template<> const uint8_t FFTRReg::MO = 0;
+template<> const size_t FFTRReg::AI = 1;
+template<> const size_t FFTRReg::AO = 1;
+template<> const size_t FFTRReg::MI = 0;
+template<> const size_t FFTRReg::MO = 0;
 
-template<> const uint16_t FFTRReg::PARSIZE = FFTRReg::PARCOUNT;
+template<> const size_t FFTRReg::PARSIZE = FFTRReg::PARCOUNT;
 
 /* ************************* FFTComplexifier ************************ */
-FFTComplexifier::FFTComplexifier(uint8_t id, uint8_t type):
+FFTComplexifier::FFTComplexifier(id1_t id, id1_t type):
     AbstractEffectUnit( id, type, PARCOUNT, PARSIZE),
     m_ffft(new ffft::FFTRealFixLen<SFXP::JACK_BLOCK_SIZE>())
 {
@@ -104,7 +104,7 @@ void FFTComplexifier::update(){
 }
 
 /* *************************** FFTRealizer ************************** */
-FFTRealizer::FFTRealizer(uint8_t id, uint8_t type):
+FFTRealizer::FFTRealizer(id1_t id, id1_t type):
     AbstractEffectUnit( id, type, PARCOUNT, PARSIZE),
     m_ffft(new ffft::FFTRealFixLen<SFXP::JACK_BLOCK_SIZE>())
 {

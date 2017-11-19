@@ -31,7 +31,7 @@
  * -3 -1 -1
  *       -2
  **/
-template <typename Val, uint8_t Depth>
+template <typename Val, size_t Depth>
 class ReminderTree{
 
     public :
@@ -62,7 +62,7 @@ class ReminderTree{
          * Remove given sequence from the tree
          * Return error value if given sequence don't exist
          **/
-        Val remove( Val seq[Depth], uint8_t depth=(Depth-1) );
+        Val remove( Val seq[Depth], size_t depth=(Depth-1) );
 
         /**
          * Function used to get back list of all stored sequencies
@@ -90,7 +90,7 @@ class ReminderTree{
          * Depth indication represent current depth inside tree and is
          * only used for output indentation
          **/
-        void printNode( Node<Val> *node, uint8_t d ) const;
+        void printNode( Node<Val> *node, size_t d ) const;
 
         /**
          * Recursive function used to get back list of stored sequencies
@@ -101,7 +101,7 @@ class ReminderTree{
          *
          * @return passed vector pushed front newly recovered sequencies
          **/
-        std::vector<Val*> getNode( Node<Val> *node, std::vector<Val*> out, Val prefix[Depth], uint8_t depth ) const;
+        std::vector<Val*> getNode( Node<Val> *node, std::vector<Val*> out, Val prefix[Depth], size_t depth ) const;
 
         void eraseNode( Node<Val> *node );
         

@@ -29,7 +29,7 @@ class DriveEffect : public AbstractEffectUnit, public AbstractDriveBase,
         /**
          * Constructor and Process Callback
          **/
-        DriveEffect(uint8_t id, uint8_t type);
+        DriveEffect(id1_t id, id1_t type);
         ~DriveEffect();
 
         static int process(jack_nframes_t nframes, void* arg);

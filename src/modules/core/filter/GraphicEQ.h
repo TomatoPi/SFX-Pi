@@ -26,35 +26,35 @@ class GraphicEQ : public AFilterBase{
 
     public :
 
-        GraphicEQ(uint8_t poleCount, float* poles, float samplerate);
+        GraphicEQ(size_t poleCount, float* poles, float samplerate);
         virtual ~GraphicEQ();
 
         /**
          * Compute given input and output mix of all bands
          * Use getBand function for get a specific band value
          **/
-        float compute(float in, uint8_t bandCount, float* gains);
-        float getBand(uint8_t idx);
+        float compute(float in, size_t bandCount, float* gains);
+        float getBand(size_t idx);
 
         /**
          * Change EQ Configuration
          * Cannot be used to change bands count
          **/
-        void setFrequency(uint8_t idx, float f, float sr);
-        void setFrequency(uint8_t poleCount, float* poles, float sr);
-        float getFrequency(uint8_t idx) const;
+        void setFrequency(size_t idx, float f, float sr);
+        void setFrequency(size_t poleCount, float* poles, float sr);
+        float getFrequency(size_t idx) const;
 
-        uint8_t getBandCount() const;
+        size_t getBandCount() const;
 
     protected :
     
         /** store non-scalled band outputs **/
         float  *m_band;
-        uint8_t m_bandCount;
+        size_t  m_bandCount;
 
         /** Store EQ Poles **/
         FilterPole *m_pole;
-        uint8_t     m_poleCount;
+        size_t      m_poleCount;
 };
 
 #endif

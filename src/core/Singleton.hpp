@@ -2,16 +2,16 @@
  * Function to Instance the object
  */
 
-template<class T> T* Singleton<T>::i_ = NULL;
-template<class T> bool Singleton<T>::ok_ = false;
+template<class T> T* Singleton<T>::m_instance = NULL;
+template<class T> bool Singleton<T>::m_ok = false;
 
 template<class T>
 void Singleton<T>::Create(){
 
-    if ( !ok_ ){
+    if ( !m_ok ){
 
-        i_ = new T();
-        ok_ = true;
+        m_instance = new T();
+        m_ok = true;
     }
     else{
         
@@ -25,13 +25,13 @@ void Singleton<T>::Create(){
 template<class T>
 T& Singleton<T>::Get(){
 
-    if ( !ok_ ){
+    if ( !m_ok ){
 
         Singleton<T>::Create();
         std::cout << "Warning Singleton Called Before Created" << std::endl;
     }
 
-    return *i_;
+    return *m_instance;
 }
 
 /**
@@ -40,10 +40,10 @@ T& Singleton<T>::Get(){
 template<class T>
 void Singleton<T>::Kill(){
 
-    if ( ok_ ){
+    if ( m_ok ){
         
-        delete i_;
-        ok_ = false;
+        delete m_instance;
+        m_ok = false;
         //std::cout << "Singleton Object Deleted" << std::endl;
     }
 }

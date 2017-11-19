@@ -9,11 +9,9 @@
 #define DEF_MATH_UTILS_H
 
 #include <math.h>
-#include <jack/jack.h>
+#include "Typedefs.h"
 
 namespace utils{
-
-    typedef jack_default_audio_sample_t sample_t;
 
     /**
      * Modulo operation that alway return positive value
@@ -110,6 +108,23 @@ namespace utils{
 
         return ((in-fmin)/(fmax-fmin))*(tmax-tmin) + tmin;
     }
+
+    /**
+     * decimal part of a given number
+     **/
+    static inline float dec(float a){
+
+        return a - floor(a);
+    }
+
+    /**
+     * return linear interpolation between two numbers
+     **/
+    static inline float linearInterpolation(float val1, float val2, float a){
+
+        return dec(a)*val1 + (1 - dec(a))*val2;
+    }
+    
 }
 
 #endif

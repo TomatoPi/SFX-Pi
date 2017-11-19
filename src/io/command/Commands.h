@@ -11,13 +11,12 @@
 #include <vector>
 #include <string>
 
-#include "../../core/Parser.h"
-
 class Command{
 
     public :
 
         Command(std::string key, std::string help);
+        virtual ~Command();
 
         virtual void tryPerform(std::vector<std::string> arg)=0;
 
@@ -36,7 +35,7 @@ class StrictArgCommand : public Command{
 
     public :
 
-        StrictArgCommand(std::string key, std::string help, uint8_t argCount);
+        StrictArgCommand(std::string key, std::string help, size_t argCount);
 
         virtual void tryPerform(std::vector<std::string> arg);
 
@@ -44,14 +43,14 @@ class StrictArgCommand : public Command{
 
         virtual void perform(std::vector<std::string> arg)=0;
 
-        uint8_t m_argCount;
+        size_t m_argCount;
 };
 
 class VarArgCommand : public Command{
 
     public :
 
-        VarArgCommand(std::string key, std::string help, uint8_t minArg, uint8_t maxArg);
+        VarArgCommand(std::string key, std::string help, size_t minArg, size_t maxArg);
 
         virtual void tryPerform(std::vector<std::string> arg);
 
@@ -59,8 +58,8 @@ class VarArgCommand : public Command{
 
         virtual void perform(std::vector<std::string> arg)=0;
 
-        uint8_t m_minArg;
-        uint8_t m_maxArg; 
+        size_t m_minArg;
+        size_t m_maxArg; 
 };
 
 #endif

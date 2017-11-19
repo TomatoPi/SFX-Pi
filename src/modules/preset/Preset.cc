@@ -9,19 +9,19 @@
 
 namespace{
 
-    static const uint8_t flagPressetBegin   = 0xf0;
-    static const uint8_t flagEffect         = 0xf1;
-    static const uint8_t flagConnection     = 0xf2;
-    static const uint8_t flagPressetEnd     = 0xff;
+    static const flag_t flagPressetBegin   = 0xf0;
+    static const flag_t flagEffect         = 0xf1;
+    static const flag_t flagConnection     = 0xf2;
+    static const flag_t flagPressetEnd     = 0xff;
     
-    static const uint8_t flagEffectBegin    = 0xa0;
-    static const uint8_t flagEffectEnd      = 0xaf;
+    static const flag_t flagEffectBegin    = 0xa0;
+    static const flag_t flagEffectEnd      = 0xaf;
 
-    static const uint8_t flagBankBegin  = 0xb0;
-    static const uint8_t flagBankEnd    = 0xbf;
+    static const flag_t flagBankBegin  = 0xb0;
+    static const flag_t flagBankEnd    = 0xbf;
 
-    static const uint8_t flagConnectionBegin    = 0xc0;
-    static const uint8_t flagConnnectionEnd     = 0xcf;
+    static const flag_t flagConnectionBegin    = 0xc0;
+    static const flag_t flagConnnectionEnd     = 0xcf;
 
     static const std::string TMP_GRAPH = "tmp/bak_graph";
     
@@ -41,10 +41,10 @@ int Preset::loadPreset(std::string file, bool bak){
         if ( flux ){
 
             bool success = true;
-            uint8_t c;
+            flag_t c;
 
             // Verify begin bits and programm version
-            flux.read((char*)&c, sizeof(uint8_t));
+            flux.read((char*)&c, sizeof(flag_t));
             if ( c != flagPressetBegin ){
 
                 printf("PressedLoad : ERROR : Invalid begin bits : %x\n", c);
@@ -52,7 +52,7 @@ int Preset::loadPreset(std::string file, bool bak){
                 return 1;
             }
 
-            uint8_t version;
+            id1_t version;
             flux.read((char*)&version, sizeof(SFXP::VERSION));
             if ( version != SFXP::VERSION ){
 
@@ -70,10 +70,10 @@ int Preset::loadPreset(std::string file, bool bak){
                     return 1;
                 }
             }
-            ProcessGraph::Get().clearGraph();
+            ProcessGraph::clearGraph();
 
             // Read each effects contained inside file
-            while( flux.read((char*)&c, sizeof(uint8_t)) ){
+            while( flux.read((char*)&c, sizeof(flag_t)) ){
 
                 // If flag is effect flag
                 if ( c == flagEffect ){
@@ -87,7 +87,7 @@ int Preset::loadPreset(std::string file, bool bak){
                         break;
                     }
 
-                    if ( ProcessGraph::Get().addEffect(unit) ){
+                    if ( ProcessGraph::addEffect(unit) ){
 
                         printf("PressetLoad : Warning : Failed add Parsed effect to Graph\n");
                         delete unit;
@@ -104,7 +104,7 @@ int Preset::loadPreset(std::string file, bool bak){
                         break;
                     }
 
-                    if ( ProcessGraph::Get().addConnection(con) ){
+                    if ( ProcessGraph::addConnection(con) ){
 
                         printf("PressetLoad : Warning : Failed add Parsed connection to Graph\n");
                     }
@@ -166,37 +166,37 @@ int Preset::savePreset(std::string file){
         if ( flux ){
 
             // Write Preset file begin bits
-            flux.write((char*)&flagPressetBegin, sizeof(uint8_t));
+            flux.write((char*)&flagPressetBegin, sizeof(flag_t));
 
             // Write program version
             flux.write((char*)&SFXP::VERSION, sizeof(SFXP::VERSION));
 
             // Write Each Effects inside Process Graph
-            std::vector<uint8_t> ids = ProcessGraph::Get().getEffectList();
+            std::vector<id1_t> ids = ProcessGraph::getEffectList();
 
             for ( auto& cur : ids ){
 
                 // Write effect flag
-                flux.write((char*)&flagEffect, sizeof(uint8_t));
+                flux.write((char*)&flagEffect, sizeof(flag_t));
 
                 // Write effect
-                writeEffectUnit(flux, ProcessGraph::Get().getEffect(cur));
+                writeEffectUnit(flux, ProcessGraph::getEffect(cur));
             }
 
             // Write Each connections inside Process Graph
-            std::vector<ProcessGraph::Connection> con = ProcessGraph::Get().getConnection();
+            std::vector<ProcessGraph::Connection> con = ProcessGraph::getConnection();
 
             for ( auto& cur : con ){
 
                 // Write Connection flag
-                flux.write((char*)&flagConnection, sizeof(uint8_t));
+                flux.write((char*)&flagConnection, sizeof(flag_t));
 
                 // Write Connection
                 writeConnection(flux, cur);
             }
 
             // Write Presset file end bit
-            flux.write((char*)&flagPressetEnd, sizeof(uint8_t));
+            flux.write((char*)&flagPressetEnd, sizeof(flag_t));
         }
         else{
 
@@ -298,10 +298,10 @@ AbstractEffectUnit* Preset::parseEffectUnit(std::ifstream& flux){
     AbstractEffectUnit* unit = NULL;
     bool success = true;
 
-    uint8_t c;
+    flag_t c;
 
     //Verify that first bits are effect begin bits
-    flux.read((char*)&c, sizeof(uint8_t));
+    flux.read((char*)&c, sizeof(flag_t));
     if ( c != flagEffectBegin ){
 
         printf("EffectParsing : ERROR : Invalid Start Bit : %x\n", c);
@@ -309,9 +309,9 @@ AbstractEffectUnit* Preset::parseEffectUnit(std::ifstream& flux){
     }
 
     // Read Type and ID
-    uint8_t type, id;
-    flux.read((char*)&type, sizeof(uint8_t));
-    flux.read((char*)&id, sizeof(uint8_t));
+    id1_t type, id;
+    flux.read((char*)&type, sizeof(id1_t));
+    flux.read((char*)&id, sizeof(id1_t));
 
     unit = UnitFactory::createEffect( type, id );
     if ( unit == NULL ){
@@ -320,19 +320,19 @@ AbstractEffectUnit* Preset::parseEffectUnit(std::ifstream& flux){
         return NULL;
     }
     
-    uint8_t size;
+    size_t size;
     size_t count;
     flux.read((char*)&count, sizeof(size_t));
-    flux.read((char*)&size, sizeof(uint8_t));
+    flux.read((char*)&size, sizeof(size_t));
 
     // Read Each Banks
-    uint8_t curID;
+    id1_t curID;
     float curVal[size];
 
     for ( size_t i = 0; i < count; i++ ){
 
         // Verify that first bit are bank begin
-        flux.read((char*)&c, sizeof(uint8_t));
+        flux.read((char*)&c, sizeof(flag_t));
         if ( c != flagBankBegin ){
 
             success = false;
@@ -341,16 +341,16 @@ AbstractEffectUnit* Preset::parseEffectUnit(std::ifstream& flux){
         }
 
         // Get Bank id
-        flux.read((char*)&curID, sizeof(uint8_t));
+        flux.read((char*)&curID, sizeof(id1_t));
 
         // Get all Parameters
-        for ( uint8_t k = 0; k < size; k++ ){
+        for ( size_t k = 0; k < size; k++ ){
 
             flux.read((char*)&curVal[k], sizeof(float));
         }
 
         // Verify that last bits are bank end
-        flux.read((char*)&c, sizeof(uint8_t));
+        flux.read((char*)&c, sizeof(flag_t));
         if ( c != flagBankEnd ){
 
             success = false;
@@ -366,7 +366,7 @@ AbstractEffectUnit* Preset::parseEffectUnit(std::ifstream& flux){
     }
 
     // Verify that last bit are effect End
-    flux.read((char*)&c, sizeof(uint8_t));
+    flux.read((char*)&c, sizeof(size_t));
     if ( c != flagEffectEnd ){
 
         success = false;
@@ -393,46 +393,46 @@ int Preset::writeEffectUnit(std::ofstream& flux, AbstractEffectUnit* unit){
     printf("Save Given Effect ... ");
 
     //Write effect begin bits
-    flux.write((char*)&flagEffectBegin, sizeof(uint8_t));
+    flux.write((char*)&flagEffectBegin, sizeof(flag_t));
 
     // Write Effect Type and ID
-    uint8_t c = unit->getType();
-    flux.write((char*)&c, sizeof(uint8_t));
+    id1_t c = unit->getType();
+    flux.write((char*)&c, sizeof(id1_t));
 
     c = unit->getID();
-    flux.write((char*)&c, sizeof(uint8_t));
+    flux.write((char*)&c, sizeof(id1_t));
 
-    std::map<uint8_t,float*> banks = unit->getAllBanks();
-    uint8_t bankSize = UnitFactory::getParamCount(unit->getType());
+    std::map<id1_t,float*> banks = unit->getAllBanks();
+    size_t bankSize = UnitFactory::getParamCount(unit->getType());
 
     // Write banks count
     size_t bc = banks.size();
     flux.write((char*)&bc, sizeof(size_t));
 
     // Write number of parameters inside a bank
-    flux.write((char*)&bankSize, sizeof(uint8_t));
+    flux.write((char*)&bankSize, sizeof(size_t));
 
     // Write each Banks
     for ( auto& cur : banks ){
 
         // Write Bank Begin Bits
-        flux.write((char*)&flagBankBegin, sizeof(uint8_t));
+        flux.write((char*)&flagBankBegin, sizeof(flag_t));
 
         // Write Bank's ID
-        flux.write((char*)&(cur.first), sizeof(uint8_t));
+        flux.write((char*)&(cur.first), sizeof(id1_t));
 
         // Write Params
-        for( uint8_t i = 0; i < bankSize; i++ ){
+        for( size_t i = 0; i < bankSize; i++ ){
             
             flux.write((char*)&(cur.second[i]), sizeof(float));
         }
 
         // Write Bank End Bits
-        flux.write((char*)&flagBankEnd, sizeof(uint8_t));
+        flux.write((char*)&flagBankEnd, sizeof(flag_t));
     }
 
     // Write Effect End Bits
-    flux.write((char*)&flagEffectEnd, sizeof(uint8_t));
+    flux.write((char*)&flagEffectEnd, sizeof(flag_t));
 
     // Flush Stream
     flux.flush();
@@ -445,10 +445,10 @@ ProcessGraph::Connection Preset::parseConnection(std::ifstream& flux){
 
     ProcessGraph::Connection rtn(255,255,255,255);
     bool success = true;
-    uint8_t c;
+    flag_t c;
     
     // Verify first bits
-    flux.read((char*)&c, sizeof(uint8_t));
+    flux.read((char*)&c, sizeof(flag_t));
     success = c == flagConnectionBegin;
 
     // Get connection back
@@ -461,16 +461,18 @@ ProcessGraph::Connection Preset::parseConnection(std::ifstream& flux){
     }
 
     // Verify End bits
-    flux.read((char*)&c, sizeof(uint8_t));
+    flux.read((char*)&c, sizeof(flag_t));
     success = c == flagConnnectionEnd;
 
     // Return created Connection
-    return rtn;
+    if ( success )
+        return rtn;
+    return ProcessGraph::Connection(255, 255, 255, 255);
 }
 int Preset::writeConnection(std::ofstream& flux, ProcessGraph::Connection c){
 
     // Write Connection Begin Bits
-    flux.write((char*)&flagConnectionBegin, sizeof(uint8_t));
+    flux.write((char*)&flagConnectionBegin, sizeof(flag_t));
 
     // Write Connection Datas
     flux.write((char*)&c.m_si, sizeof(c.m_si));
@@ -479,7 +481,7 @@ int Preset::writeConnection(std::ofstream& flux, ProcessGraph::Connection c){
     flux.write((char*)&c.m_tp, sizeof(c.m_tp));
 
     // Write Connection End Bits
-    flux.write((char*)&flagConnnectionEnd, sizeof(uint8_t));
+    flux.write((char*)&flagConnnectionEnd, sizeof(flag_t));
 
     // Flush Stream
     flux.flush();

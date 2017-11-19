@@ -16,11 +16,6 @@ class Singleton{
          * Function to Instance the object
          */
         static void Create();
-        
-        /**
-         * Function to Get The Current Instance
-         */
-        static T& Get();
 
         /**
          * Function to Destroy Current Instance
@@ -29,10 +24,13 @@ class Singleton{
 
     protected :
 
-        static bool ok_;    /**< True when object has been created */
-        static T *i_;       /**< Pointer to the only instance */
+        static void Get();
+
+        static bool m_ok;    /**< True when object has been created */
 
     private :
+    
+        static T *m_instance;/**< Pointer to the only instance */
 
         /**
          * Prevent Operation as assignement of our unique object

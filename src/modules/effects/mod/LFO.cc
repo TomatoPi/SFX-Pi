@@ -27,7 +27,7 @@
 /* ***************************** Const ****************************** */
 template<> const std::string LFOReg::NAME = "LFO";
 
-template<> AbstractEffectUnit* LFOReg::BUILDER(uint8_t id, uint8_t type){
+template<> AbstractEffectUnit* LFOReg::BUILDER(id1_t id, id1_t type){
 
     return new LFOEffect( id, type );
 }
@@ -42,19 +42,19 @@ template<> const std::string LFOReg::PARNAMES[] = {
     "Phase-Distortion",
     "Phase-Fix"
     };
-template<> const uint8_t LFOReg::PARCOUNT = 8;
+template<> const size_t LFOReg::PARCOUNT = 8;
 
 template<> const std::string LFOReg::PORNAMES[] = {"Sync","Output"};
 
-template<> const uint8_t LFOReg::AI = 1;
-template<> const uint8_t LFOReg::AO = 1;
-template<> const uint8_t LFOReg::MI = 0;
-template<> const uint8_t LFOReg::MO = 0;
+template<> const size_t LFOReg::AI = 1;
+template<> const size_t LFOReg::AO = 1;
+template<> const size_t LFOReg::MI = 0;
+template<> const size_t LFOReg::MO = 0;
 
-template<> const uint16_t LFOReg::PARSIZE = LFOReg::PARCOUNT +2;
+template<> const size_t LFOReg::PARSIZE = LFOReg::PARCOUNT +2;
 
 /* ******************************** LFO ***************************** */
-LFOEffect::LFOEffect(uint8_t id, uint8_t type):
+LFOEffect::LFOEffect(id1_t id, id1_t type):
     AbstractEffectUnit( id, type, PARCOUNT, PARSIZE),
     m_wave(castWaveform(WSIN))
 {

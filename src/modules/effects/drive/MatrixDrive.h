@@ -31,7 +31,7 @@ class MatrixDriveEffect : public AbstractEffectUnit, public AbstractDriveBase,
         /**
          * Constructor and Process Callback
          **/
-        MatrixDriveEffect(uint8_t id, uint8_t type);
+        MatrixDriveEffect(id1_t id, id1_t type);
         ~MatrixDriveEffect();
 
         static int process(jack_nframes_t nframes, void* arg);
@@ -42,7 +42,7 @@ class MatrixDriveEffect : public AbstractEffectUnit, public AbstractDriveBase,
 
     private :
 
-        static const uint8_t MXBC = 5; // Max Band Count
+        static const size_t MXBC = 5; // Max Band Count
 
         ParametricEQ *m_eq;
 

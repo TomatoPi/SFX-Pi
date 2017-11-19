@@ -11,7 +11,7 @@
  **********************************************************************/
 #include "GraphicEQ.h"
 
-GraphicEQ::GraphicEQ(uint8_t poleCount, float* poles, float samplerate):
+GraphicEQ::GraphicEQ(size_t poleCount, float* poles, float samplerate):
     AFilterBase(),
     m_band(new float[poleCount+1]),
     m_bandCount(poleCount+1),
@@ -19,7 +19,7 @@ GraphicEQ::GraphicEQ(uint8_t poleCount, float* poles, float samplerate):
     m_poleCount(poleCount)
 {
     std::sort( poles, poles + poleCount );
-    for ( uint8_t i = 0; i < poleCount; i++ ){
+    for ( size_t i = 0; i < poleCount; i++ ){
 
         m_pole[i] = FilterPole(poles[i], samplerate);
     }
@@ -31,7 +31,7 @@ GraphicEQ::~GraphicEQ(){
     delete m_pole;
 }
 
-float GraphicEQ::compute(float in, uint8_t bandCount, float* gains){
+float GraphicEQ::compute(float in, size_t bandCount, float* gains){
 
     // If given band count is invalid output non filtered signal
     if ( bandCount != m_bandCount ) return in;
@@ -39,7 +39,7 @@ float GraphicEQ::compute(float in, uint8_t bandCount, float* gains){
     // Compute Each Band From lowest Freq to Highest
     float sband = 0;
     float out = 0;
-    for ( uint8_t i = 0; i < m_poleCount; i++ ){
+    for ( size_t i = 0; i < m_poleCount; i++ ){
 
         m_band[i] = m_pole[i].compute(in) - sband;
         sband += m_band[i];
@@ -54,7 +54,7 @@ float GraphicEQ::compute(float in, uint8_t bandCount, float* gains){
 
     return out;
 }
-float GraphicEQ::getBand(uint8_t idx){
+float GraphicEQ::getBand(size_t idx){
 
     if ( idx < m_bandCount ){
         
@@ -63,24 +63,24 @@ float GraphicEQ::getBand(uint8_t idx){
     return 0;
 }
 
-void GraphicEQ::setFrequency(uint8_t idx, float f, float sr){
+void GraphicEQ::setFrequency(size_t idx, float f, float sr){
 
     if ( idx < m_poleCount ){
         
         m_pole[idx].setFrequency(f, sr);
     }
 }
-void GraphicEQ::setFrequency(uint8_t poleCount, float* poles, float sr){
+void GraphicEQ::setFrequency(size_t poleCount, float* poles, float sr){
 
     if ( poleCount == m_poleCount ){
 
-        for ( uint8_t i = 0; i < poleCount; i++ ){
+        for ( size_t i = 0; i < poleCount; i++ ){
 
             m_pole[i].setFrequency(poles[i], sr);
         }
     }
 }
-float GraphicEQ::getFrequency(uint8_t idx) const{
+float GraphicEQ::getFrequency(size_t idx) const{
 
     if ( idx < m_poleCount ){
 
@@ -89,7 +89,7 @@ float GraphicEQ::getFrequency(uint8_t idx) const{
     return 0;
 }
 
-uint8_t GraphicEQ::getBandCount() const{
+size_t GraphicEQ::getBandCount() const{
 
     return m_bandCount;
 }

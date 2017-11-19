@@ -15,8 +15,9 @@ namespace Parser{
     {
     }
 
-    std::vector<std::string> parseSimpleString( std::string input,
-        const char* sperator
+    std::vector<std::string> parseSimpleString( std::string input
+        , const char* sperator
+        , const char antiseparator
         )
     {
         // If given string is empty, return empty vector
@@ -37,7 +38,21 @@ namespace Parser{
             end = input.find_first_of(sperator, begin);
 
             if ( begin < input.size() ){
-                out.push_back(input.substr( begin, end-begin ));
+
+                // If a spaced sequence is detected get it all in a single row
+                if ( input.at(begin) == antiseparator ){
+
+                    begin = input.find_first_not_of(antiseparator, begin);
+                    end = input.find_first_of(antiseparator, begin);
+                    
+                    out.push_back(input.substr( begin, end-begin ));
+
+                    end = input.find_first_of(sperator, end);
+                }
+                else{
+
+                    out.push_back(input.substr( begin, end-begin ));
+                }
             }
         }
 

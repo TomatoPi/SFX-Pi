@@ -18,7 +18,7 @@ CmdAddEffect::CmdAddEffect():
 }
 void CmdAddEffect::perform(std::vector<std::string> arg){
 
-    int status = ProcessGraph::Get().addEffect( std::stoi(arg[0]), std::stoi(arg[1]) );
+    int status = ProcessGraph::addEffect( std::stoi(arg[0]), std::stoi(arg[1]) );
 
     if ( status & ProcessGraph::ErrIdNotUnique ){
         printf("Use \"graph-show\" to show used id\n");
@@ -39,7 +39,7 @@ CmdRemoveEffect::CmdRemoveEffect():
 }
 void CmdRemoveEffect::perform(std::vector<std::string> arg){
 
-    int status = ProcessGraph::Get().removeEffect( std::stoi(arg[0]));
+    int status = ProcessGraph::removeEffect( std::stoi(arg[0]));
 
     if ( status & ProcessGraph::ErrInvalidEffect ){
         printf("Use \"graph-show\" to show available effects\n");
@@ -61,7 +61,7 @@ void CmdAddConnection::perform(std::vector<std::string> arg){
         std::stoi(arg[0]), std::stoi(arg[1]),
         std::stoi(arg[2]), std::stoi(arg[3]) );
                                 
-    if ( ProcessGraph::Get().addConnection(c) ){
+    if ( ProcessGraph::addConnection(c) ){
         printf("Use \"graph-show\" to show available effects\n");
     }
 }
@@ -81,7 +81,7 @@ void CmdRemoveConnection::perform(std::vector<std::string> arg){
         std::stoi(arg[0]), std::stoi(arg[1]),
         std::stoi(arg[2]), std::stoi(arg[3]) );
                                 
-    if ( ProcessGraph::Get().removeConnection(c) ){
+    if ( ProcessGraph::removeConnection(c) ){
         printf("Use \"graph-show\" to show available effects\n");
     }
 }
@@ -97,7 +97,7 @@ CmdClearGraph::CmdClearGraph():
 }
 void CmdClearGraph::perform(std::vector<std::string> arg){
 
-    ProcessGraph::Get().clearGraph();
+    ProcessGraph::clearGraph();
 }
 
 /**
@@ -111,7 +111,7 @@ CmdShowGraph::CmdShowGraph():
 }
 void CmdShowGraph::perform(std::vector<std::string> arg){
 
-    ProcessGraph::Get().printGraph();
+    ProcessGraph::printGraph();
 }
 
 /**
@@ -139,7 +139,7 @@ CmdShowEffect::CmdShowEffect():
 }
 void CmdShowEffect::perform(std::vector<std::string> arg){
 
-    AbstractEffectUnit *unit = ProcessGraph::Get().getEffect(std::stoi(arg[0]));
+    AbstractEffectUnit *unit = ProcessGraph::getEffect(std::stoi(arg[0]));
     
     if ( unit != NULL ){
         
@@ -161,7 +161,7 @@ CmdAddBank::CmdAddBank():
 }
 void CmdAddBank::perform(std::vector<std::string> arg){
 
-    AbstractEffectUnit *unit = ProcessGraph::Get().getEffect(std::stoi(arg[0]));
+    AbstractEffectUnit *unit = ProcessGraph::getEffect(std::stoi(arg[0]));
     
     if ( unit != NULL ){
         
@@ -183,7 +183,7 @@ CmdRemoveBank::CmdRemoveBank():
 }
 void CmdRemoveBank::perform(std::vector<std::string> arg){
 
-    AbstractEffectUnit *unit = ProcessGraph::Get().getEffect(std::stoi(arg[0]));
+    AbstractEffectUnit *unit = ProcessGraph::getEffect(std::stoi(arg[0]));
     
     if ( unit != NULL ){
         
@@ -205,7 +205,7 @@ CmdEditParam::CmdEditParam():
 }
 void CmdEditParam::perform(std::vector<std::string> arg){
 
-    AbstractEffectUnit *unit = ProcessGraph::Get().getEffect(std::stoi(arg[0]));
+    AbstractEffectUnit *unit = ProcessGraph::getEffect(std::stoi(arg[0]));
     
     if ( unit != NULL ){
         
@@ -255,7 +255,7 @@ CmdShowPool::CmdShowPool():
 }
 void CmdShowPool::perform(std::vector<std::string> arg){
 
-    AbstractEffectUnit *unit = ProcessGraph::Get().getEffect(std::stoi(arg[0]));
+    AbstractEffectUnit *unit = ProcessGraph::getEffect(std::stoi(arg[0]));
     
     if ( unit != NULL ){
         
@@ -277,7 +277,7 @@ CmdChangeBank::CmdChangeBank():
 }
 void CmdChangeBank::perform(std::vector<std::string> arg){
 
-    AbstractEffectUnit *unit = ProcessGraph::Get().getEffect(std::stoi(arg[0]));
+    AbstractEffectUnit *unit = ProcessGraph::getEffect(std::stoi(arg[0]));
     
     if ( unit != NULL ){
         

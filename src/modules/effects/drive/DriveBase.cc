@@ -13,14 +13,20 @@ AbstractDriveBase::clip_f AbstractDriveBase::castClipper( AbstractDriveBase::TYP
 
     if ( type == HARD ){
 
-        std::cout << "HardClipper" << std::endl;
+        if ( SFXP::GlobalIsDebugEnabled ){
+            std::cout << "HardClipper" << std::endl;
+        }
         return AbstractDriveBase::clipHard;
     }
     else if ( type == SOFT ){
 
-        std::cout << "SoftClipper" << std::endl;
+        if ( SFXP::GlobalIsDebugEnabled ){
+            std::cout << "SoftClipper" << std::endl;
+        }
         return AbstractDriveBase::clipSoft;
     }
-    std::cout << "Err : HardClipper" << std::endl;
+    if ( SFXP::GlobalIsDebugEnabled ){
+        std::cout << "Err : HardClipper" << std::endl;
+    }
     return AbstractDriveBase::clipHard;
 }

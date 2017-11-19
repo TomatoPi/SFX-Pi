@@ -18,20 +18,20 @@ class RegistrableUnit{
          **/
         static const std::string NAME;
         
-        static AbstractEffectUnit* BUILDER(uint8_t id, uint8_t type);
+        static AbstractEffectUnit* BUILDER(id1_t id, id1_t type);
 
         static const std::string PARNAMES[];
-        static const uint8_t PARCOUNT;
+        static const size_t PARCOUNT;
 
         static const std::string PORNAMES[];
-        static const uint8_t AI;
-        static const uint8_t AO;
-        static const uint8_t MI;
-        static const uint8_t MO;
+        static const size_t AI;
+        static const size_t AO;
+        static const size_t MI;
+        static const size_t MO;
 
     protected :
 
-        static const uint16_t PARSIZE;
+        static const size_t PARSIZE;
 };
 
 #endif

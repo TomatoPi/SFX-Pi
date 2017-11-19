@@ -27,7 +27,7 @@
 /* ***************************** Consts ***************************** */
 template<>  const std::string FFTDelayReg::NAME =  "FFT-Delay";
 
-template<> AbstractEffectUnit* FFTDelayReg::BUILDER(uint8_t id, uint8_t type){
+template<> AbstractEffectUnit* FFTDelayReg::BUILDER(id1_t id, id1_t type){
 
     return new FFTDelay( id, type );
 }
@@ -38,19 +38,19 @@ template<> const std::string FFTDelayReg::PARNAMES[] = {
     "Feedback",
     "Dry-Wet"
     };
-template<> const uint8_t FFTDelayReg::PARCOUNT = 4;
+template<> const size_t FFTDelayReg::PARCOUNT = 4;
 
 template<> const std::string FFTDelayReg::PORNAMES[] = {
     "Input", "Output"};
 
-template<> const uint8_t FFTDelayReg::AI = 1;
-template<> const uint8_t FFTDelayReg::AO = 1;
-template<> const uint8_t FFTDelayReg::MI = 0;
-template<> const uint8_t FFTDelayReg::MO = 0;
+template<> const size_t FFTDelayReg::AI = 1;
+template<> const size_t FFTDelayReg::AO = 1;
+template<> const size_t FFTDelayReg::MI = 0;
+template<> const size_t FFTDelayReg::MO = 0;
 
-template<> const uint16_t FFTDelayReg::PARSIZE = FFTDelay::BIN/2 + 2;
+template<> const size_t FFTDelayReg::PARSIZE = FFTDelay::BIN/2 + 2;
 /* ***************************** FFTDelay *************************** */
-FFTDelay::FFTDelay(uint8_t id, uint8_t type):
+FFTDelay::FFTDelay(id1_t id, id1_t type):
     AbstractEffectUnit( id, type, PARCOUNT, PARSIZE),
     m_buffer(new BlockBuffer<sample_t,BIN,BIN_COUNT>())
 {
@@ -125,19 +125,26 @@ void FFTDelay::update(){
     float sr = m_jackU->getSamplerate();
     float delay  = utils::mstos(m_currentBank->second[DEL], sr)/BIN;
     float spread = utils::mstos(m_currentBank->second[SPR], sr)/BIN;
-    printf("Fill Bin :\n");
+
+    
+    if ( SFXP::GlobalIsDebugEnabled ){
+        printf("Fill Bin :\n");
+    }
 
     m_paramArray[OFFP + 0] = utils::constrain( delay , 0, BIN_COUNT);
     
     // Fill bin with random delays values between 0 and MAX_DELAY
-    for ( uint16_t i = 1; i < BIN/2; i++ ){
+    for ( size_t i = 1; i < BIN/2; i++ ){
 
         m_paramArray[OFFP + i] =
             utils::constrain( m_paramArray[OFFP+i-1] + spread*utils::frand(-1,1), 0, BIN_COUNT);
+
             
-        printf("%u(bins) = %f(ms)\n",
-            (uint16_t)m_paramArray[OFFP + i],
-            utils::stoms(m_paramArray[OFFP + i]*BIN, sr)
-            );
+        if ( SFXP::GlobalIsDebugEnabled ){
+            printf("%lu(bins) = %f(ms)\n",
+                (size_t)m_paramArray[OFFP + i],
+                utils::stoms(m_paramArray[OFFP + i]*BIN, sr)
+                );
+        }
     }
 }

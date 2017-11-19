@@ -15,8 +15,6 @@
 
 #include "../../Const.h"
 
-typedef jack_default_audio_sample_t sample_t;
-
 /**
  * Class Containing JACK Related stuff for units.
  * It contains Client and Unit's Ports
@@ -45,7 +43,7 @@ class JACKUnit{
          * 
          * @throw string if port registration failed
          **/
-        void registerPorts(const std::string *names, uint8_t ai=1, uint8_t ao=1, uint8_t mi=0, uint8_t mo=0);
+        void registerPorts(const std::string *names, size_t ai=1, size_t ao=1, size_t mi=0, size_t mo=0);
 
         /**
          * Function used to register unit's callback function.
@@ -93,7 +91,7 @@ class JACKUnit{
 
     private :
 
-        uint8_t m_status;
+        hex_t m_status;
 };
 
 #endif

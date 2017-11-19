@@ -10,7 +10,7 @@
 /* ****************************************************************** */
 /* ************************** Constructor *************************** */
 /* ****************************************************************** */
-AbstractEffectUnit::AbstractEffectUnit(uint8_t id, uint8_t type, uint8_t bankSize, uint16_t paramSize):
+AbstractEffectUnit::AbstractEffectUnit(id1_t id, id1_t type, size_t bankSize, size_t paramSize):
     m_id( id ),
     m_type( type ),
     m_jackU( NULL ),
@@ -48,7 +48,7 @@ AbstractEffectUnit::~AbstractEffectUnit(){
 /* ****************************************************************** */
 /* ************************* Param Managment ************************ */
 /* ****************************************************************** */
-void AbstractEffectUnit::setParam(uint8_t idx, float value){
+void AbstractEffectUnit::setParam(size_t idx, float value){
 
     if ( idx < m_bankSize ){
         
@@ -72,7 +72,7 @@ void AbstractEffectUnit::setParam(uint8_t idx, float value){
     }
 }
 
-void AbstractEffectUnit::setParam(uint8_t size, const float *values){
+void AbstractEffectUnit::setParam(size_t size, const float *values){
     
     if ( size == m_bankSize ){
 
@@ -99,11 +99,11 @@ void AbstractEffectUnit::setParam(uint8_t size, const float *values){
         this->update();
     }
     else{
-        printf("ERROR : Given (%u) Params Array : Effect has (%u)\n", size, m_bankSize);
+        printf("ERROR : Given (%lu) Params Array : Effect has (%lu)\n", size, m_bankSize);
     }
 }
 
-float AbstractEffectUnit::getParam(uint8_t idx) const{
+float AbstractEffectUnit::getParam(size_t idx) const{
 
     if ( idx < m_bankSize && m_bankArray.size() != 0 ){
 
@@ -115,7 +115,7 @@ float AbstractEffectUnit::getParam(uint8_t idx) const{
 /* ****************************************************************** */
 /* ************************* Bank Managment ************************* */
 /* ****************************************************************** */
-int AbstractEffectUnit::addBank(uint8_t id){
+int AbstractEffectUnit::addBank(id1_t id){
 
     if ( m_bankArray.find(id) == m_bankArray.end() ){
 
@@ -131,7 +131,7 @@ int AbstractEffectUnit::addBank(uint8_t id){
     return EUCST::BANK_ID_ERR;
 }
 
-int AbstractEffectUnit::addBank(uint8_t id, uint8_t size, const float *values){
+int AbstractEffectUnit::addBank(id1_t id, size_t size, const float *values){
 
     if ( size == m_bankSize && m_bankArray.find(id) == m_bankArray.end() ){
 
@@ -145,12 +145,12 @@ int AbstractEffectUnit::addBank(uint8_t id, uint8_t size, const float *values){
         return 0;
     }
 
-    printf("AddBank : Error : size : n:%u p:%u : id : n:%u\n",
+    printf("AddBank : Error : size : n:%lu p:%lu : id : n:%u\n",
         size, m_bankSize, id);
     return EUCST::BANK_ID_ERR;
 }
 
-void AbstractEffectUnit::removeBank(uint8_t id){
+void AbstractEffectUnit::removeBank(id1_t id){
 
     if ( m_bankArray.find(id) != m_bankArray.end() ){
 
@@ -173,7 +173,7 @@ AbstractEffectUnit::ModBankArray AbstractEffectUnit::getAllBanks() const{
     return m_bankArray;
 }
 
-uint8_t AbstractEffectUnit::getBankSize() const{
+size_t AbstractEffectUnit::getBankSize() const{
 
     return m_bankSize;
 }
@@ -214,7 +214,7 @@ bool AbstractEffectUnit::prevBank(){
     return rtn;
 }
 
-int AbstractEffectUnit::changeBank(uint8_t id){
+int AbstractEffectUnit::changeBank(id1_t id){
 
     if ( m_bankArray.find(id) != m_bankArray.end() ){
 
@@ -258,7 +258,7 @@ uint8_t AbstractEffectUnit::getID() const{
     return m_id;
 }
 
-JACKUnit* AbstractEffectUnit::getJACKUnit(uint8_t pidx){
+JACKUnit* AbstractEffectUnit::getJACKUnit(size_t pidx){
 
     return m_jackU;
 }
@@ -281,7 +281,7 @@ void AbstractEffectUnit::printEffect() const{
             printf("      - Bank ( %2u ) :", cur.first);
         }
 
-        for ( uint8_t i = 0; i < m_bankSize; i++ ){
+        for ( size_t i = 0; i < m_bankSize; i++ ){
             printf(" %3.5f", cur.second[i]);
         }
         printf("\n");
@@ -296,7 +296,7 @@ void AbstractEffectUnit::printPool() const{
 
     printf("Pool :\n");
     
-    for ( uint8_t i = 0; i < m_paramSize; i++ ){
+    for ( size_t i = 0; i < m_paramSize; i++ ){
         printf(" %3.5f", m_paramArray[i]);
     }
     

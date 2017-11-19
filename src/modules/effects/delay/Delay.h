@@ -28,7 +28,7 @@ class DelayEffect: public AbstractEffectUnit, public AbstractDelayBase,
         /**
          * Constructor and Process Callback
          **/
-        DelayEffect(uint8_t id, uint8_t type);
+        DelayEffect(id1_t id, id1_t type);
         ~DelayEffect();
 
         static int process(jack_nframes_t nframes, void* arg);
@@ -44,7 +44,7 @@ class DelayEffect: public AbstractEffectUnit, public AbstractDelayBase,
 
     private :
 
-        Buffer<sample_t,MAX_DELAY> *m_buffer;
+        Buffer<MAX_DELAY> *m_buffer;
 };
 typedef RegistrableUnit<DelayEffect> DelayReg;
 

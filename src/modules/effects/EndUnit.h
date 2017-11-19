@@ -22,13 +22,18 @@ class EndUnit : public AbstractEffectUnit, public RegistrableUnit<EndUnit>
 {
     public :
 
-        EndUnit( uint8_t id, uint8_t type );
+        EndUnit( id1_t id, id1_t type );
         ~EndUnit();
 
         static int process(jack_nframes_t nframes, void* arg);
 
         static const std::string CAPTURE;
         static const std::string PLAYBACK;
+
+        bool isSaturated(bool chanel) const;
+        void resetSaturated(bool chanel);
+        
+        sample_t getMax(bool chanel) const;
 
     private :
     

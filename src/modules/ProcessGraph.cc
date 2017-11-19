@@ -8,13 +8,17 @@
  * Each Effect can be called by it ID
  **********************************************************************/
 #include "ProcessGraph.h"
-/**
- * Private Constructor and Destructor for Singleton pattern
- **/
-ProcessGraph::ProcessGraph():
-    m_connectionList(ConnectionTree(ValidValCo, ErrorValCo)),
-    m_graph(EffectList())
-{
+
+ProcessGraph::ConnectionTree    ProcessGraph::m_connectionList =
+                                        ProcessGraph::ConnectionTree(
+                                            ProcessGraph::ValidValCo,
+                                            ProcessGraph::ErrorValCo
+                                        );
+//
+ProcessGraph::EffectList        ProcessGraph::m_graph =
+                                        ProcessGraph::EffectList();
+//
+int ProcessGraph::create(){
 
     printf("Build Process Graph ... ");
     try{
@@ -62,12 +66,15 @@ ProcessGraph::ProcessGraph():
 
         printf("ERROR : %s\n", e.c_str());
         SFXP::GlobalNeedToExit = true;
+        return 1;
     }
+    return 0;
 }
-ProcessGraph::~ProcessGraph(){
+
+int ProcessGraph::kill(){
 
     printf("Destroy Process Graph ... ");
-    this->clearGraph();
+    clearGraph();
 
     printf("Delete Capture and Playback Units ... ");
     for ( auto& cur : m_graph ){
@@ -75,12 +82,14 @@ ProcessGraph::~ProcessGraph(){
         delete cur.second;
     }
     printf("Done\n");
+
+    return 0;
 }
 
 /**
  * Add or remove given effect from the process graph
  **/
-int ProcessGraph::addEffect( uint8_t type, uint8_t id ){
+int ProcessGraph::addEffect( id1_t type, id1_t id ){
 
     printf("Add New Effect ... ");
     // Verify that Provided Id is Unique
@@ -126,8 +135,8 @@ int ProcessGraph::addEffect( AbstractEffectUnit* unit, bool override ){
         end->clearEffect();
 
         //get new banks
-        std::map<uint8_t,float*> banks = unit->getAllBanks();
-        uint8_t size = unit->getBankSize();
+        std::map<id1_t,float*> banks = unit->getAllBanks();
+        size_t size = unit->getBankSize();
 
         for ( auto& cur : banks ){
 
@@ -151,8 +160,8 @@ int ProcessGraph::addEffect( AbstractEffectUnit* unit, bool override ){
             old->clearEffect();
 
             //get new banks
-            std::map<uint8_t,float*> banks = unit->getAllBanks();
-            uint8_t size = unit->getBankSize();
+            std::map<id1_t,float*> banks = unit->getAllBanks();
+            size_t size = unit->getBankSize();
 
             for ( auto& cur : banks ){
 
@@ -179,7 +188,7 @@ int ProcessGraph::addEffect( AbstractEffectUnit* unit, bool override ){
 
     return 0;
 }
-int ProcessGraph::removeEffect( uint8_t id ){
+int ProcessGraph::removeEffect( id1_t id ){
 
     if ( id == SFXP::TC_CAPTURE || id == SFXP::TC_PLAYBACK ){
 
@@ -190,13 +199,13 @@ int ProcessGraph::removeEffect( uint8_t id ){
     printf("Remove Effect ( %2u ) From Graph ... ", id);
     if ( m_graph.find(id) != m_graph.end() ){
 
-        std::vector<Connection> c = this->getConnection();
+        std::vector<Connection> c = getConnection();
 
         for ( auto& cur : c ){
 
             if ( cur.m_si == id || cur.m_ti == id ){
 
-                this->removeConnection(cur);
+                removeConnection(cur);
             }
         }
 
@@ -210,7 +219,7 @@ int ProcessGraph::removeEffect( uint8_t id ){
     printf("ERROR : Effect Not Found\n");
     return ErrIdNotFound;
 }
-AbstractEffectUnit* ProcessGraph::getEffect( uint8_t id ){
+AbstractEffectUnit* ProcessGraph::getEffect( id1_t id ){
 
     if ( m_graph.find(id) != m_graph.end() ){
 
@@ -220,9 +229,9 @@ AbstractEffectUnit* ProcessGraph::getEffect( uint8_t id ){
     return NULL;
 }
 
-std::vector<uint8_t> ProcessGraph::getEffectList() const{
+std::vector<id1_t> ProcessGraph::getEffectList(){
 
-    std::vector<uint8_t> out;
+    std::vector<id1_t> out;
     for ( auto& cur : m_graph ){
 
         out.push_back(cur.first);
@@ -235,8 +244,8 @@ std::vector<uint8_t> ProcessGraph::getEffectList() const{
  **/
 int ProcessGraph::addConnection( Connection c ){
 
-    int co[4] = {c.m_si, c.m_sp, c.m_ti, c.m_tp};
-    printf("Add Connection( %3d %2d %3d %2d ) ... ", co[0], co[1], co[2], co[3]);
+    id1_t co[4] = {c.m_si, c.m_sp, c.m_ti, c.m_tp};
+    printf("Add Connection( %3u %2u %3u %2u ) ... ", co[0], co[1], co[2], co[3]);
 
     if ( m_connectionList.find(co) == ValidValCo ){
 
@@ -274,8 +283,8 @@ int ProcessGraph::addConnection( Connection c ){
 }
 int ProcessGraph::removeConnection( Connection c ){
 
-    int co[4] = {c.m_si, c.m_sp, c.m_ti, c.m_tp};
-    printf("Remove Connection( %3d %2d %3d %2d ) ... ", co[0], co[1], co[2], co[3]);
+    id1_t co[4] = {c.m_si, c.m_sp, c.m_ti, c.m_tp};
+    printf("Remove Connection( %3u %2u %3u %2u ) ... ", co[0], co[1], co[2], co[3]);
 
     if ( m_connectionList.find(co) == ErrorValCo ){
 
@@ -312,7 +321,7 @@ int ProcessGraph::removeConnection( Connection c ){
 }
 std::vector<ProcessGraph::Connection> ProcessGraph::getConnection(){
 
-    std::vector<int*> tree = m_connectionList.getBackTree();
+    std::vector<id1_t*> tree = m_connectionList.getBackTree();
     std::vector<Connection> out;
 
     for( auto& cur : tree ){
@@ -328,10 +337,10 @@ std::vector<ProcessGraph::Connection> ProcessGraph::getConnection(){
 void ProcessGraph::clearGraph(){
 
     printf("Clear Connections List ... \n");
-    std::vector<Connection> co = this->getConnection();
+    std::vector<Connection> co = getConnection();
     for( auto& cur : co ){
 
-        this->removeConnection(cur);
+        removeConnection(cur);
     }
     printf("... Done\n");
 
@@ -359,11 +368,27 @@ void ProcessGraph::printGraph(){
     }
     
     printf("   Connections :\n");
-    std::vector<int*> co = m_connectionList.getBackTree();
+    std::vector<id1_t*> co = m_connectionList.getBackTree();
     for ( auto& cur : co ){
 
-        printf("      - From : %3i:%i To : %3i:%i\n", cur[0], cur[1], cur[2], cur[3]);
+        printf("      - From : %3u:%u To : %3u:%u\n             : \"%-25s\" To \"%-25s\"\n"
+            , cur[0], cur[1], cur[2], cur[3]
+            ,UnitFactory::buildPortName( m_graph[cur[0]], 1, cur[1] ).c_str()
+            ,UnitFactory::buildPortName( m_graph[cur[2]], 0, cur[3] ).c_str()
+            );
         delete cur;
     }
     printf("End\n");
+}
+
+/**
+ * Get Capture and Playback Units
+ **/
+EndUnit* ProcessGraph::getCapture(){
+
+    return static_cast<EndUnit*>(m_graph[SFXP::TC_CAPTURE]);
+}
+EndUnit* ProcessGraph::getPlayback(){
+
+    return static_cast<EndUnit*>(m_graph[SFXP::TC_PLAYBACK]);
 }

@@ -25,42 +25,80 @@ int main(int argc, char* argv[]){
     << std::endl << std::endl;
 
     /* **** Setup Command Listening **** */
-    CommandParser::registerCommand(new CommandParser::CmdHelp());
-    
-    std::cout << std::endl;
-    
-    CommandParser::registerCommand(new CmdAddEffect()       );
-    CommandParser::registerCommand(new CmdRemoveEffect()    );
-    CommandParser::registerCommand(new CmdAddConnection()   );
-    CommandParser::registerCommand(new CmdRemoveConnection());
-    
-    std::cout << std::endl;
-    
-    CommandParser::registerCommand(new CmdShowGraph()       );
-    CommandParser::registerCommand(new CmdClearGraph()      );
-    CommandParser::registerCommand(new CmdListAvailable()   );
+
+    // General Commands
+    CommandParser::registerCommand( 0, new CommandParser::CmdHelp()     );
+    CommandParser::registerCommand(22, new CommandParser::CmdAlias()    );
+    CommandParser::registerCommand( 1, new CommandParser::CmdPrevCmd()  );
+    CommandParser::registerCommand( 2, new CommandParser::CmdDebug()    );
     
     std::cout << std::endl;
 
-    CommandParser::registerCommand(new CmdShowEffect()  );
-    CommandParser::registerCommand(new CmdAddBank()     );
-    CommandParser::registerCommand(new CmdRemoveBank()  );
-    CommandParser::registerCommand(new CmdEditParam()   );
-    CommandParser::registerCommand(new CmdShowParam()   );
-    CommandParser::registerCommand(new CmdShowPool()    );
-    CommandParser::registerCommand(new CmdChangeBank()  );
+    // Process Graph edition
+    CommandParser::registerCommand( 3, new CmdAddEffect()       );
+    CommandParser::registerCommand( 4, new CmdRemoveEffect()    );
+    CommandParser::registerCommand( 5, new CmdAddConnection()   );
+    CommandParser::registerCommand( 6, new CmdRemoveConnection());
     
     std::cout << std::endl;
 
-    CommandParser::registerCommand(new CmdListPreset()  );
-    CommandParser::registerCommand(new CmdSavePreset()  );
-    CommandParser::registerCommand(new CmdLoadPreset()  );
-    CommandParser::registerCommand(new CmdSaveEffect()  );
-    CommandParser::registerCommand(new CmdLoadEffect()  );
+    // Process graph View
+    CommandParser::registerCommand( 7, new CmdShowGraph()       );
+    CommandParser::registerCommand( 8, new CmdClearGraph()      );
+    CommandParser::registerCommand( 9, new CmdListAvailable()   );
+    
+    std::cout << std::endl;
+
+    // Effects Edition and View
+    CommandParser::registerCommand(10, new CmdShowEffect()  );
+    CommandParser::registerCommand(11, new CmdAddBank()     );
+    CommandParser::registerCommand(12, new CmdRemoveBank()  );
+    CommandParser::registerCommand(13, new CmdEditParam()   );
+    CommandParser::registerCommand(14, new CmdShowParam()   );
+    CommandParser::registerCommand(15, new CmdShowPool()    );
+    CommandParser::registerCommand(16, new CmdChangeBank()  );
+    
+    std::cout << std::endl;
+
+    // Presset Managment
+    CommandParser::registerCommand(17, new CmdListPreset()  );
+    CommandParser::registerCommand(18, new CmdSavePreset()  );
+    CommandParser::registerCommand(19, new CmdLoadPreset()  );
+    CommandParser::registerCommand(20, new CmdSaveEffect()  );
+    CommandParser::registerCommand(21, new CmdLoadEffect()  );
+    
+    std::cout << std::endl;
+
+    // Command Manager
+    CommandParser::registerCommand(23, new CmdPrintCMDManager() );
+    CommandParser::registerCommand(24, new CmdAddSequencer()    );
+    CommandParser::registerCommand(25, new CmdDelSequencer()    );
     
     std::cout << std::endl;
     
-    CommandListener::Create();
+    CommandParser::registerCommand(26, new CmdPrintSequencer()  );
+    CommandParser::registerCommand(27, new CmdAddSeqLink()      );
+    CommandParser::registerCommand(28, new CmdDelSeqLink()      );
+    CommandParser::registerCommand(29, new CmdAddSeqCmd()       );
+    CommandParser::registerCommand(30, new CmdDelSeqCmd()       );
+    
+    std::cout << std::endl;
+
+    // Footswitch Managment
+    CommandParser::registerCommand(31, new CmdPrintMCPConfig()      );
+    CommandParser::registerCommand(32, new CmdPrintLogicManager()   );
+    CommandParser::registerCommand(33, new CmdAddFootTarget()       );
+    CommandParser::registerCommand(34, new CmdDelFootTarget()       );
+    CommandParser::registerCommand(35, new CmdShowFoot()            );
+    
+    std::cout << std::endl;
+    
+    /* **** Setup User Interface **** */
+
+    LogicManager::registerFootSwitch( 0x0000, "PrevBank", 0x0010, 0, 0 );
+    LogicManager::registerFootSwitch( 0x0001, "NextBank", 0x0020, 0, 0 );
+
+    std::cout << std::endl;
 
     /* **** Setup Effect Graph **** */
     
@@ -82,14 +120,20 @@ int main(int argc, char* argv[]){
     std::cout << std::endl;
 
     UnitFactory::registerEffect( SFXP::TC_DELAY,    DelayEffect::NAME,          DelayEffect::BUILDER,       DelayEffect::PARNAMES,          DelayEffect::PARCOUNT,          DelayEffect::PORNAMES,          DelayEffect::AI,        DelayEffect::AO,        DelayEffect::MI,        DelayEffect::MO);
+    UnitFactory::registerEffect( SFXP::TC_REVERB,   ReverbEffect::NAME,         ReverbEffect::BUILDER,      ReverbEffect::PARNAMES,         ReverbEffect::PARCOUNT,         ReverbEffect::PORNAMES,         ReverbEffect::AI,       ReverbEffect::AO,       ReverbEffect::MI,       ReverbEffect::MO);
+    UnitFactory::registerEffect( SFXP::TC_CHORUS,   ChorusEffect::NAME,         ChorusEffect::BUILDER,      ChorusEffect::PARNAMES,         ChorusEffect::PARCOUNT,         ChorusEffect::PORNAMES,         ChorusEffect::AI,       ChorusEffect::AO,       ChorusEffect::MI,       ChorusEffect::MO);
     
     std::cout << std::endl;
 
     UnitFactory::registerEffect( SFXP::TC_LFO,      LFOEffect::NAME,            LFOEffect::BUILDER,         LFOEffect::PARNAMES,            LFOEffect::PARCOUNT,            LFOEffect::PORNAMES,            LFOEffect::AI,          LFOEffect::AO,          LFOEffect::MI,          LFOEffect::MO);
     
     std::cout << std::endl;
+
+    UIManager::create();
+       
+    std::cout << std::endl;
     
-    ProcessGraph::Create();
+    ProcessGraph::create();
     
     std::cout << std::endl <<
     "******************************************************************"
@@ -102,12 +146,53 @@ int main(int argc, char* argv[]){
     /* ********************* Main Loop *********************** */
     while (!SFXP::GlobalNeedToExit){
 
-        std::string cmd = CommandListener::Get().getBuffer();
+        // Look for command to perform
+        std::string cmd = CommandListener::getBuffer();
         if ( cmd.size() != 0 ){
 
-            CommandParser::performCommand(Parser::parseSimpleString( cmd, " " ));
-            CommandListener::Get().clearBuffer();
+            CommandParser::performCommand(Parser::parseSimpleString( cmd, " ", '"' ));
+            CommandListener::clearBuffer();
         }
+
+        // Update User Interface
+        UIManager::update();
+
+        // Monitor Inputs
+        EndUnit* end = ProcessGraph::getCapture();
+        if ( end->isSaturated(false) ){
+
+            printf("Warning : Left Capture port is Saturated : %2.5f\n",
+                end->getMax(false));
+                
+            end->resetSaturated(false);
+        }
+        else if ( end->isSaturated(true) ){
+
+            printf("Warning : Right Capture port is Saturated : %2.5f\n",
+                end->getMax(true));
+                
+            end->resetSaturated(true);
+        }
+
+        // Monitor Outputs
+        end = ProcessGraph::getPlayback();
+        if ( end->isSaturated(false) ){
+            
+            printf("Warning : Left Playback port is Saturated : %2.5f\n",
+                end->getMax(false));
+                
+            end->resetSaturated(false);
+        }
+        else if ( end->isSaturated(true) ){
+
+            printf("Warning : Right Playback port is Saturated : %2.5f\n",
+                end->getMax(true));
+                
+            end->resetSaturated(true);
+        }
+
+        // Sleep for 10ms ( 100Hz )
+        usleep(10000);
     };
     /* ******************************************************* */
         
@@ -119,15 +204,11 @@ int main(int argc, char* argv[]){
     "******************************************************************"
     << std::endl << std::endl;
 
-    CommandParser::clearRegister();
+    UIManager::kill();
 
     std::cout << std::endl;
 
-    CommandListener::Kill();
-
-    std::cout << std::endl;
-
-    ProcessGraph::Kill();
+    ProcessGraph::kill();
 
     std::cout << std::endl <<
     "******************************************************************"

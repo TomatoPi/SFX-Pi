@@ -25,7 +25,7 @@ template<> const std::string EndReg::NAME = "EndUnit";
 const std::string EndUnit::CAPTURE = "Capture";
 const std::string EndUnit::PLAYBACK = "Playback";
 
-template<> AbstractEffectUnit* EndReg::BUILDER(uint8_t id, uint8_t type){
+template<> AbstractEffectUnit* EndReg::BUILDER(id1_t id, id1_t type){
 
     return new EndUnit( id, type );
 }
@@ -34,21 +34,21 @@ template<> const std::string EndReg::PARNAMES[] = {
     "Width",
     "Panoramic"
     };
-template<> const uint8_t EndReg::PARCOUNT = 2;
+template<> const size_t EndReg::PARCOUNT = 2;
 
 template<> const std::string EndReg::PORNAMES[] = {
     "Input-L", "Input-R",
     "Output-L", "Output-R"
     };
 
-template<> const uint8_t EndReg::AI = 2;
-template<> const uint8_t EndReg::AO = 2;
-template<> const uint8_t EndReg::MI = 0;
-template<> const uint8_t EndReg::MO = 0;
+template<> const size_t EndReg::AI = 2;
+template<> const size_t EndReg::AO = 2;
+template<> const size_t EndReg::MI = 0;
+template<> const size_t EndReg::MO = 0;
 
-template<> const uint16_t EndReg::PARSIZE = EndReg::PARCOUNT + 1;
+template<> const size_t EndReg::PARSIZE = EndReg::PARCOUNT + 1;
 /* ****************************************************************** */
-EndUnit::EndUnit( uint8_t id, uint8_t type ):
+EndUnit::EndUnit( id1_t id, id1_t type ):
     AbstractEffectUnit( id, type, EndUnit::PARCOUNT, EndUnit::PARSIZE ),
     m_isSatL(false),
     m_isSatR(false),
@@ -139,4 +139,32 @@ void EndUnit::update(){
 
     m_paramArray[WL] = panL;
     m_paramArray[WR] = panR;
+}
+
+bool EndUnit::isSaturated(bool chanel) const{
+
+    if ( chanel )
+        return m_isSatR;
+        
+    return m_isSatL;
+}
+void EndUnit::resetSaturated(bool chanel){
+
+    if ( chanel ) {
+            
+        m_isSatR = false;
+        m_maxR = 0;
+    }
+    else{
+
+        m_isSatL = false;
+        m_maxL = 0;
+    }
+}
+sample_t EndUnit::getMax(bool chanel) const{
+
+    if ( chanel )
+        return m_maxR;
+
+    return m_maxL;
 }

@@ -31,7 +31,7 @@ class FFTComplexifier : public AbstractEffectUnit,
         /**
          * Constructor and Process Callback
          **/
-        FFTComplexifier(uint8_t id, uint8_t type);
+        FFTComplexifier(id1_t id, id1_t type);
         ~FFTComplexifier();
 
         static int process(jack_nframes_t nframes, void* arg);
@@ -55,7 +55,7 @@ class FFTRealizer : public AbstractEffectUnit,
         /**
          * Constructor and Process Callback
          **/
-        FFTRealizer(uint8_t id, uint8_t type);
+        FFTRealizer(id1_t id, id1_t type);
         ~FFTRealizer();
 
         static int process(jack_nframes_t nframes, void* arg);

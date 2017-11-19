@@ -1,5 +1,5 @@
 CXX=g++
-CXXFLAGS= -g -O3
+CXXFLAGS= -g -O3 -Wunused-variable -Wall -Wwrite-strings -Wreturn-type
 LDFLAGS=-ljack -lpthread 
 EXEC=SFX-Pi
 
@@ -12,13 +12,19 @@ CORE_SRC= $(addprefix $(SOURCE)$(CORE_DIR), Singleton.h Singleton.hpp ReminderTr
 
 ## IO Files ##
 IO_DIR= io/
-IO_CORE_SRC= $(addprefix $(SOURCE)$(IO_DIR)core/, Listener.cc)
+IO_CORE_SRC= $(addprefix $(SOURCE)$(IO_DIR)core/, Listener.cc Message.cc)
 IO_CORE_OBJ= $(IO_CORE_SRC:.cc=.o)
 
-COMMAND_SRC= $(addprefix $(SOURCE)$(IO_DIR)command/, CommandListener.cc CommandParser.cc Commands.cc)
+COMMAND_SRC= $(addprefix $(SOURCE)$(IO_DIR)command/, CommandListener.cc CommandParser.cc Commands.cc CommandSequencer.cc CommandManager.cc CommandManagerCommands.cc)
 COMMAND_OBJ= $(COMMAND_SRC:.cc=.o=)
 
-IO_SRC= $(COMMAND_SRC)
+LOGIC_SRC= $(addprefix $(SOURCE)$(IO_DIR)logic/, mcp23017.cc FootSwitch.cc LED.cc LogicManager.cc LogicManagerCommands.cc)
+LOGIC_OBJ= $(LOGIC_SRC:.cc=.o=)
+
+IO_MAIN_SRC= $(addprefix $(SOURCE)$(IO_DIR), UIManager.cc UIManagerCommands.cc)
+IO_MAIN_OBJ= $(IO_MAIN_SRC:.cc=.o=)
+
+IO_SRC= $(COMMAND_SRC) $(LOGIC_SRC) $(IO_MAIN_SRC)
 IO_OBJ= $(IO_SRC:.cc=.o)
 ## Module Core Files ##
 MODULE_DIR= modules/
@@ -55,7 +61,7 @@ DRIVE_OBJ= $(DRIVE_SRC:.cc=.o)
 FFT_SRC= $(addprefix $(SOURCE)$(MODULE_DIR)$(EFFECT_DIR)fft/, FFTransformer.cc FFTFilter.cc FFTDelay.cc)
 FFT_OBJ= $(FFT_SRC:.cc=.o)
 
-DELAY_SRC= $(addprefix $(SOURCE)$(MODULE_DIR)$(EFFECT_DIR)delay/, DelayBase.cc Delay.cc)
+DELAY_SRC= $(addprefix $(SOURCE)$(MODULE_DIR)$(EFFECT_DIR)delay/, DelayBase.cc Delay.cc Reverb.cc Chorus.cc)
 DELAY_OBJ= $(DELAY_SRC:.cc=.o)
 
 MOD_SRC= $(addprefix $(SOURCE)$(MODULE_DIR)$(EFFECT_DIR)mod/, LFO.cc)
@@ -87,6 +93,8 @@ $(IO_CORE_OBJ): $(IO_CORE_SRC)
 $(IO_OBJ): $(IO_CORE_SRC) $(IO_SRC)
 
 $(COMMAND_OBJ): $(IO_CORE_SRC) $(COMMAND_SRC)
+
+$(LOGIC_OBJ): $(IO_CORE_SRC) $(COMMAND_SRC) $(LOGIC_SRC)
 
 ## Build Modules Core and Factory ##
 $(MODULE_CORE_OBJ): $(MODULE_CORE_SRC)

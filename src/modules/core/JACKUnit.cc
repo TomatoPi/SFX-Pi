@@ -8,9 +8,9 @@
 #include "JACKUnit.h"
 namespace{
 
-    const uint8_t FLAG_NULL         = 0x00;
-    const uint8_t FLAG_NO_CLIENT    = 0x01;
-    const uint8_t FLAG_NO_PORTS     = 0x02;
+    const hex_t FLAG_NULL         = 0x00;
+    const hex_t FLAG_NO_CLIENT    = 0x01;
+    const hex_t FLAG_NO_PORTS     = 0x02;
 }
 
 /* ****************************************************************** */
@@ -59,12 +59,12 @@ JACKUnit::~JACKUnit(){
 /* ****************************************************************** */
 /* *************************** Registration ************************* */
 /* ****************************************************************** */
-void JACKUnit::registerPorts(const std::string *names, uint8_t ai, uint8_t ao, uint8_t mi, uint8_t mo){
+void JACKUnit::registerPorts(const std::string *names, size_t ai, size_t ao, size_t mi, size_t mo){
 
-    uint8_t portCount = ai + ao + mi + mo;
+    size_t portCount = ai + ao + mi + mo;
     m_ports = new jack_port_t*[portCount];
     
-    for ( uint8_t i = 0; i < portCount; i++ ){
+    for ( size_t i = 0; i < portCount; i++ ){
 
         if ( i < ai ){
 
@@ -103,7 +103,7 @@ void JACKUnit::registerPorts(const std::string *names, uint8_t ai, uint8_t ao, u
 
     if ( SFXP::GlobalIsDebugEnabled ){
 
-        printf( "JACKClient ( %s ) : Registered ( %u ) ports\n",
+        printf( "JACKClient ( %s ) : Registered ( %lu ) ports\n",
             jack_get_client_name(m_client), portCount );
     }
 }
