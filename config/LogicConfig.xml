@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+
+<config>
+
+    <MCP23017 Index="0" Adress="32"/>
+    <MCP23017 Index="1" Adress="36"/>
+    
+    <Footswitch>
+        <ID>0</ID>
+        <Name>PrevBank</Name>
+        <Adress Adress="16" Index="0" GPIO="0"/>
+    </Footswitch>
+    
+    <Footswitch>
+        <ID>1</ID>
+        <Name>NextBank</Name>
+        <Adress Adress="32" Index="0" GPIO="0"/>
+    </Footswitch>
+    
+    <Led>
+        <ID>0</ID>
+        <Adress Adress="64" Index="0" GPIO="0"/>
+    </Led>
+    
+</config>

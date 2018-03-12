@@ -1,132 +1,218 @@
 CXX=g++
-CXXFLAGS= -g -O3 -Wunused-variable -Wall -Wwrite-strings -Wreturn-type
-LDFLAGS=-ljack -lpthread 
+CXXFLAGS= -g -O3 -Wall -Isrc/
+LDFLAGS=-ljack -lpthread -ltinyxml2 -ldl -Llib/
+LIBFLAGS= -fPIC -shared -ljack -Llib/
 EXEC=SFX-Pi
+vpath %.cc src/
 
-SOURCE=src/
-OBJECT=obj/
+ifndef RELEASE
+	CXXFLAGS += -D__DEBUG__
+endif
 
-## Core ##
-CORE_DIR= core/
-CORE_SRC= $(addprefix $(SOURCE)$(CORE_DIR), Singleton.h Singleton.hpp ReminderTree.h ReminderTree.hpp Parser.h Parser.hpp)
+ifdef ARCH
+	CXXFLAGS += -D__ARCH_LINUX__
+	LDFLAGS +=  -lwiringPi
+else
+	CXXFLAGS += -D__LUBUNTU__
+endif
+	
 
-## IO Files ##
-IO_DIR= io/
-IO_CORE_SRC= $(addprefix $(SOURCE)$(IO_DIR)core/, Listener.cc Message.cc)
-IO_CORE_OBJ= $(IO_CORE_SRC:.cc=.o)
+### Shared Files For Plugins ###
 
-COMMAND_SRC= $(addprefix $(SOURCE)$(IO_DIR)command/, CommandListener.cc CommandParser.cc Commands.cc CommandSequencer.cc CommandManager.cc CommandManagerCommands.cc)
-COMMAND_OBJ= $(COMMAND_SRC:.cc=.o=)
+SHARED_PLUGIN_SRC  = $(addprefix plugin/, JackPlugin.cc PluginSourceLoader.cc)
+SHARED_PLUGIN_SRC += $(addprefix effect/, JACKUnit.cc AbstractEffectUnit.cc)
+export SHARED_PLUGIN_LIB = lib/plugin/JackPlugin.so
 
-LOGIC_SRC= $(addprefix $(SOURCE)$(IO_DIR)logic/, mcp23017.cc FootSwitch.cc LED.cc LogicManager.cc LogicManagerCommands.cc)
-LOGIC_OBJ= $(LOGIC_SRC:.cc=.o=)
+SHARED_LIB = $(SHARED_PLUGIN_LIB)
 
-IO_MAIN_SRC= $(addprefix $(SOURCE)$(IO_DIR), UIManager.cc UIManagerCommands.cc)
-IO_MAIN_OBJ= $(IO_MAIN_SRC:.cc=.o=)
+### Shared Files For SFX-PE ###
 
-IO_SRC= $(COMMAND_SRC) $(LOGIC_SRC) $(IO_MAIN_SRC)
-IO_OBJ= $(IO_SRC:.cc=.o)
-## Module Core Files ##
-MODULE_DIR= modules/
-MODULE_CORE_SRC= $(addprefix $(SOURCE)$(MODULE_DIR)core/, AbstractEffectUnit.cc JACKUnit.cc)
-MODULE_SRC= $(addprefix $(SOURCE)$(MODULE_DIR), UnitFactory.cc ProcessGraph.cc ProcessGraphCommands.cc)
+SFXP_PLUGIN_SRC  = $(addprefix plugin/, Plugin.cc PluginConfigLoader.cc TypeCodeTable.cc)
+SFXP_PLUGIN_SRC += $(addprefix effect/, EffectParamSet.cc)
 
-MODULE_CORE_OBJ = $(MODULE_CORE_SRC:.cc=.o)
-MODULE_OBJ= $(MODULE_SRC:.cc=.o)
+SFXP_PLUGIN_OBJ  = $(patsubst %.cc, obj/%.o, $(SFXP_PLUGIN_SRC))
+export SFXP_PLUGIN_LIB  = lib/plugin/NonJackPlugin.so
 
-PRESET_DIR= preset/
-PRESET_SRC= $(addprefix $(SOURCE)$(MODULE_DIR)$(PRESET_DIR), Preset.cc PresetCommands.cc)
-PRESET_OBJ= $(PRESET_SRC:.cc=.o)
+SFXP_PRESET_SRC = preset/PresetParser.cc
+SFXP_PRESET_OBJ = obj/preset/PresetParser.o
+SFXP_PRESET_LIB = lib/preset/Preset.so
 
-## Effects Dependencies Files ( Filter / buffer ) ##
-FILTER_DIR= core/filter/
-FILTER_CORE_SRC= $(addprefix $(SOURCE)$(MODULE_DIR)$(FILTER_DIR), FilterBase.cc)
-FILTER_SRC= $(addprefix $(SOURCE)$(MODULE_DIR)$(FILTER_DIR), MonoPoleFilter.cc GraphicEQ.cc ParametricEQ.cc)
+SFXP_EVENT_SRC = event/EventSequencer.cc
+SFXP_EVENT_OBJ = obj/event/EventSequencer.o
+SFXP_EVENT_LIB = lib/event/EventSequencer.so
 
-FILTER_CORE_OBJ= $(FILTER_CORE_SRC:.cc=.o)
-FILTER_OBJ= $(FILTER_SRC:.cc=.o)
+SFXP_LOGIC_SRC = $(addprefix logic/, Footswitch.cc Led.cc)
+SFXP_LOGIC_OBJ = $(patsubst %.cc, obj/%.o, $(SFXP_LOGIC_SRC))
+SFXP_LOGIC_LIB = lib/logic/Logic.so
 
-BUFFER_DIR= core/buffer/
-BUFFER_SRC= $(addprefix $(SOURCE)$(MODULE_DIR)$(BUFFER_DIR), )
-BUFFER_OBJ= $(BUFFER_SRC:.cc=.o)
+SFXP_ANALOG_SRC = analog/AnalogLink.cc
+SFXP_ANALOG_OBJ = obj/analog/AnalogLink.o
+SFXP_ANALOG_LIB = lib/analog/Analog.so
 
-EFFECT_DEP_SRC = $(FILTER_CORE_SRC) $(FILTER_SRC) $(BUFFER_SRC)
-EFFECT_DEP_OBJ = $(EFFECT_DEP_SRC:.cc=.o)
+SFXP_LIB = $(SFXP_PLUGIN_LIB) $(SFXP_PRESET_LIB) $(SFXP_EVENT_LIB) $(SFXP_LOGIC_LIB) $(SFXP_ANALOG_LIB)
+SFXP_SLIB = lib/lib-SFX-PE.a
 
-## Effects Files ##
-EFFECT_DIR= effects/
-DRIVE_SRC= $(addprefix $(SOURCE)$(MODULE_DIR)$(EFFECT_DIR)drive/, DriveBase.cc Drive.cc MatrixDrive.cc)
-DRIVE_OBJ= $(DRIVE_SRC:.cc=.o)
+### Libraries Specific for Plugins ###
 
-FFT_SRC= $(addprefix $(SOURCE)$(MODULE_DIR)$(EFFECT_DIR)fft/, FFTransformer.cc FFTFilter.cc FFTDelay.cc)
-FFT_OBJ= $(FFT_SRC:.cc=.o)
+export EXTERN_DRIVE_LIB = lib/drive/DriveBase.so
+export EXTERN_BUFF_LIB	= lib/buffer/Buffer.so
 
-DELAY_SRC= $(addprefix $(SOURCE)$(MODULE_DIR)$(EFFECT_DIR)delay/, DelayBase.cc Delay.cc Reverb.cc Chorus.cc)
-DELAY_OBJ= $(DELAY_SRC:.cc=.o)
+EXTERN_FILTERB_SRC = lib/filter/FilterBase.cc
+EXTERN_FILTER_LIB  = $(addprefix lib/filter/, GraphicEQ.so MonoPoleFilter.so MultibandEQ.so ParametricEQ.so) 
 
-MOD_SRC= $(addprefix $(SOURCE)$(MODULE_DIR)$(EFFECT_DIR)mod/, LFO.cc)
-MOD_OBJ= $(MOD_SRC:.cc=.o)
+EXTERN_LIB = $(EXTERN_DRIVE_LIB) $(EXTERN_FILTER_LIB) $(EXTERN_BUFF_LIB)
 
-MISC_SRC= $(addprefix $(SOURCE)$(MODULE_DIR)$(EFFECT_DIR), EndUnit.cc)
-MISC_OBJ= $(MISC_SRC:.cc=.o)
+### SFX-Pi Core ###
 
-EFFECT_SRC= $(DRIVE_SRC) $(FFT_SRC) $(DELAY_SRC) $(MOD_SRC) $(MISC_SRC)
-EFFECT_OBJ= $(EFFECT_SRC:.cc=.o)
+PI_CORE_SRC = $(addprefix core/, AbstractHandler.cc)
+PI_CORE_OBJ = $(patsubst %.cc, obj/%.o, $(PI_CORE_SRC))
 
-## Listing of All Files ##
-SRC= $(MODULE_CORE_SRC) $(MODULE_SRC) $(PRESET_SRC) $(FILTER_CORE_SRC) $(FILTER_SRC) $(EFFECT_SRC) $(IO_CORE_SRC) $(IO_SRC)
-OBJ= $(SRC:.cc=.o)
+### Preset Handling ###
 
-##########################
-##   	   RULES		##
-##########################
-all: SFX-Pi
+PI_PRESET_SRC = preset/PresetHandler.cc
+PI_PRESET_OBJ = $(patsubst %.cc, obj/%.o, $(PI_PRESET_SRC))
 
-SFX-Pi: $(OBJ) $(SOURCE)SFX-Pi.o
+### Effect Handling ###
+
+PI_EFFECT_SRC = $(addprefix effect/, EffectFactory.cc EffectHandler.cc)
+PI_EFFECT_OBJ = $(patsubst %.cc, obj/%.o, $(PI_EFFECT_SRC))
+
+### Logic IO Handling ###
+
+PI_LOGIC_SRC = $(addprefix logic/, LogicConfigLoader.cc mcp23017.cc LogicHandler.cc)
+PI_LOGIC_OBJ = $(patsubst %.cc, obj/%.o, $(PI_LOGIC_SRC))
+
+### Analog IO Handling ###
+
+PI_ANALOG_SRC = $(addprefix analog/, AnalogHandler.cc Potentiometer.cc)
+PI_ANALOG_OBJ = $(patsubst %.cc, obj/%.o, $(PI_ANALOG_SRC))
+
+### Dynamic Event Handling ###
+
+PI_EVENT_SRC = event/EventHandler.cc
+PI_EVENT_OBJ = $(patsubst %.cc, obj/%.o, $(PI_EVENT_SRC))
+
+### Console IO Handling ###
+
+PI_COMMANDS_SRC = $(addprefix commands/list/, EffectHandlerCommands.cc PresetCommands.cc EventHandlerCommands.cc)
+PI_COMMANDS_OBJ = $(patsubst %.cc, obj/%.o, $(PI_COMMANDS_SRC))
+
+PI_CMDHANDLER_SRC = $(addprefix commands/, CommandHandler.cc CommandListener.cc Commands.cc)
+PI_CMDHANDLER_OBJ = $(patsubst %.cc, obj/%.o, $(PI_CMDHANDLER_SRC))
+
+PI_CONSOLE_SRC = $(PI_COMMANDS_SRC) $(PI_CMDHANDLER_SRC)
+PI_CONSOLE_OBJ = $(PI_COMMANDS_OBJ) $(PI_CMDHANDLER_OBJ)
+
+### All Objects ###
+
+SRC = $(PI_CORE_SRC) $(PI_PRESET_SRC) $(PI_EFFECT_SRC) $(PI_LOGIC_SRC) $(PI_ANALOG_SRC) $(PI_CONSOLE_SRC) $(PI_EVENT_SRC)
+OBJ = $(PI_CORE_OBJ) $(PI_PRESET_OBJ) $(PI_EFFECT_OBJ) $(PI_LOGIC_OBJ) $(PI_ANALOG_OBJ) $(PI_CONSOLE_OBJ) $(PI_EVENT_OBJ)
+
+########################################################################
+##   	                         RULES		                          ##
+########################################################################
+SFX-Pi: obj/SFXPi.o $(OBJ) $(SFXP_LIB) $(SHARED_LIB)
 	$(CXX) -o $@ $^ $(LDFLAGS)
 
-$(SOURCE)SFX-Pi.o: $(SOURCE)SFX-Pi.cc $(CORE_SRC) $(SRC)
+SFX-PE: $(SFXP_SLIB)
 
-## Build IO ##
-$(IO_CORE_OBJ): $(IO_CORE_SRC)
+obj/SFXPi.o: SFXPi.cc $(SRC)
 
-$(IO_OBJ): $(IO_CORE_SRC) $(IO_SRC)
+all: SFX-Pi lib plugins
 
-$(COMMAND_OBJ): $(IO_CORE_SRC) $(COMMAND_SRC)
+lib: $(EXTERN_LIB) $(SFXP_LIB) $(SHARED_LIB)
 
-$(LOGIC_OBJ): $(IO_CORE_SRC) $(COMMAND_SRC) $(LOGIC_SRC)
+plugins: $(EXTERN_LIB) $(SHARED_LIB)
+	$(MAKE) -fMakeEffects
 
-## Build Modules Core and Factory ##
-$(MODULE_CORE_OBJ): $(MODULE_CORE_SRC)
+########################################################################
 
-$(MODULE_OBJ): $(MODULE_CORE_SRC) $(MODULE_SRC)
+### Shared Files For Plugins ###
+#	$(CXX) $(LIBFLAGS) $(CXXFLAGS) -o $@ $^
+$(SHARED_PLUGIN_LIB): $(SHARED_PLUGIN_SRC) $(SFXP_PLUGIN_LIB)
+	$(CXX) $(LIBFLAGS) $(CXXFLAGS) -o $@ $^
 
-$(PRESET_OBJ): $(MODULE_CORE_SRC) $(MODULE_SRC) $(PRESET_SRC)
+### Shared Files For SFX-PE ###
+#	ar crf $@ $^
+$(SFXP_PLUGIN_OBJ): $(SFXP_PLUGIN_SRC)
+$(SFXP_PLUGIN_LIB): $(SFXP_PLUGIN_SRC)
+	$(CXX) $(LIBFLAGS) $(CXXFLAGS) -o $@ $^
 
-## Build Effect's Dependencies ##
-$(FILTER_CORE_OBJ): $(FILTER_CORE_SRC)
+$(SFXP_PRESET_OBJ): $(SFXP_PRESET_SRC)
+$(SFXP_PRESET_LIB): $(SFXP_PRESET_SRC) $(SFXP_PLUGIN_LIB) $(SFXP_EVENT_LIB) $(SFXP_ANALOG_LIB)
+	$(CXX) $(LIBFLAGS) $(CXXFLAGS) -o $@ $^
 
-$(FILTER_OBJ): $(FILTER_CORE_SRC) $(FILTER_SRC)
+$(SFXP_EVENT_OBJ): $(SFXP_EVENT_SRC)
+$(SFXP_EVENT_LIB): $(SFXP_EVENT_SRC)
+	$(CXX) $(LIBFLAGS) $(CXXFLAGS) -o $@ $^
 
-$(BUFFER_OBJ): $(BUFFER_SRC)
+$(SFXP_LOGIC_OBJ): $(SFXP_LOGIC_SRC)
+$(SFXP_LOGIC_LIB): $(SFXP_LOGIC_SRC)
+	$(CXX) $(LIBFLAGS) $(CXXFLAGS) -o $@ $^
 
-## Build Effects from EffectCore and Effect Dependencies ##
-$(DRIVE_OBJ): $(MODULE_CORE_SRC) $(EFFECT_DEP_SRC) $(DRIVE_SRC)
+$(SFXP_ANALOG_OBJ): $(SFXP_ANALOG_SRC)
+$(SFXP_ANALOG_LIB): $(SFXP_ANALOG_SRC)
+	$(CXX) $(LIBFLAGS) $(CXXFLAGS) -o $@ $^
 
-$(FFT_OBJ): $(MODULE_CORE_SRC) $(EFFECT_DEP_SRC) $(FFT_SRC)
+$(SFXP_SLIB): $(SFXP_ANALOG_OBJ) $(SFXP_EVENT_OBJ) $(SFXP_LOGIC_OBJ) $(SFXP_PLUGIN_OBJ) $(SFXP_PRESET_OBJ)
+	ar crf $@ $^
 
-$(DELAY_OBJ): $(MODULE_CORE_SRC) $(EFFECT_DEP_SRC) $(DELAY_SRC)
+### Libraries Specific for Plugins ###
+$(EXTERN_DRIVE_LIB): lib/driveBase/DriveBase.cc
+	$(CXX) $(LIBFLAGS) $(CXXFLAGS) -o $@ $^
 
-$(MOD_OBJ): $(MODULE_CORE_SRC) $(EFFECT_DEP_SRC) $(MOD_SRC)
+$(EXTERN_BUFF_LIB): lib/buffer/Buffer.cc
+	$(CXX) $(LIBFLAGS) $(CXXFLAGS) -o $@ $^
 
-$(MISC_OBJ): $(MODULE_CORE_SRC) $(EFFECT_DEP_SRC) $(MISC_SRC)
-## Genaral Rules ##
+lib/filter/GraphicEQ.so: lib/filter/GraphicEQ.cc $(EXTERN_FILTERB_SRC)
+	$(CXX) $(LIBFLAGS) $(CXXFLAGS) -o $@ $^
 
-%.o: %.cc
+lib/filter/MonoPoleFilter.so: lib/filter/MonoPoleFilter.cc $(EXTERN_FILTERB_SRC)
+	$(CXX) $(LIBFLAGS) $(CXXFLAGS) -o $@ $^
+
+lib/filter/MultibandEQ.so: lib/filter/MultibandEQ.cc $(EXTERN_FILTERB_SRC)
+	$(CXX) $(LIBFLAGS) $(CXXFLAGS) -o $@ $^
+
+lib/filter/ParametricEQ.so: lib/filter/ParametricEQ.cc $(EXTERN_FILTERB_SRC)
+	$(CXX) $(LIBFLAGS) $(CXXFLAGS) -o $@ $^
+
+### SFX-Pi Core ###
+
+### Preset Handling ###
+$(PI_PRESET_OBJ): $(PI_PRESET_SRC) $(SFXP_PRESET_LIB)
+
+### Effect Handling ###
+$(PI_EFFECT_OBJ): $(PI_EFFECT_SRC) $(SHARED_PLUGIN_LIB)
+
+### Logic IO Handling ###
+$(PI_LOGIC_OBJ): $(PI_LOGIC_SRC) $(SFXP_LOGIC_LIB)
+
+### Analog IO Handling ###
+$(PI_ANALOG_OBJ): $(PI_ANALOG_SRC) $(SFXP_ANALOG_LIB)
+
+### Dynamic Event Handling ###
+$(PI_EVENT_OBJ): $(PI_EVENT_SRC) $(SFXP_EVENT_LIB)
+
+### Console IO Handling ###
+$(PI_COMMANDS_OBJ): $(PI_COMMANDS_SRC)
+
+$(PI_CMDHANDLER_OBJ): $(PI_CMDHANDLER_SRC) $(PI_COMMANDS_SRC)
+
+########################################################################
+##                          Genaral Rules                             ##
+########################################################################
+
+obj/%.o: %.cc
 	$(CXX) -o $@ -c $< $(CXXFLAGS)
 
+%.a: %.o
+	ar crf $@ $^
+
+%.so: %.cc
+	$(CXX) $(LIBFLAGS) $(CXXFLAGS) -o $@ $^
+
 clean:
-	rm --recursive -v -rf ./src/*.o
+	rm --recursive -v -rf obj/*.o
 
 mrproper:
 	rm -rf $(EXEC)

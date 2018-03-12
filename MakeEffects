@@ -1,0 +1,50 @@
+CXX=g++
+CXXFLAGS= -g -O3 -Wunused-variable -Wall -Wwrite-strings -Wreturn-type
+LDFLAGS=-ljack -lpthread -shared -fPIC
+
+ifdef ARCH
+	CXXFLAGS += -D__ARCH_LINUX__ -I/home/sfxp/SFX-Pi/src/
+	LDFLAGS +=  -L/home/sfxp/SFX-Pi/lib/
+else
+	CXXFLAGS += -D__LUBUNTU__ -I/home/shared/SFX-Pi/src
+    LDFLAGS += -I/home/shared/SFX-Pi/lib
+endif
+
+DIR = plugins/
+LIB = /home/sfxp/SFX-Pi/lib/
+
+### Drive ###
+DRIVE_SRC = $(DIR)Drive/src/Drive.cc
+DRIVE_PLG = $(DIR)Drive/source.so
+
+### Time ###
+TIME_DIR = Time/
+SDELAY_SRC = $(DIR)$(TIME_DIR)Delay/src/Delay.cc
+SDELAY_PLG = $(DIR)$(TIME_DIR)Delay/source.so
+
+PLUGINS = $(DRIVE_PLG) $(SDELAY_PLG)
+
+##########################
+##   	   RULES		##
+##########################
+.PHONY: all
+all: $(PLUGINS)
+
+### Drive ###
+$(DRIVE_PLG): $(DRIVE_SRC)
+	$(CXX) $(LDFLAGS) $(CXXFLAGS) -o $@ $^ $(SHARED_PLUGIN_LIB) $(EXTERN_DRIVE_LIB) lib/filter/GraphicEQ.so
+
+### Time ###
+$(SDELAY_PLG): $(SDELAY_SRC)
+	$(CXX) $(LDFLAGS) $(CXXFLAGS) -o $@ $^ $(SHARED_PLUGIN_LIB) $(EXTERN_BUFF_LIB)
+
+## Genaral Rules ##
+
+%.so: %.cc
+	$(CXX) -o $@ $< $(CXXFLAGS) $(LDFLAGS)
+
+clean:
+	rm --recursive -v -rf src/*.o
+
+mrproper:
+	rm -rf $(EXEC)

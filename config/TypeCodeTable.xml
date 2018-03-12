@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+
+<tctable>
+    
+    <PhysicalInput TypeCode="254"/>
+    
+    <PhysicalOutput TypeCode="255"/>
+    
+    <Plugin TypeCode="0" Dir="Drive/"/>
+    <Plugin TypeCode="1" Dir="Time/Delay/"/>
+    
+</tctable>

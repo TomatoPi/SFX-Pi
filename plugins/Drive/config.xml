@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+
+<config>
+    
+    <description>
+        <name>Drive</name>
+        <pool>21</pool>
+        <version>1.0</version>
+        <type>Volume</type>
+    </description>
+
+    <params count="21">
+        <group name="General">
+            
+            <param type="bool">
+                <name>Bypass</name>
+                <on>Bypassed</on>
+                <off>Activated</off>
+            </param>
+            
+            <param type="bounded">
+                <name>Volume</name>
+                <min>0</min>
+                <max>1</max>
+            </param>
+            
+            <param type="bool">
+                <name>Asymetric</name>
+                <on>Asymetric</on>
+                <off>Symetric</off>
+            </param>
+            
+        </group>
+        
+        <group name="Positive Half-Wave">
+            
+            <param type="free">
+                <name>Gain</name>
+            </param>
+            
+            <param type="bool">
+                <name>Type</name>
+                <on>HardClip</on>
+                <off>SoftClip</off>
+            </param>
+            
+            <param type="free">
+                <name>Softness</name>
+            </param>
+            
+            <param type="bounded">
+                <name>Shape</name>
+                <min>0</min>
+                <max>1</max>
+            </param>
+            
+        </group>
+        
+        <group name="Negative Half-Wave">
+
+            <param type="free">
+                <name>Gain</name>
+            </param>
+            
+            <param type="bool">
+                <name>Type</name>
+                <on>HardClip</on>
+                <off>SoftClip</off>
+            </param>
+            
+            <param type="free">
+                <name>Softness</name>
+            </param>
+            
+            <param type="bounded">
+                <name>Shape</name>
+                <min>0</min>
+                <max>1</max>
+            </param>
+            
+        </group>
+        
+        <group name="Input EQ">
+
+            <param type="free">
+                <name>Lowcut</name>
+            </param>
+            
+            <param type="free">
+                <name>Highcut</name>
+            </param>
+                
+            <param type="free">
+                <name>Lowgain</name>
+            </param>
+
+            <param type="free">
+                <name>Midgain</name>
+            </param>
+                
+            <param type="free">
+                <name>Highgain</name>
+            </param>
+                
+        </group>
+        
+        <group name="Output EQ">
+
+            <param type="free">
+                <name>Lowcut</name>
+            </param>
+            
+            <param type="free">
+                <name>Highcut</name>
+            </param>
+                
+            <param type="free">
+                <name>Lowgain</name>
+            </param>
+
+            <param type="free">
+                <name>Midgain</name>
+            </param>
+                
+            <param type="free">
+                <name>Highgain</name>
+            </param>
+            
+        </group>
+    </params>
+
+    <ports AudioIn="1" AudioOut="1" MidiIn="0" MidiOut="0">
+        <port type="AudioIn">
+            <name>Input</name>
+        </port>
+        <port type="AudioOut">
+            <name>Output</name>
+        </port>
+    </ports>
+</config>
