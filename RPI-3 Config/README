@@ -1,0 +1,197 @@
+************************************************************************
+* Configuration du Raspberry-Pi 3 Pour l'utilisation en processeur
+*    d'effets
+************************************************************************
+
+*********************************
+ I : Installation d'ArchLinux
+*********************************
+ 1 - Formater la carte SD :
+    - Creer deux partitions :
+        - Partition 1 : Primaire FAT32 100M
+        - Partition 2 : Primaire ext4  le reste de la carte
+
+ 2 - Creer deux dossiers boot et root :
+    # mkdir boot root
+
+ 3 - Monter les deux partitions :
+    # mount /dev/sdX1 boot
+    # mount /dev/sdX2 root
+
+ 4 - Extraire l'os vers la carte ( dans le dossier root ) :
+    !! Nessessite bsdtar 3.3+
+  
+        # bsdtar -xpf ArchLinuxARM-rpi-2-latest.tar.gz -C root
+        # sync
+
+ 5 - Deplacer les fichiers boot sur la première partition :
+    # mv root/boot/* boot
+
+ 6 - Demonter les deux partitions :
+    # umount boot root
+
+ 7 - Inserer la carte SD dans le Raspberry Pi :
+    - Se connecter via SSH :
+        Utilisateur par defaut : alarm alarm
+        Root                   : root root
+
+*********************************************
+ II : Configurer les utilisateurs et le SSH
+*********************************************
+ 1 - Autoriser les connections en root via ssh :
+    # nano /etc/ssh/sshd_config
+        
+        -> #PermitRootLogin prohibit-password
+        +> PermitRootLogin yes
+
+        -> #PasswordAuthentication yes
+        +> PasswordAuthentication yes
+
+    - Save and exit
+    - Creer un mot de passe pour root :
+        # passwd
+
+    - Redemarer le Pi :
+        # reboot
+ 
+ 2 - Renomer l'utilisateur par defaut en sfxp
+    - Se connnecter en root, renommer l'utilisateur par defaut :
+        
+        # usermod -l sfxp alarm
+        # usermod -d /home/sfxp -m sfxp
+        
+    - Se connecter en sfxp, changer le mot de passe :
+        # passwd
+
+ 3 - Ajouter l'utilisateur au groupe audio :
+    - En temps que root :
+
+        # gpasswd -a sfxp audio
+
+ 4 - Redemarer le Pi
+
+*****************************
+ III : Installation de Jack
+*****************************
+ 1 - Mettre à jour les paquets :
+    # pacman -Syu
+    
+ 2 - Se connecter en root :
+ 
+    - Installer jack2 :
+        # pacman -S jack2
+        
+    - Installer alsa-utils :
+        # pacman -S alsa-utils
+        
+    - Verifier que la carte son est reconnue
+        # cat /proc/asound/cards
+        - noter les noms des cartes sons ( # cat /proc/asound/card*/id )
+            => vc4hdmi
+            => U192k
+    
+ 3 - Configurer la carte son par defaut, en temps que root :
+    
+    # nano /etc/modprobe.d/modprobe.conf
+
+        +> options U192k index=0
+        +> options vc4hdmi index=1
+
+    # nano /etc/asound.conf
+
+        pcm.!default {
+            type hw
+            card U192k
+        }
+
+        ctl.!default {
+            type hw
+            card U192k
+        }
+        
+ 4 - Redemarer le pi et verifier que le son marche :
+
+    # speaker-test -c 4 ( pour une carte son à 4 cannaux )
+
+ 5 - Donner a Jack la priorite maximale pour tourner en temps reel :
+
+    # nano /etc/security/limits.d/99-audio.conf
+        +> @audio /usr/bin/jackd nice=-10 rtprio=99 memlock=unlimited
+
+ 6 - Creer un service pour demarer jack au lancement du Pi :
+
+    - Mettre le fichier jack.services dans ~/.config/systemd/user/
+    
+    - Activer le service, en temps que sfxp :
+        # systemctl --user enable jack.service
+
+    - Activer le demarage automatique des services pour sfxp, en root :
+        # loginctl enable-linger sfxp
+
+ 7 - Redemarer le pi, se connecter en temps que sfxp et verifier que le
+        service jack est bien lancé :
+        
+    # systemctl --user status jack.service
+
+*********************************************
+ IV : Installation de SFX-Pi : The Software
+*********************************************
+ 1 - Activer le GPIO :
+    # pacman -S wiringpi
+
+ 2 - Activer le bus SPI :
+ 
+    # nano /boot/config.txt
+        +> device_tree_param=spi=on
+
+ 3 - Activer le bus i2c :
+
+    - Installer les packages i2c-tools et lm_sensors :
+        # pacman -S i2c-tools
+        # pacman -S lm_sensors
+
+    - Configurer le bootloader :
+        # nano /boot/config.txt
+            +> dtparam=i2c_arm=on
+            +> dtparam=i2s=on
+
+    - Ajouter le chargement des modules lors du boot :
+        #nano /etc/modules-load.d/raspberrypi.conf
+            +> i2c-dev
+            +> i2c-bcm2708
+
+ 4 - Creer un service pour donner acces au gpio, spi, i2c et usb,
+    aux utilisateurs non root :
+
+    - Mettre le fichier sfx_permissions.service dans /etc/systemd/system
+
+    - Mettre le script sfx_permissions.sh dans /usr/bin/
+        - le rendre executable :
+            # chmod +x /usr/bin/sfx_permissions.sh
+
+    - Activer le service :
+        # systemctl enable sfx_permissions.service
+
+ 5 - Installer les outils de compilations :
+    # pacman -S base-devel
+
+ 6 - Installer tinyXML :
+    # pacman -S tinyxml
+
+ 7 - Recuperer les sources de SFX-Pi :
+
+    - Creer un dossier dans le repertoire personel et
+        y placer les sources
+
+    - Compiler le programme :
+        # make -B
+
+    - Compiler les effets :
+        # make -f MakeEffects
+
+***************************************
+ V : Let's get Started Mudda Fukkazz
+***************************************
+
+ - Lancer le controleur d'effets :
+    # ./SFX-Pi
