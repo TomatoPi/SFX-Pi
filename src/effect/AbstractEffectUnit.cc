@@ -75,6 +75,13 @@ SFXP::usize_t AbstractEffectUnit::size() const {
 
     return _poolSize;
 }
+/**
+ * Name of the effect
+ **/
+std::string AbstractEffectUnit::name() const {
+
+    return _jackU->getName();
+}
 
 /* *********************************************** */
 /* ************** Param Set Managment ************ */
@@ -89,6 +96,8 @@ void AbstractEffectUnit::attachParamSet(ParamSet* p) {
         
         _paramSet = p;
         _currentBank = p->firstBank();
+
+        p->setName(name());
 
         this->updateAll();
     }

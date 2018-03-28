@@ -15,6 +15,7 @@
 #include <map>
 
 #include "types.h"
+#include "log.h"
 
 class TCTLoader{
 

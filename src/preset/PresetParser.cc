@@ -602,9 +602,9 @@ EventSequencer* readSequencer(std::ifstream& flux) {
             usize_t ssize = read<usize_t>(flux);
             for (usize_t k = 0; k < ssize; k++) {
 
-                SFXPEvent e = readSFXPEvent(flux);
+                SFXPEvent* e = readSFXPEvent(flux);
                 
-                if (e._type == SFXPEvent::Type::Event_ErrorEvent)
+                if (!e)
                     throw string("Failed Parse SFXPEvent");
                     
                 seq->addEvent(sid, e);
@@ -693,46 +693,48 @@ int writeSequencer(std::ofstream& flux, EventSequencer* seq) {
  * >>EVHEvent               ( EVHEvent )
  * >>EventEndFlag           ( flag_t )
  **/
-SFXPEvent readSFXPEvent(std::ifstream& flux) {
+SFXPEvent* readSFXPEvent(std::ifstream& flux) {
 
-    SFXPEvent event(SFXPEvent::Type::Event_ErrorEvent);
+    SFXPEvent* event = new SFXPEvent(SFXPEvent::Type::Event_ErrorEvent);
 
     try {
 
         controlValue<flag_t>(flux, flagSFXPEventBegin, "Invalid SFXPEvent Begin Flag");
 
-        event._type = static_cast<SFXPEvent::Type>(read<flag_t>(flux));
-        event._target = static_cast<SFXPEvent::Target>(read<flag_t>(flux));
+        event->_type = static_cast<SFXPEvent::Type>(read<flag_t>(flux));
+        event->_target = static_cast<SFXPEvent::Target>(read<flag_t>(flux));
 
         // Read Events datas
-        event._io = readIOEvent(flux);
-        event._preset = readPresetEvent(flux);
-        event._effect = readEffectEvent(flux);
-        event._graph = readGraphEvent(flux);
-        event._edit = readEditionEvent(flux);
-        event._evh = readEVHEvent(flux);
+        event->_io = readIOEvent(flux);
+        event->_preset = readPresetEvent(flux);
+        event->_effect = readEffectEvent(flux);
+        event->_graph = readGraphEvent(flux);
+        event->_edit = readEditionEvent(flux);
+        event->_evh = readEVHEvent(flux);
         
         controlValue<flag_t>(flux, flagSFXPEventEnd, "Invalid SFXPEvent End Flag");
     }
     catch (const std::string& e) {
 
         SFXPlog::err(NAME) << e << endl;
-        return SFXPEvent(SFXPEvent::Type::Event_ErrorEvent);
+        delete event;
+        return nullptr;
     }
     catch (...) {
-        
-        return SFXPEvent(SFXPEvent::Type::Event_ErrorEvent);
+
+        delete event;
+        return nullptr;
     }
     return event;
 }
-int writeSFXPEvent(std::ofstream& flux, SFXPEvent event) {
+int writeSFXPEvent(std::ofstream& flux, SFXPEvent* event) {
 
     #ifdef __DEBUG__
     if (SFXP::GlobalIsDebugEnabled)
         SFXPlog::debug(NAME) << "Write SFXPEvent" << endl;
     #endif
     
-    if (event._type == SFXPEvent::Type::Event_ErrorEvent) {
+    if (event->_type == SFXPEvent::Type::Event_ErrorEvent) {
 
         SFXPlog::err(NAME) << "Invalid SXPEvent Passed" << endl;
         return 1;
@@ -740,15 +742,15 @@ int writeSFXPEvent(std::ofstream& flux, SFXPEvent event) {
 
     write<flag_t>(flux, flagSFXPEventBegin);
 
-    write<flag_t>(flux, static_cast<flag_t>(event._type));
-    write<flag_t>(flux, static_cast<flag_t>(event._target));
+    write<flag_t>(flux, static_cast<flag_t>(event->_type));
+    write<flag_t>(flux, static_cast<flag_t>(event->_target));
 
-    writeIOEvent(flux, event._io);
-    writePresetEvent(flux, event._preset);
-    writeEffectEvent(flux, event._effect);
-    writeGraphEvent(flux, event._graph);
-    writeEditionEvent(flux, event._edit);
-    writeEVHEvent(flux, event._evh);
+    writeIOEvent(flux, event->_io);
+    writePresetEvent(flux, event->_preset);
+    writeEffectEvent(flux, event->_effect);
+    writeGraphEvent(flux, event->_graph);
+    writeEditionEvent(flux, event->_edit);
+    writeEVHEvent(flux, event->_evh);
 
     write<flag_t>(flux, flagSFXPEventEnd);
 

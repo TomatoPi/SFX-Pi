@@ -21,7 +21,7 @@ void CmdPrintCMDManager::perform(std::vector<std::string> arg){
 
     SFXPEvent event = SFXPEvent(SFXPEvent::Type::Event_EVHPrint);
 
-    _owner->eventHandler()->pushEvent(event);
+    _owner->eventHandler()->pushEvent(&event);
 }
 
 /* ***** Remove and Add Sequencers ***** */
@@ -36,7 +36,7 @@ void CmdAddSequencer::perform(std::vector<std::string> arg){
     SFXPEvent event = SFXPEvent(SFXPEvent::Type::Event_EVHAddEVS);
     event._evh = EVHEvent(std::stoi(arg[0]), 0, 0, 0, 0);
 
-    _owner->eventHandler()->pushEvent(event);
+    _owner->eventHandler()->pushEvent(&event);
 }
 
 CmdDelSequencer::CmdDelSequencer(CommandHandler* h):
@@ -50,7 +50,7 @@ void CmdDelSequencer::perform(std::vector<std::string> arg){
     SFXPEvent event = SFXPEvent(SFXPEvent::Type::Event_EVHRemoveEVS);
     event._evh = EVHEvent(std::stoi(arg[0]), 0, 0, 0, 0);
 
-    _owner->eventHandler()->pushEvent(event);
+    _owner->eventHandler()->pushEvent(&event);
 }
 
 CmdPrintSequencer::CmdPrintSequencer(CommandHandler* h):
@@ -64,7 +64,7 @@ void CmdPrintSequencer::perform(std::vector<std::string> arg){
     SFXPEvent event = SFXPEvent(SFXPEvent::Type::Event_EVHPrintEVS);
     event._evh = EVHEvent(std::stoi(arg[0]), 0, 0, 0, 0);
 
-    _owner->eventHandler()->pushEvent(event);
+    _owner->eventHandler()->pushEvent(&event);
 }
 
 /* ***** Remove or add Link to sequencers ***** */
@@ -85,7 +85,7 @@ void CmdAddSeqLink::perform(std::vector<std::string> arg){
                             ,std::stoi(arg[3])
                             ,std::stoi(arg[4]));
 
-    _owner->eventHandler()->pushEvent(event);
+    _owner->eventHandler()->pushEvent(&event);
 }
 
 CmdDelSeqLink::CmdDelSeqLink(CommandHandler* h):
@@ -103,7 +103,7 @@ void CmdDelSeqLink::perform(std::vector<std::string> arg){
                             ,0
                             ,0);
 
-    _owner->eventHandler()->pushEvent(event);
+    _owner->eventHandler()->pushEvent(&event);
 }
 
 /* ***** Remove or add Command to sequencers ***** */

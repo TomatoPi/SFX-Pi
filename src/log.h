@@ -36,6 +36,16 @@ namespace SFXPlog{
 
         return source(s) << " : ERROR : ";
     }
+
+    static inline std::ostream& fatal(const std::string& s) {
+
+        return source(s) << " : FATAL : ";
+    }
+
+    static inline std::ostream& todo(const std::string& s) {
+
+        return source(s) << " : TODO : ";
+    }
     
     #ifdef __DEBUG__
     static inline std::ostream& debug(const std::string& s) {

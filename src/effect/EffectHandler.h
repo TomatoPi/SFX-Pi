@@ -27,14 +27,25 @@ class EffectHandler : public AbstractHandler {
 
         typedef std::map<SFXP::id1_t, AbstractEffectUnit*> EffectGraph;
 
-        EffectHandler();
+        /**
+         * @brief EffectHandler constructor.
+         * The effect handler is a critical handler so a failure during
+         *  it build may leads to an abort of program launch
+         **/
+        EffectHandler(bool nojackRun);
         virtual ~EffectHandler();
+
+        /**
+         * Function to know if the handler contruction is successfull
+         * @return non-zero error code if not
+         **/
+        virtual int errored();
 
         /**
          * Function used to push an event to an handler
          * The event is imediatly processed
          **/
-        virtual void pushEvent(SFXPEvent& event);
+        virtual void pushEvent(SFXPEvent* event);
 
         /**
          * Function called at each main loop frame
@@ -51,34 +62,36 @@ class EffectHandler : public AbstractHandler {
 
     private :
 
-        void eventPresetChanged(SFXPEvent& event);
+        void eventPresetChanged(SFXPEvent* event);
         
-        void eventAddBank(SFXPEvent& event);
-        void eventRemoveBank(SFXPEvent& event);
-        void eventChangeBank(SFXPEvent& event);
-        void eventEditParam(SFXPEvent& event);
+        void eventAddBank(SFXPEvent* event);
+        void eventRemoveBank(SFXPEvent* event);
+        void eventChangeBank(SFXPEvent* event);
+        void eventEditParam(SFXPEvent* event);
 
-        void eventConnect(SFXPEvent& event);
-        void eventDisconnect(SFXPEvent& event);
+        void eventConnect(SFXPEvent* event);
+        void eventDisconnect(SFXPEvent* event);
 
-        void eventAddEffect(SFXPEvent& event);
-        void eventRemoveEffect(SFXPEvent& event);
+        void eventAddEffect(SFXPEvent* event);
+        void eventRemoveEffect(SFXPEvent* event);
 
         void eventListAvailable();
-        void eventShowEffect(SFXPEvent& event);
-        void eventShowEffectPool(SFXPEvent& event);
+        void eventShowEffect(SFXPEvent* event);
+        void eventShowEffectPool(SFXPEvent* event);
         
         /**
          * Function to get name of a given port
          *  return empty string if port not found
          **/
         std::string buildPortName(SFXP::PortType pt, SFXP::id1_t id, SFXP::usize_t idx);
-        
+
+        /** True if Jack Is desactivated on this run **/
+        bool _nojack;
 
         /** List of all effects instances **/
         EffectGraph _graph;
 
-        /** Client representing All programm for JACK **/
+        /** Client representing All program for JACK **/
         jack_client_t* _client;
 
         /** Current Preset **/

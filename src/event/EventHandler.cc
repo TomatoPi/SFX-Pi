@@ -24,13 +24,13 @@ EventHandler::~EventHandler() {
  * Function used to push an event to an handler
  * The event is imediatly processed
  **/
-void EventHandler::pushEvent(SFXPEvent& event) {
+void EventHandler::pushEvent(SFXPEvent* event) {
 
-    if (event._type == SFXPEvent::Type::Event_PresetChanged) {
+    if (event->_type == SFXPEvent::Type::Event_PresetChanged) {
 
         this->eventPresetChanged(event);
     }
-    else if (event._type == SFXPEvent::Type::Event_InitAll) {
+    else if (event->_type == SFXPEvent::Type::Event_InitAll) {
 
         if (!_preset) {
 
@@ -43,7 +43,7 @@ void EventHandler::pushEvent(SFXPEvent& event) {
     }
     else if (_preset) {
 
-        switch(event._type) {
+        switch(event->_type) {
 
             case SFXPEvent::Type::Event_AnalogChanged :
             case SFXPEvent::Type::Event_FootswitchChanged :
@@ -81,8 +81,18 @@ void EventHandler::pushEvent(SFXPEvent& event) {
                 this->eventUnassign(event);
                 break;
 
+            case SFXPEvent::Type::Event_EVHAddEvent :
+
+                this->eventAddEvent(event);
+                break;
+
+            case SFXPEvent::Type::Event_EVHRemoveEvent :
+
+                this->eventRemoveEvent(event);
+                break;
+
             default :
-                SFXPlog::err(_name) << "Unhandled Event : " << event._type << endl;
+                SFXPlog::err(_name) << "Unhandled Event : " << (*event) << endl;
         }
     }
 }
@@ -120,30 +130,32 @@ void EventHandler::printHandler() {
     }
 }
 
-void EventHandler::eventIOChanged(SFXPEvent& event) {
+void EventHandler::eventIOChanged(SFXPEvent* event) {
 
     if (_preset) {
 
         for (auto& s : _preset->_sequencers) {
 
-            s.second->pushEvent(event);
+            EventSequencer::EventSequence seq = s.second->pushEvent(event);
+
+            for (auto& e : seq) this->sendEvent(e);
         }
     }
 }
-void EventHandler::eventPresetChanged(SFXPEvent& event) {
+void EventHandler::eventPresetChanged(SFXPEvent* event) {
 
-    if (Preset* np = (Preset*)event._preset._preset) {
+    if (Preset* np = (Preset*)event->_preset._preset) {
 
         this->clearEvents();
         _preset = np;
     }
 }
 
-void EventHandler::eventAddSeq(SFXPEvent& event) {
+void EventHandler::eventAddSeq(SFXPEvent* event) {
 
     if (_preset) {
 
-        SFXP::id2_t id = event._evh._id;
+        SFXP::id2_t id = event->_evh._id;
 
         if (_preset->_sequencers.find(id) == _preset->_sequencers.end())
         {
@@ -161,11 +173,11 @@ void EventHandler::eventAddSeq(SFXPEvent& event) {
         SFXPlog::err(_name) << "No Preset Loaded" << endl;
     }
 }
-void EventHandler::eventRemoveSeq(SFXPEvent& event) {
+void EventHandler::eventRemoveSeq(SFXPEvent* event) {
 
     if (_preset) {
 
-        SFXP::id2_t id = event._evh._id;
+        SFXP::id2_t id = event->_evh._id;
 
         if (_preset->_sequencers.find(id) != _preset->_sequencers.end())
         {
@@ -185,11 +197,11 @@ void EventHandler::eventRemoveSeq(SFXPEvent& event) {
         SFXPlog::err(_name) << "No Preset Loaded" << endl;
     }
 }
-void EventHandler::eventPrintSeq(SFXPEvent& event) {
+void EventHandler::eventPrintSeq(SFXPEvent* event) {
 
     if (_preset) {
 
-        SFXP::id2_t id = event._evh._id;
+        SFXP::id2_t id = event->_evh._id;
 
         if (_preset->_sequencers.find(id) != _preset->_sequencers.end())
         {
@@ -206,18 +218,18 @@ void EventHandler::eventPrintSeq(SFXPEvent& event) {
         SFXPlog::err(_name) << "No Preset Loaded" << endl;
     }
 }
-void EventHandler::eventAssign(SFXPEvent& event) {
+void EventHandler::eventAssign(SFXPEvent* event) {
 
     if (_preset) {
 
-        SFXP::id2_t id = event._evh._id;
+        SFXP::id2_t id = event->_evh._id;
 
         if (_preset->_sequencers.find(id) != _preset->_sequencers.end())
         {
             _preset->_sequencers[id]->assign(
-                    IOEvent(event._evh._status, 0, event._evh._trigger)
-                    ,static_cast<EventSequencer::Action::Type>(event._evh._action)
-                    ,event._evh._target);
+                    IOEvent(event->_evh._status, 0, event->_evh._trigger)
+                    ,static_cast<EventSequencer::Action::Type>(event->_evh._action)
+                    ,event->_evh._target);
         }
         else {
             
@@ -229,16 +241,65 @@ void EventHandler::eventAssign(SFXPEvent& event) {
         SFXPlog::err(_name) << "No Preset Loaded" << endl;
     }
 }
-void EventHandler::eventUnassign(SFXPEvent& event) {
+void EventHandler::eventUnassign(SFXPEvent* event) {
 
     if (_preset) {
 
-        SFXP::id2_t id = event._evh._id;
+        SFXP::id2_t id = event->_evh._id;
 
         if (_preset->_sequencers.find(id) != _preset->_sequencers.end())
         {
             _preset->_sequencers[id]->unassign(
-                    IOEvent(event._evh._status, 0, event._evh._trigger));
+                    IOEvent(event->_evh._status, 0, event->_evh._trigger));
+        }
+        else {
+            
+            SFXPlog::err(_name) << "ID Doesn't Exist : " << id << endl;
+        }
+    }
+    else {
+
+        SFXPlog::err(_name) << "No Preset Loaded" << endl;
+    }
+}
+void EventHandler::eventAddEvent(SFXPEvent* event) {
+
+    if (_preset) {
+
+        SFXP::id2_t id = event->_evh._id;
+
+        if (_preset->_sequencers.find(id) != _preset->_sequencers.end())
+        {
+            if (event->_evh._event)
+            {
+                _preset->_sequencers[id]->addEvent(
+                        event->_evh._target, event->_evh._event);
+            }
+            else {
+                
+                SFXPlog::err(_name) << "No Event Passed" << endl;
+            }
+        }
+        else {
+            
+            SFXPlog::err(_name) << "ID Doesn't Exist : " << id << endl;
+        }
+    }
+    else {
+
+        SFXPlog::err(_name) << "No Preset Loaded" << endl;
+    }
+}
+void EventHandler::eventRemoveEvent(SFXPEvent* event) {
+
+    if (_preset) {
+
+        SFXP::id2_t id = event->_evh._id;
+
+        if (_preset->_sequencers.find(id) != _preset->_sequencers.end())
+        {
+            _preset->_sequencers[id]->removeEvent(
+                        event->_evh._target, event->_evh._idx);
         }
         else {
             

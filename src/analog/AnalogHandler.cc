@@ -13,16 +13,19 @@
 
 using namespace SFXP;
 
-AnalogHandler::AnalogHandler():AbstractHandler("AnalogHandler"),
-    _preset(nullptr)
+AnalogHandler::AnalogHandler(bool headlessRun):AbstractHandler("AnalogHandler"),
+    _headless(headlessRun)
+    ,_preset(nullptr)
 {
     try {
 
         #ifdef __ARCH_LINUX__
-        if (wiringPiSetup() == -1)
-            throw string("Failed Setup WiringPi");
+        if (!_headless) {
+            if (wiringPiSetup() == -1)
+                throw string("Failed Setup WiringPi");
 
-        mcp3004Setup(SPI_BASE, SPI_CHAN1);
+            mcp3004Setup(SPI_BASE, SPI_CHAN1);
+        }
         #endif
             
         for (usize_t i = 0; i < SFXP::MAX_POT; i++) {
@@ -39,6 +42,7 @@ AnalogHandler::AnalogHandler():AbstractHandler("AnalogHandler"),
         _status = ERRORED;
     }
 }
+
 AnalogHandler::~AnalogHandler() {
 
     this->clearAnalog();
@@ -53,13 +57,13 @@ AnalogHandler::~AnalogHandler() {
  * Function used to push an event to an handler
  * The event is imediatly processed
  **/
-void AnalogHandler::pushEvent(SFXPEvent& event) {
+void AnalogHandler::pushEvent(SFXPEvent* event) {
 
-    if (event._type == SFXPEvent::Type::Event_PresetChanged) {
+    if (event->_type == SFXPEvent::Type::Event_PresetChanged) {
 
         this->eventPresetChanged(event);
     }
-    else if (event._type == SFXPEvent::Type::Event_InitAll) {
+    else if (event->_type == SFXPEvent::Type::Event_InitAll) {
 
         if (!_preset) {
 
@@ -72,7 +76,7 @@ void AnalogHandler::pushEvent(SFXPEvent& event) {
     }
     else if (_preset) {
 
-        SFXPlog::wrn(_name) << "Unhandled Event : " << event._type << endl;
+        SFXPlog::wrn(_name) << "Unhandled Event : " << (*event) << endl;
     }
 }
 
@@ -85,6 +89,7 @@ void AnalogHandler::run() {
     if (_preset) {
 
     #ifdef __ARCH_LINUX__
+    if (!_headless) {
         // For each potentiometer
         for (SFXP::usize_t i = 0; i < SFXP::MAX_POT; i++)
         {
@@ -117,6 +122,7 @@ void AnalogHandler::run() {
             }
         }
         }
+    }
     #endif
     }
 }
@@ -137,9 +143,9 @@ void AnalogHandler::clearAnalog() {
     }
 }
 
-void AnalogHandler::eventPresetChanged(SFXPEvent& event) {
+void AnalogHandler::eventPresetChanged(SFXPEvent* event) {
 
-    if (Preset* np = (Preset*)event._preset._preset) {
+    if (Preset* np = (Preset*)event->_preset._preset) {
 
         this->clearAnalog();
         _preset = np;

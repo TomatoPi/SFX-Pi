@@ -14,6 +14,7 @@
 #include <string>
 
 #include "types.h"
+#include "log.h"
 
 /**
  * Object that always wait for an input from keyboard

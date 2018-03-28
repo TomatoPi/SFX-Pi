@@ -7,6 +7,7 @@
  *  CommandParser
  **********************************************************************/
 #include "CommandHandler.h"
+#include "core/Parser.h"
 
 using namespace std;
 
@@ -29,15 +30,16 @@ CommandHandler::~CommandHandler() {
  * Function used to push an event to an handler
  * The event is imediatly processed
  **/
-void CommandHandler::pushEvent(SFXPEvent& event) {
+void CommandHandler::pushEvent(SFXPEvent* event) {
 
-    if (event._type == SFXPEvent::Type::Event_InitAll) {
+    if (event->_type == SFXPEvent::Type::Event_InitAll) {
 
         SFXPlog::log(_name) << "Handler Initialised and Active" << endl;
     }
     else {
 
-        SFXPlog::wrn(_name) << "Command Handler doesn't Handle Events" << endl;
+        SFXPlog::wrn(_name) << "Command Handler doesn't Handle Events : "
+        << (*event) << endl;
     }
 }
 

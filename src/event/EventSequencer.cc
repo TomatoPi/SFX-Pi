@@ -21,6 +21,12 @@ _id(id)
 }
 EventSequencer::~EventSequencer() {
 
+    for (auto& es : _eventList) {
+        for (auto& e : es.second) {
+
+            delete e;
+        }
+    }
 }
 
 /**
@@ -69,7 +75,7 @@ void EventSequencer::printSequencer() {
 
         for (auto& e : s.second) {
 
-            cout << "        -> " << e << endl;
+            cout << "        -> " << (*e) << endl;
         }
     }
 }
@@ -79,24 +85,25 @@ void EventSequencer::printSequencer() {
  * If event is linked with an action
  * Correct action will be performed
  **/
-EventSequencer::EventSequence EventSequencer::pushEvent(SFXPEvent& event) {
+EventSequencer::EventSequence EventSequencer::pushEvent(SFXPEvent* event) {
 
-    if (event._type == SFXPEvent::Type::Event_FootswitchChanged
-        || event._type == SFXPEvent::Type::Event_AnalogChanged)
+    if (event->_type == SFXPEvent::Type::Event_FootswitchChanged
+        || event->_type == SFXPEvent::Type::Event_AnalogChanged)
     {
         // If event is linked to an action perform it
-        if (_actions.find(event._io) != _actions.end()) {
+        if (_actions.find(event->_io) != _actions.end()) {
 
-            return performAction(_actions[event._io]);
+            return performAction(_actions[event->_io]);
         }
         else {
 
-            SFXPlog::wrn(NAME) << "Unlinked Event Received : " << event._io << endl;
+            SFXPlog::wrn(NAME) << "Unlinked Event Received : "
+            << event->_io << endl;
         }
     }
     else {
 
-        SFXPlog::err(NAME) << "Unhandled Event : " << event._type << endl;
+        SFXPlog::err(NAME) << "Unhandled Event : " << (*event) << endl;
     }
     return EventSequence();
 }
@@ -104,7 +111,7 @@ EventSequencer::EventSequence EventSequencer::pushEvent(SFXPEvent& event) {
 /**
  * Edit Event Sequencies
  **/
-void EventSequencer::addEvent(SFXP::id2_t seq, SFXPEvent event) {
+void EventSequencer::addEvent(SFXP::id2_t seq, SFXPEvent* event) {
 
     if (_eventList.size() == 0) {
 
@@ -115,6 +122,8 @@ void EventSequencer::addEvent(SFXP::id2_t seq, SFXPEvent event) {
             
         _eventList[seq].push_back(event);
     }
+    SFXPlog::log(NAME) << "Added Event : Sequency(" << seq << "]"
+        << " Event : " << (*event) << '\n';
 }
 void EventSequencer::removeEvent(SFXP::id2_t seq, SFXP::usize_t idx) {
 
@@ -218,7 +227,7 @@ EventSequencer::EventSequence EventSequencer::performAction(Action act) {
             
             #ifdef __DEBUG__
             if ( SFXP::GlobalIsDebugEnabled )
-                SFXPlog::debug(NAME) << "Execute Sequency : " << act._target;
+                SFXPlog::debug(NAME) << "Execute Sequency : " << act._target << '\n';
             #endif
             // Don't change Current Sequency
         }

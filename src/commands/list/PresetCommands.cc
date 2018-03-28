@@ -21,7 +21,7 @@ void CmdLoadPreset::perform(std::vector<std::string> arg){
     SFXPEvent event = SFXPEvent(SFXPEvent::Type::Event_LoadPreset);
     event._preset = PresetEvent(arg[0], nullptr);
 
-    _owner->presetHandler()->pushEvent(event);
+    _owner->presetHandler()->pushEvent(&event);
 }
 
 CmdSavePreset::CmdSavePreset(CommandHandler* h):
@@ -35,7 +35,7 @@ void CmdSavePreset::perform(std::vector<std::string> arg){
     SFXPEvent event = SFXPEvent(SFXPEvent::Type::Event_SavePreset);
     event._preset = PresetEvent(arg[0], nullptr);
 
-    _owner->presetHandler()->pushEvent(event);
+    _owner->presetHandler()->pushEvent(&event);
 }
 
 CmdListPreset::CmdListPreset(CommandHandler* h):
@@ -48,21 +48,9 @@ void CmdListPreset::perform(std::vector<std::string> arg){
 
     printf("List files in directory \"%s\" :\n", SFXP::DIR_PRST.c_str());
 
-    DIR *rep = opendir(SFXP::DIR_PRST.c_str());
-
-    if ( rep != NULL ){
-
-        struct dirent *ent;
-
-        while( (ent = readdir(rep)) != NULL ){
-
-            if ( ent->d_name[0] != '.')
-                printf("   - \"%s\"\n", ent->d_name);
-        }
+    std::vector<std::string> files = utils::listFiles(SFXP::DIR_PRST);
+    for (auto& f : files) {
+        
+        printf("   - \"%s\"\n", f);
     }
-    else{
-
-        printf("Error : can't open given directory\n");
-    }
-    closedir(rep);
 }

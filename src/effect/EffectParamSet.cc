@@ -11,6 +11,7 @@
  * Constructor, set id, associated type and bank size
  **/
 ParamSet::ParamSet(SFXP::id1_t id, SFXP::tc_t type, SFXP::usize_t size):
+_name(""),
 _id(id),
 _type(type),
 _banks(BankList()),
@@ -48,6 +49,21 @@ SFXP::tc_t ParamSet::type() const {
 SFXP::usize_t ParamSet::size() const {
 
     return _bankSize;
+}
+
+/**
+ * Name of the effect associated with this param set
+ **/
+std::string ParamSet::name() {
+
+    return _name;
+}
+/**
+ * Set the name of the associated effect
+ **/
+void ParamSet::setName(std::string name) {
+
+    _name = name;
 }
 
 /**

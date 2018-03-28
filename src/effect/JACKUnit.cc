@@ -82,7 +82,7 @@ void JACKUnit::registerPorts(const std::string** names,const SFXP::usize_t* coun
         m_ports[k] = new jack_port_t*[m_portCount[k]];
     
         for ( usize_t i = 0; i < m_portCount[k]; i++ ){
-
+            
             if ( k == 0 ){
 
                 m_ports[k][i] = jack_port_register( m_client, names[k][i].c_str(),

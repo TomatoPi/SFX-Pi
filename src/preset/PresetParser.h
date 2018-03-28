@@ -230,8 +230,8 @@ namespace PresetParser {
      * >>EVHEvent               ( EVHEvent )
      * >>EventEndFlag           ( flag_t )
      **/
-    SFXPEvent readSFXPEvent(std::ifstream& flux);
-    int writeSFXPEvent(std::ofstream& flux, SFXPEvent event);
+    SFXPEvent* readSFXPEvent(std::ifstream& flux);
+    int writeSFXPEvent(std::ofstream& flux, SFXPEvent* event);
 
     /**
      * Parse an IOEvent data field to a binary flux

@@ -33,14 +33,14 @@ class LogicHandler : public AbstractHandler {
 
     public :
     
-        LogicHandler();
+        LogicHandler(bool headlessRun);
         virtual ~LogicHandler();
 
         /**
          * Function used to push an event to an handler
          * The event is imediatly processed
          **/
-        virtual void pushEvent(SFXPEvent& event);
+        virtual void pushEvent(SFXPEvent* event);
 
         /**
          * Function called at each main loop frame
@@ -90,7 +90,9 @@ class LogicHandler : public AbstractHandler {
 
     private :
     
-        void eventUpdateOutput(SFXPEvent& event);
+        void eventUpdateOutput(SFXPEvent* event);
+
+        bool _headless; /**< True if the programm hasn't physical IO connected */
         
         /* ***** MCP23017 Registers Stuff ***** */
         mcp23017**      _registers;     /**< Loaded Registers */

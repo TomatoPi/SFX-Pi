@@ -14,13 +14,13 @@ DIR = plugins/
 LIB = /home/sfxp/SFX-Pi/lib/
 
 ### Drive ###
-DRIVE_SRC = $(DIR)Drive/src/Drive.cc
-DRIVE_PLG = $(DIR)Drive/source.so
+DRIVE_SRC = $(addprefix $(DIR)Drive/src/, DriveEffect.cc DrivePlugin.cc)
+DRIVE_PLG = $(DIR)Drive/BasicDrive.so
 
 ### Time ###
 TIME_DIR = Time/
-SDELAY_SRC = $(DIR)$(TIME_DIR)Delay/src/Delay.cc
-SDELAY_PLG = $(DIR)$(TIME_DIR)Delay/source.so
+SDELAY_SRC = #$(DIR)$(TIME_DIR)Delay/src/Delay.cc
+SDELAY_PLG = #$(DIR)$(TIME_DIR)Delay/source.so
 
 PLUGINS = $(DRIVE_PLG) $(SDELAY_PLG)
 

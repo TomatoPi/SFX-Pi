@@ -14,16 +14,15 @@
 #include <iostream>
 #include <string>
 
-#include "plugin/JackPlugin.h"
-#include "effect/AbstractEffectUnit.h"
 #include "core/Event.h"
+#include "plugin/Plugin.h"
 
 #include "lib/filter/GraphicEQ.h"
 #include "lib/driveBase/DriveBase.h"
 
 #include "types.h"
 
-class DriveEffect : public AbstractEffectUnit, public AbstractDriveBase
+class DriveEffect_Class : public AbstractEffectUnit, public AbstractDriveBase
 {
 
     public :
@@ -31,8 +30,8 @@ class DriveEffect : public AbstractEffectUnit, public AbstractDriveBase
         /**
          * Constructor and Process Callback
          **/
-        DriveEffect(SFXP::tc_t typeCode, SFXP::id1_t id, JackPlugin* plugin);
-        ~DriveEffect();
+        DriveEffect_Class(SFXP::tc_t typeCode, SFXP::id1_t id, Plugin* plugin);
+        ~DriveEffect_Class();
 
         static int process(jack_nframes_t nframes, void* arg);
 
@@ -41,7 +40,7 @@ class DriveEffect : public AbstractEffectUnit, public AbstractDriveBase
          * It will update the Param Array passed to callback function
          * Pure Virtual function, must be redefined by every effect type
          **/
-        virtual void update(SFXPEvent& event);
+        virtual void update(SFXPEvent* event);
 
     private :
 

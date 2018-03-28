@@ -24,7 +24,7 @@ void CmdAddEffect::perform(std::vector<std::string> arg){
     SFXPEvent event = SFXPEvent(SFXPEvent::Type::Event_AddEffect);
     event._edit = EditionEvent(std::stoi(arg[0]), std::stoi(arg[1]));
 
-    _owner->effectHandler()->pushEvent(event);
+    _owner->effectHandler()->pushEvent(&event);
 }
 
 /**
@@ -41,7 +41,7 @@ void CmdRemoveEffect::perform(std::vector<std::string> arg){
     SFXPEvent event = SFXPEvent(SFXPEvent::Type::Event_RemoveEffect);
     event._edit = EditionEvent(std::stoi(arg[0]), 0);
 
-    _owner->effectHandler()->pushEvent(event);
+    _owner->effectHandler()->pushEvent(&event);
 }
 
 /**
@@ -61,7 +61,7 @@ void CmdAddConnection::perform(std::vector<std::string> arg){
         std::stoi(arg[2]), std::stoi(arg[3]),
         std::stoi(arg[4]) );
 
-    _owner->effectHandler()->pushEvent(event);
+    _owner->effectHandler()->pushEvent(&event);
 }
 
 /**
@@ -81,7 +81,7 @@ void CmdRemoveConnection::perform(std::vector<std::string> arg){
         std::stoi(arg[2]), std::stoi(arg[3]),
         std::stoi(arg[4]) );
 
-    _owner->effectHandler()->pushEvent(event);
+    _owner->effectHandler()->pushEvent(&event);
 }
 
 /**
@@ -97,7 +97,7 @@ void CmdClearGraph::perform(std::vector<std::string> arg){
 
     SFXPEvent event = SFXPEvent(SFXPEvent::Type::Event_ClearGraph);
 
-    _owner->effectHandler()->pushEvent(event);
+    _owner->effectHandler()->pushEvent(&event);
 }
 
 /**
@@ -113,7 +113,7 @@ void CmdShowGraph::perform(std::vector<std::string> arg){
 
     SFXPEvent event = SFXPEvent(SFXPEvent::Type::Event_ShowGraph);
 
-    _owner->effectHandler()->pushEvent(event);
+    _owner->effectHandler()->pushEvent(&event);
 }
 
 /**
@@ -129,7 +129,7 @@ void CmdListAvailable::perform(std::vector<std::string> arg){
 
     SFXPEvent event = SFXPEvent(SFXPEvent::Type::Event_ListAvailable);
 
-    _owner->effectHandler()->pushEvent(event);
+    _owner->effectHandler()->pushEvent(&event);
 }
 
 /**
@@ -146,7 +146,7 @@ void CmdShowEffect::perform(std::vector<std::string> arg){
     SFXPEvent event = SFXPEvent(SFXPEvent::Type::Event_EffectShow);
     event._effect = EffectEvent(std::stoi(arg[0]), 0, 0);
 
-    _owner->effectHandler()->pushEvent(event);
+    _owner->effectHandler()->pushEvent(&event);
 }
 
 /**
@@ -163,7 +163,7 @@ void CmdAddBank::perform(std::vector<std::string> arg){
     SFXPEvent event = SFXPEvent(SFXPEvent::Type::Event_EffectAddBank);
     event._effect = EffectEvent(std::stoi(arg[0]), std::stoi(arg[1]), 0);
 
-    _owner->effectHandler()->pushEvent(event);
+    _owner->effectHandler()->pushEvent(&event);
 }
 
 /**
@@ -180,7 +180,7 @@ void CmdRemoveBank::perform(std::vector<std::string> arg){
     SFXPEvent event = SFXPEvent(SFXPEvent::Type::Event_EffectRemoveBank);
     event._effect = EffectEvent(std::stoi(arg[0]), std::stoi(arg[1]), 0);
 
-    _owner->effectHandler()->pushEvent(event);
+    _owner->effectHandler()->pushEvent(&event);
 }
 
 /**
@@ -197,7 +197,7 @@ void CmdEditParam::perform(std::vector<std::string> arg){
     SFXPEvent event = SFXPEvent(SFXPEvent::Type::Event_EffectEditParam);
     event._effect = EffectEvent(std::stoi(arg[0]), std::stoi(arg[1]), std::stof(arg[2]));
 
-    _owner->effectHandler()->pushEvent(event);
+    _owner->effectHandler()->pushEvent(&event);
 }
 
 /**
@@ -211,18 +211,18 @@ CmdShowParam::CmdShowParam(CommandHandler* h):
 }
 void CmdShowParam::perform(std::vector<std::string> arg){
 
-    JackPlugin* p = EffectFactory::getPlugin(std::stoi(arg[0]));
+    Plugin* p = EffectFactory::getPlugin(std::stoi(arg[0]));
 
     if (p != NULL ) {
         
-        std::string*  name  = p->paramList();
+        const Plugin::ParamConfig* params  = p->paramList();
         SFXP::usize_t count = p->paramCount();
 
         printf("Effect : %s\n", p->name().c_str());
         
         for ( SFXP::usize_t i = 0; i < count; i++ ){
 
-            printf("   - %2u : %s\n", i, name[i].c_str());
+            printf("   - %2u : %s\n", i, params[i].name.c_str());
         }
         printf("End\n");
     }
@@ -246,7 +246,7 @@ void CmdShowPool::perform(std::vector<std::string> arg){
     SFXPEvent event = SFXPEvent(SFXPEvent::Type::Event_EffectShowPool);
     event._effect = EffectEvent(std::stoi(arg[0]), 0, 0);
 
-    _owner->effectHandler()->pushEvent(event);
+    _owner->effectHandler()->pushEvent(&event);
 }
 
 /**
@@ -263,5 +263,5 @@ void CmdChangeBank::perform(std::vector<std::string> arg){
     SFXPEvent event = SFXPEvent(SFXPEvent::Type::Event_EffectChangeBank);
     event._effect = EffectEvent(std::stoi(arg[0]), std::stoi(arg[1]), 0);
 
-    _owner->effectHandler()->pushEvent(event);
+    _owner->effectHandler()->pushEvent(&event);
 }

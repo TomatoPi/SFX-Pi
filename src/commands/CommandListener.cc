@@ -8,18 +8,20 @@
  **********************************************************************/
 #include "CommandListener.h"
 
+#define NAME ("CommandListerner")
+
 CommandListener::CommandListener() : _buffer(), _thread()
 {
     _thread = std::thread(CommandListener::threadRun, this);
-    std::cout << "CommandListener : Start Listener" << std::endl;
+    SFXPlog::log(NAME) << "Start Listener" << std::endl;
 }
 
 CommandListener::~CommandListener()
 {
-    std::cout << "CommandListener : Wait For Command Thread to Stop ... ";
+    SFXPlog::log(NAME) << "Wait For Command Thread to Stop ... " << '\n';
     // Wait thread to Stop before destroy Listener
     _thread.join();
-    std::cout << "CommandListener : Closed" << std::endl;
+    SFXPlog::log(NAME) << "Closed" << std::endl;
 }
 
 std::string CommandListener::getBuffer() {

@@ -26,13 +26,25 @@ class AbstractHandler {
          * Function to know if the handler contruction is successfull
          * @return non-zero error code if not
          **/
+        virtual int errored();
+
+        /**
+         * @brief Function to get the current status of an Handler
+         * @return status code
+         */
         int status();
 
         /**
          * Function used to push an event to an handler
          * The event is imediatly processed
          **/
-        virtual void pushEvent(SFXPEvent& event) = 0;
+        virtual void pushEvent(SFXPEvent* event) = 0;
+
+        /**
+         * Function used to push an event to the targeted handler
+         * The event will be imediatly processed via pushEvent method
+         **/
+        void sendEvent(SFXPEvent* event);
 
         /**
          * Function called at each main loop frame
@@ -50,6 +62,7 @@ class AbstractHandler {
         void attachCommandHandler(AbstractHandler* c);
         void attachPresetHandler(AbstractHandler* p);
         void attachAnalogHandler(AbstractHandler* a);
+        void attachGuiHandler(AbstractHandler* g);
 
         AbstractHandler* logicHandler();
         AbstractHandler* eventHandler();
@@ -57,6 +70,7 @@ class AbstractHandler {
         AbstractHandler* commandHandler();
         AbstractHandler* presetHandler();
         AbstractHandler* analogHandler();
+        AbstractHandler* guiHandler();
 
     protected :
 
@@ -69,6 +83,7 @@ class AbstractHandler {
         AbstractHandler* _commandHandler;
         AbstractHandler* _presetHandler;
         AbstractHandler* _analogHandler;
+        AbstractHandler* _guiHandler;
 };
 
 #endif

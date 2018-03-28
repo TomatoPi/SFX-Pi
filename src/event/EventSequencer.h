@@ -58,7 +58,7 @@ class EventSequencer {
          **/
         typedef std::map<IOEvent, Action> ActionMap;
         /** Object to store a list of events to perform **/
-        typedef std::vector<SFXPEvent> EventSequence;
+        typedef std::vector<SFXPEvent*> EventSequence;
         /** Object to store EventSequencies by ID */
         typedef std::map<SFXP::id2_t, EventSequence> EventMap;
         typedef EventMap::iterator EventIterator;
@@ -77,12 +77,12 @@ class EventSequencer {
          * If event is linked with an action
          * Correct action will be performed
          **/
-        EventSequence pushEvent(SFXPEvent& event);
+        EventSequence pushEvent(SFXPEvent* event);
 
         /**
          * Edit Event Sequencies
          **/
-        void addEvent(SFXP::id2_t seq, SFXPEvent event);
+        void addEvent(SFXP::id2_t seq, SFXPEvent* event);
         void removeEvent(SFXP::id2_t seq, SFXP::usize_t idx);
 
         /**

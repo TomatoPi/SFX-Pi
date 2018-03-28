@@ -9,6 +9,7 @@
 #define DEF_EFFECT_PARAM_SET_H
 
 #include "types.h"
+#include <string>
 #include <cstring>
 #include <map>
 
@@ -42,6 +43,15 @@ class ParamSet {
         SFXP::usize_t size() const;
 
         /**
+         * Name of the effect associated with this param set
+         **/
+        std::string name();
+        /**
+         * Set the name of the associated effect
+         **/
+        void setName(std::string name);
+
+        /**
          * Get Add or Edit Given Bank
          **/
         float* getBank(SFXP::id1_t id, bool create=false);
@@ -55,6 +65,8 @@ class ParamSet {
         BankIterator findBank(SFXP::id1_t id);
 
     private :
+
+        std::string _name;
 
         SFXP::id1_t _id;    /**< ID of the Param Set */
         SFXP::tc_t _type;   /**< TypeCode of associated effect */

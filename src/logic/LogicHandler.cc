@@ -33,8 +33,13 @@ const SFXP::hex_t LogicHandler::HEX_IPOL[2] =
     mcp23017::HEX_IPOLB
 };
 
-LogicHandler::LogicHandler():AbstractHandler("LogicHandler")
+LogicHandler::LogicHandler(bool headlessRun):AbstractHandler("LogicHandler")
+    ,_headless(headlessRun)
 {
+    if (_headless)
+        SFXPlog::log(_name) << "Headless Run, All IO operations are Virtual"
+                            << '\n';
+
     try {
         // First load Config File
         LogicConfigLoader loader = LogicConfigLoader(SFXP::DIR_CONF);
@@ -43,17 +48,24 @@ LogicHandler::LogicHandler():AbstractHandler("LogicHandler")
 
         // First open connections to mcp23017
         vector<LogicConfigLoader::RegisterConfig> regs = loader.registers();
+        this->_rCount = regs.size();
         if (regs.size() == 0)
             throw string("No Registers Loaded");
 
-        this->_rCount = regs.size();
-        this->_registers = new mcp23017*[_rCount];
-        for (auto& r : regs) {
+        if (!_headless) {
+                
+            this->_registers = new mcp23017*[_rCount];
+            for (auto& r : regs) {
 
-            if (r._idx >= _rCount)
-                throw string("Invalid Register Index : %lu", r._idx);
-            
-            _registers[r._idx] = new mcp23017(r._adress, "/dev/i2c-1");
+                if (r._idx >= _rCount)
+                    throw string("Invalid Register Index : %lu", r._idx);
+                
+                _registers[r._idx] = new mcp23017(r._adress, "/dev/i2c-1");
+            }
+        }
+        else {
+
+            this->_registers = nullptr;
         }
 
         // Create all registers and masks
@@ -120,20 +132,23 @@ LogicHandler::LogicHandler():AbstractHandler("LogicHandler")
             }
         }
 
-        // Write configuration to registers
-        for (usize_t i = 0; i < _rCount; i++) {
-            for (usize_t k = 0; k < 2; k++) {
+        if (!_headless) {
+                
+            // Write configuration to registers
+            for (usize_t i = 0; i < _rCount; i++) {
+                for (usize_t k = 0; k < 2; k++) {
 
-                // Set inputs and Ouputs
-                if (_registers[i]->writeReg(HEX_IODIR[k], _mask_IODIR[i+_rCount*k]) < 0)
-                    throw string("Failed Write IODIR on %u", i);
+                    // Set inputs and Ouputs
+                    if (_registers[i]->writeReg(HEX_IODIR[k], _mask_IODIR[i+_rCount*k]) < 0)
+                        throw string("Failed Write IODIR on %u", i);
 
-                // Set IO Polarities
-                if (_registers[i]->writeReg(HEX_IPOL[k], _mask_IPOL[i+_rCount*k]) < 0)
-                    throw string("Failed Write IPOL on %u", i);
+                    // Set IO Polarities
+                    if (_registers[i]->writeReg(HEX_IPOL[k], _mask_IPOL[i+_rCount*k]) < 0)
+                        throw string("Failed Write IPOL on %u", i);
 
-                // Set read current values
-                _registers[i]->readReg(HEX_GPIO[k], _lastReg[i+_rCount*k]);
+                    // Set read current values
+                    _registers[i]->readReg(HEX_GPIO[k], _lastReg[i+_rCount*k]);
+                }
             }
         }
 
@@ -149,10 +164,13 @@ LogicHandler::LogicHandler():AbstractHandler("LogicHandler")
 LogicHandler::~LogicHandler()
 {
     if (_status == HANDLER_OK) {
-        
-        // Free the mcp23017
-        for (usize_t i = 0; i < _rCount; i++) delete _registers[i];
-        delete[] _registers;
+
+        if (!_headless) {
+                
+            // Free the mcp23017
+            for (usize_t i = 0; i < _rCount; i++) delete _registers[i];
+            delete[] _registers;
+        }
         
         delete[] _lastReg;
         delete[] _olatReg;
@@ -173,9 +191,9 @@ LogicHandler::~LogicHandler()
  * Function used to push an event to an handler
  * The event is imediatly processed
  **/
-void LogicHandler::pushEvent(SFXPEvent& event) {
+void LogicHandler::pushEvent(SFXPEvent* event) {
     
-    if (event._type == SFXPEvent::Type::Event_InitAll) {
+    if (event->_type == SFXPEvent::Type::Event_InitAll) {
 
         if (_status) {
 
@@ -188,9 +206,11 @@ void LogicHandler::pushEvent(SFXPEvent& event) {
     }
     else if (_status == HANDLER_OK) {
 
-        if ( event._type == SFXPEvent::Type::Event_UpdateOutput ) {
+        if (!_headless) {
+        if ( event->_type == SFXPEvent::Type::Event_UpdateOutput ) {
 
             this->eventUpdateOutput(event);
+        }
         }
     }
 }
@@ -201,7 +221,7 @@ void LogicHandler::pushEvent(SFXPEvent& event) {
  **/
 void LogicHandler::run() {
     
-    if ( _status == HANDLER_OK ){
+    if ( _status == HANDLER_OK && !_headless){
     /*
      * Read each MCP registers
      * Update footswitch status
@@ -248,22 +268,23 @@ void LogicHandler::run() {
                         if (fswitch->hasVisual())
                             lede._io = IOEvent(IOEvent::OFF, 0, fswitch->getVisualID());
                     }
-                    else if ( !(adr & currentReg) )
+                    else // if ( !(adr & currentReg) )
                     {
                         e._io = IOEvent(IOEvent::PUSHED, 0, fswitch->getID());
                         if (fswitch->hasVisual())
                             lede._io = IOEvent(IOEvent::ON, 0, fswitch->getVisualID());
                     }
 
-                    _eventHandler->pushEvent(e);
+                    _eventHandler->pushEvent(&e);
                     if (fswitch->hasVisual())
-                        this->eventUpdateOutput(lede);
+                        this->eventUpdateOutput(&lede);
                 }
                 // Else several footswitches were pressed or changed
                 // Or an unregistered Button has been pressed
                 else{
 
-                    printf("Logic Manager : Error : SwitchAdress( %lu:%lu:%02x ) not found\n",
+                    SFXPlog::err(_name);
+                    printf("SwitchAdress( %lu:%lu:%02x ) not found\n",
                         i, k, adr);
                 } 
             }// Reg Changed Check end
@@ -440,10 +461,10 @@ LogicHandler::LEDReg::LEDReg(Led* led, usize_t mcp, bool gpb, hex_t adr):
 /* ****************** SFXPEvent Handling ******************** */
 /* ********************************************************** */
 
-void LogicHandler::eventUpdateOutput(SFXPEvent& event) {
+void LogicHandler::eventUpdateOutput(SFXPEvent* event) {
 
-    id2_t id = event._io._id;
-    hex_t status = event._io._status == IOEvent::ON ? 0xff : 0x00;
+    id2_t id = event->_io._id;
+    hex_t status = event->_io._status == IOEvent::ON ? 0xff : 0x00;
 
     if (_LEDArray.find(id) != _LEDArray.end()) {
 

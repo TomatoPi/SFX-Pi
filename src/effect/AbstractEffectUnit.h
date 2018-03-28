@@ -44,7 +44,7 @@ class AbstractEffectUnit {
          * It will update the Param Array passed to callback function
          * Pure Virtual function, must be redefined by every effect type
          **/
-        virtual void update(SFXPEvent& event) = 0;
+        virtual void update(SFXPEvent* event) = 0;
         
         /**
          * Return JACK part of the EffectUnit
@@ -65,6 +65,10 @@ class AbstractEffectUnit {
          * Number of Parameters inside a Bank
          **/
         SFXP::usize_t size() const;
+        /**
+         * Name of the effect
+         **/
+        std::string name() const;
 
         /* *********************************************** */
         /* ************** Param Set Managment ************ */

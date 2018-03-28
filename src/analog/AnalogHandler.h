@@ -23,14 +23,14 @@ class AnalogHandler : public AbstractHandler {
 
     public :
 
-        AnalogHandler();
+        AnalogHandler(bool headlessRun);
         virtual ~AnalogHandler();
 
         /**
          * Function used to push an event to an handler
          * The event is imediatly processed
          **/
-        virtual void pushEvent(SFXPEvent& event);
+        virtual void pushEvent(SFXPEvent* event);
 
         /**
          * Function called at each main loop frame
@@ -42,8 +42,9 @@ class AnalogHandler : public AbstractHandler {
 
     private :
 
-        void eventPresetChanged(SFXPEvent& event);
+        void eventPresetChanged(SFXPEvent* event);
 
+        bool _headless;
         Preset* _preset;
         Potentiometer* _potars[SFXP::MAX_POT];
 };

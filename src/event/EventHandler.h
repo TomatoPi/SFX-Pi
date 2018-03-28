@@ -18,7 +18,11 @@
 class EventHandler : public AbstractHandler {
 
     public :
-    
+
+        /**
+         * @brief EventHandler constructor
+         * The eventHandler initialisation will never fail
+         **/
         EventHandler();
         virtual ~EventHandler();
 
@@ -26,7 +30,7 @@ class EventHandler : public AbstractHandler {
          * Function used to push an event to an handler
          * The event is imediatly processed
          **/
-        virtual void pushEvent(SFXPEvent& event);
+        virtual void pushEvent(SFXPEvent* event);
 
         /**
          * Function called at each main loop frame
@@ -39,14 +43,16 @@ class EventHandler : public AbstractHandler {
 
     private :
 
-        void eventIOChanged(SFXPEvent& event);
-        void eventPresetChanged(SFXPEvent& event);
+        void eventIOChanged(SFXPEvent* event);
+        void eventPresetChanged(SFXPEvent* event);
 
-        void eventAddSeq(SFXPEvent& event);
-        void eventRemoveSeq(SFXPEvent& event);
-        void eventPrintSeq(SFXPEvent& event);
-        void eventAssign(SFXPEvent& event);
-        void eventUnassign(SFXPEvent& event);
+        void eventAddSeq(SFXPEvent* event);
+        void eventRemoveSeq(SFXPEvent* event);
+        void eventPrintSeq(SFXPEvent* event);
+        void eventAssign(SFXPEvent* event);
+        void eventUnassign(SFXPEvent* event);
+        void eventAddEvent(SFXPEvent* event);
+        void eventRemoveEvent(SFXPEvent* event);
 
         Preset* _preset;
     

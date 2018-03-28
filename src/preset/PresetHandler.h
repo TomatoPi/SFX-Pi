@@ -8,6 +8,8 @@
 #ifndef DEF_PRESET_HANDLER_H
 #define DEF_PRESET_HANDLER_H
 
+#include <time.h>
+
 #include "log.h"
 
 #include "preset/Preset.h"
@@ -27,7 +29,7 @@ class PresetHandler : public AbstractHandler {
          * Function used to push an event to an handler
          * The event is imediatly processed
          **/
-        virtual void pushEvent(SFXPEvent& event);
+        virtual void pushEvent(SFXPEvent* event);
 
         /**
          * Function called at each main loop frame
@@ -37,8 +39,9 @@ class PresetHandler : public AbstractHandler {
 
     private :
 
-        void eventSavePreset(SFXPEvent& event);
-        void eventLoadPreset(SFXPEvent& event);
+        void eventSavePreset(SFXPEvent* event);
+        void eventLoadPreset(SFXPEvent* event);
+        void eventNewPreset (SFXPEvent* event);
 
         Preset* _preset;
 };

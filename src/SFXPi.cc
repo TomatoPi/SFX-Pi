@@ -24,6 +24,8 @@
 
 #include "analog/AnalogHandler.h"
 
+#include "gui/GuiHandler.h"
+
 using namespace SFXP;
 
 #ifdef __DEBUG__
@@ -60,19 +62,25 @@ int main(int argc, char* argv[]){
     SFXPlog::log("SFX-Pi") << "Parse Launch Args :";
     for (int i = 0; i < argc; i++){
 
-        if (argv[i] == "-nogui") {
+        if (strcmp(argv[i], "-nogui") == 0) {
 
             cout << " (Console)";
             argNogui = true;
         }
-        else if (argv[i] == "-noio"){
+        else if (strcmp(argv[i], "-noio") == 0){
 
             cout << " (Headless)";
             argNoio = true;
         }
-        else if (argv[i] == "-nojack") {
+        else if (strcmp(argv[i], "-nojack") == 0) {
 
             cout << " (No Audio)";
+            argNojack = true;
+        }
+        else if (strcmp(argv[i], "-editor") == 0) {
+
+            cout << " (Preset Editor Mode)";
+            argNoio = true;
             argNojack = true;
         }
     }
@@ -89,6 +97,7 @@ int main(int argc, char* argv[]){
     EventHandler*   EVENT_HANDLER   (nullptr);
     LogicHandler*   LOGIC_HANDLER   (nullptr);
     AnalogHandler*  ANALOG_HANDLER  (nullptr);
+    GuiHandler*     GUI_HANDLER     (nullptr);
     try {
         
         // REGISTER PLUGIN LIST //
@@ -97,81 +106,105 @@ int main(int argc, char* argv[]){
 
         // CREATE PRESET HANDLER //
         PRESET_HANDLER = new PresetHandler();
-        if (PRESET_HANDLER->status())
+        if (PRESET_HANDLER->errored())
             throw string("Failed Build Preset Handler");
-    
-        cout << endl;
 
         // CREATE EFFECT HANDLER //
-        EFFECT_HANDLER = new EffectHandler();
-        if (EFFECT_HANDLER->status())
+        EFFECT_HANDLER = new EffectHandler(argNojack);
+        if (EFFECT_HANDLER->errored())
             throw string("Failed Build Effect Handler");
 
         // CREATE COMMAND HANDLER //
         COMMAND_HANDLER = new CommandHandler();
-        if (COMMAND_HANDLER->status())
+        if (COMMAND_HANDLER->errored())
             SFXPlog::err("SFXPi") << "Failed Build Command Handler" << endl;
 
         // CREATE EVENT HANDLER //
         EVENT_HANDLER = new EventHandler();
-        if (EVENT_HANDLER->status())
+        if (EVENT_HANDLER->errored())
             throw string("Failed Build Event Handler");
 
         // CREATE LOGIC HANDLER //
-        LOGIC_HANDLER = new LogicHandler();
-        if (LOGIC_HANDLER->status())
+        LOGIC_HANDLER = new LogicHandler(argNoio);
+        if (LOGIC_HANDLER->errored())
             throw string("Failed Build Logic Handler");
 
         // CREATE ANALOG HANDLER //
-        ANALOG_HANDLER = new AnalogHandler();
-        if (ANALOG_HANDLER->status())
+        ANALOG_HANDLER = new AnalogHandler(argNoio);
+        if (ANALOG_HANDLER->errored())
             throw string("Failed Build Analog Handler");
 
+        // CREATE ANALOG HANDLER //
+        GUI_HANDLER = new GuiHandler(argNogui);
+        if (GUI_HANDLER->errored())
+            throw string("Failed Build Gui Handler");
+
         // ATTACH HANDLERS TOGETHER //
+        PRESET_HANDLER->attachPresetHandler (PRESET_HANDLER);
         PRESET_HANDLER->attachEffectHandler (EFFECT_HANDLER);
         PRESET_HANDLER->attachCommandHandler(COMMAND_HANDLER);
         PRESET_HANDLER->attachEventHandler  (EVENT_HANDLER);
         PRESET_HANDLER->attachLogicHandler  (LOGIC_HANDLER);
         PRESET_HANDLER->attachAnalogHandler (ANALOG_HANDLER);
+        PRESET_HANDLER->attachGuiHandler    (GUI_HANDLER);
 
         EFFECT_HANDLER->attachPresetHandler (PRESET_HANDLER);
+        EFFECT_HANDLER->attachEffectHandler (EFFECT_HANDLER);
         EFFECT_HANDLER->attachCommandHandler(COMMAND_HANDLER);
         EFFECT_HANDLER->attachEventHandler  (EVENT_HANDLER);
         EFFECT_HANDLER->attachLogicHandler  (LOGIC_HANDLER);
         EFFECT_HANDLER->attachAnalogHandler (ANALOG_HANDLER);
+        EFFECT_HANDLER->attachGuiHandler    (GUI_HANDLER);
 
         COMMAND_HANDLER->attachPresetHandler(PRESET_HANDLER);
         COMMAND_HANDLER->attachEffectHandler(EFFECT_HANDLER);
+        COMMAND_HANDLER->attachCommandHandler(COMMAND_HANDLER);
         COMMAND_HANDLER->attachEventHandler (EVENT_HANDLER);
         COMMAND_HANDLER->attachLogicHandler (LOGIC_HANDLER);
         COMMAND_HANDLER->attachAnalogHandler(ANALOG_HANDLER);
+        COMMAND_HANDLER->attachGuiHandler   (GUI_HANDLER);
 
         EVENT_HANDLER->attachPresetHandler  (PRESET_HANDLER);
         EVENT_HANDLER->attachEffectHandler  (EFFECT_HANDLER);
         EVENT_HANDLER->attachCommandHandler (COMMAND_HANDLER);
+        EVENT_HANDLER->attachEventHandler   (EVENT_HANDLER);
         EVENT_HANDLER->attachLogicHandler   (LOGIC_HANDLER);
         EVENT_HANDLER->attachAnalogHandler  (ANALOG_HANDLER);
+        EVENT_HANDLER->attachGuiHandler     (GUI_HANDLER);
 
         LOGIC_HANDLER->attachPresetHandler  (PRESET_HANDLER);
         LOGIC_HANDLER->attachEffectHandler  (EFFECT_HANDLER);
         LOGIC_HANDLER->attachCommandHandler (COMMAND_HANDLER);
         LOGIC_HANDLER->attachEventHandler   (EVENT_HANDLER);
+        LOGIC_HANDLER->attachLogicHandler   (LOGIC_HANDLER);
         LOGIC_HANDLER->attachAnalogHandler  (ANALOG_HANDLER);
+        LOGIC_HANDLER->attachGuiHandler     (GUI_HANDLER);
 
         ANALOG_HANDLER->attachPresetHandler (PRESET_HANDLER);
         ANALOG_HANDLER->attachEffectHandler (EFFECT_HANDLER);
         ANALOG_HANDLER->attachCommandHandler(COMMAND_HANDLER);
         ANALOG_HANDLER->attachEventHandler  (EVENT_HANDLER);
         ANALOG_HANDLER->attachLogicHandler  (LOGIC_HANDLER);
+        ANALOG_HANDLER->attachAnalogHandler (ANALOG_HANDLER);
+        ANALOG_HANDLER->attachGuiHandler    (GUI_HANDLER);
+        
+        GUI_HANDLER->attachPresetHandler    (PRESET_HANDLER);
+        GUI_HANDLER->attachEffectHandler    (EFFECT_HANDLER);
+        GUI_HANDLER->attachCommandHandler   (COMMAND_HANDLER);
+        GUI_HANDLER->attachEventHandler     (EVENT_HANDLER);
+        GUI_HANDLER->attachLogicHandler     (LOGIC_HANDLER);
+        GUI_HANDLER->attachAnalogHandler    (ANALOG_HANDLER);
+        GUI_HANDLER->attachGuiHandler       (GUI_HANDLER);
 
         // INIT AND SYNC HANDLERS //
         SFXPEvent INIT_ALL = SFXPEvent(SFXPEvent::Type::Event_InitAll);
-        PRESET_HANDLER->pushEvent   (INIT_ALL);
-        EFFECT_HANDLER->pushEvent   (INIT_ALL);
-        COMMAND_HANDLER->pushEvent  (INIT_ALL);
-        EVENT_HANDLER->pushEvent    (INIT_ALL);
-        LOGIC_HANDLER->pushEvent    (INIT_ALL);
-        ANALOG_HANDLER->pushEvent   (INIT_ALL);
+        PRESET_HANDLER->pushEvent   (&INIT_ALL);
+        EFFECT_HANDLER->pushEvent   (&INIT_ALL);
+        COMMAND_HANDLER->pushEvent  (&INIT_ALL);
+        EVENT_HANDLER->pushEvent    (&INIT_ALL);
+        LOGIC_HANDLER->pushEvent    (&INIT_ALL);
+        ANALOG_HANDLER->pushEvent   (&INIT_ALL);
+        GUI_HANDLER->pushEvent      (&INIT_ALL);
 
         // PRET POUR FAIRE DU SALE MAMENE //
         cout << endl <<
@@ -184,8 +217,8 @@ int main(int argc, char* argv[]){
     }
     catch (const string & e) {
 
-        cout << "[SFXPi] : FATAL ERROR : " << e << endl;
-        cout << "[SFXPi] : Abort Program Launch" << endl;
+        SFXPlog::fatal("SFX-Pi") << e << endl;
+        SFXPlog::fatal("SFX-Pi") << "Abort Program Launch" << endl;
 
         SFXP::GlobalNeedToExit = true;
         SFXP::GlobalErrState = 1;
@@ -195,13 +228,13 @@ int main(int argc, char* argv[]){
     while (!SFXP::GlobalNeedToExit){
 
         // UPDATE HANDLERS //
-        PRESET_HANDLER->run();
-        EFFECT_HANDLER->run();
-        COMMAND_HANDLER->run();
-        EVENT_HANDLER->run();
-        LOGIC_HANDLER->run();
-        ANALOG_HANDLER->run();
-        
+        PRESET_HANDLER  ->run();
+        EFFECT_HANDLER  ->run();
+        COMMAND_HANDLER ->run();
+        EVENT_HANDLER   ->run();
+        LOGIC_HANDLER   ->run();
+        ANALOG_HANDLER  ->run();
+        GUI_HANDLER     ->run();
         // Sleep for 10ms ( 100Hz )
         usleep(10000);
     }
@@ -214,10 +247,11 @@ int main(int argc, char* argv[]){
     "******************************************************************"
     << endl << endl;
 
-    // TELL THE PROGRAM TO STOP
+    // TELL THE PROGRAM TO STOP //
     SFXP::GlobalNeedToExit = true;
 
     // DESTROY HANDLERS //
+    delete GUI_HANDLER;
     delete ANALOG_HANDLER;
     delete LOGIC_HANDLER;
     delete EVENT_HANDLER;

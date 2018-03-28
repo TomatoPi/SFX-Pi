@@ -9,27 +9,40 @@
 
 using namespace SFXP;
 
-EffectHandler::EffectHandler():AbstractHandler("EffectHandler"),
+namespace {
+
+    static const char* portTypeString(PortType t) {
+
+        if (t == PortType::AudioIn || t == PortType::AudioOut)
+            return JACK_DEFAULT_AUDIO_TYPE;
+        return JACK_DEFAULT_MIDI_TYPE;
+    }
+}
+
+EffectHandler::EffectHandler(bool nojackRun):AbstractHandler("EffectHandler"),
+_nojack(nojackRun),
 _graph(EffectGraph()),
 _client(nullptr),
 _preset(nullptr)
 {
     try{
 
-        // Create Handler's Jack Client
-        jack_status_t status;
+        if (!_nojack) {
+            // Create Handler's Jack Client
+            jack_status_t status;
 
-        _client = jack_client_open( "SpaceFX-Software", JackNullOption, &status, SFXP::JACK_SERVER );
-        if ( _client == NULL ){
+            _client = jack_client_open( "SpaceFX-Software", JackNullOption, &status, SFXP::JACK_SERVER );
+            if ( _client == NULL ){
 
-            throw string("Unable to connect JACK server");
+                throw string("Unable to connect JACK server");
+            }
+            if ( status & JackNameNotUnique ){
+
+                cout << "Unique Name " << jack_get_client_name(_client) << " Assigned\n";
+            }
+
+            cout << "ProcessGraph : Registered Graph Client : " << jack_get_client_name(_client) << endl;
         }
-        if ( status & JackNameNotUnique ){
-
-            cout << "Unique Name " << jack_get_client_name(_client) << " Assigned\n";
-        }
-
-        cout << "ProcessGraph : Registered Graph Client : " << jack_get_client_name(_client) << endl;
         _status = HANDLER_OK;
         SFXPlog::log(_name) << "Builded Handler" << endl;
     }
@@ -42,20 +55,31 @@ _preset(nullptr)
 EffectHandler::~EffectHandler() {
 
     this->clearGraph();
-    jack_client_close(_client);
+    if (!_nojack) {
+        jack_client_close(_client);
+    }
+}
+
+/**
+ * Function to know if the handler contruction is successfull
+ * @return non-zero error code if not
+ **/
+int EffectHandler::errored() {
+
+    return _status;
 }
 
 /**
  * Function used to push an event to an handler
  * The event is imediatly processed
  **/
-void EffectHandler::pushEvent(SFXPEvent& event) {
+void EffectHandler::pushEvent(SFXPEvent* event) {
 
-    if (event._type == SFXPEvent::Type::Event_PresetChanged) {
+    if (event->_type == SFXPEvent::Type::Event_PresetChanged) {
 
         this->eventPresetChanged(event);
     }
-    else if (event._type == SFXPEvent::Type::Event_InitAll) {
+    else if (event->_type == SFXPEvent::Type::Event_InitAll) {
 
         if (!_preset) {
 
@@ -68,7 +92,7 @@ void EffectHandler::pushEvent(SFXPEvent& event) {
     }
     else if (_preset) {
         
-        switch(event._type) {
+        switch(event->_type) {
 
             case SFXPEvent::Type::Event_EffectAddBank :
 
@@ -137,7 +161,7 @@ void EffectHandler::pushEvent(SFXPEvent& event) {
 
             default :
 
-                SFXPlog::err(_name) << "Unhandled Event : " << event._type << endl;
+                SFXPlog::err(_name) << "Unhandled Event : " << (*event) << endl;
         }
     }
 }
@@ -152,10 +176,12 @@ void EffectHandler::run() {
 
 void EffectHandler::clearGraph() {
 
-    for (auto& e : _graph) {
+    if (!_nojack) {
+        for (auto& e : _graph) {
 
-        // Call Plugin's destructor to properly delete the effect
-        EffectFactory::getPlugin(e.second->type())->destroy(e.second);
+            // Call Plugin's destructor to properly delete the effect
+            EffectFactory::getPlugin(e.second->type())->destroy(e.second);
+        }
     }
     _graph.clear();
 
@@ -171,10 +197,19 @@ void EffectHandler::printGraph() {
 
     if (_preset) {
 
-        SFXPlog::log(_name) << "Current Loaded Effects :" << endl;
-        for (auto& e : _graph) {
+        if (!_nojack) {
+            SFXPlog::log(_name) << "Current Loaded Effects :" << endl;
+            for (auto& e : _graph) {
 
-            cout << "   -> ID : " << e.first << " : TYPE : " << e.second->type() << endl;
+                cout << "   -> ID : " << e.first << " : TYPE : " << e.second->type() << endl;
+            }
+        }
+        else {
+            SFXPlog::log(_name) << "NoJack : Current Loaded Effects :" << endl;
+            for (auto& e : _preset->_paramSets) {
+
+                cout << "   -> ID : " << e.first << " : TYPE : " << e.second->type() << endl;
+            }
         }
         
         SFXPlog::log(_name) << "Current Made Connections :" << endl;
@@ -207,15 +242,22 @@ void EffectHandler::connect(Connection c) {
                 if (source == "" || target == "")
                     throw string("Invalid Source or Target Port" + source + " : " + target);
 
-                if (c.m_si == TCTLoader::physicalInput()) {
-                        
-                    _graph[c.m_ti]->getOwner(targetType, c.m_tp)->connect(source, target);
+                if (!_nojack) {
+                    
+                    if (c.m_si == TCTLoader::physicalInput()) {
+                            
+                        _graph[c.m_ti]->getOwner(targetType, c.m_tp)->connect(source, target);
+                    }
+                    else {
+
+                        _graph[c.m_si]->getOwner(sourceType, c.m_sp)->connect(source, target);
+                    }
                 }
                 else {
 
-                    _graph[c.m_si]->getOwner(sourceType, c.m_sp)->connect(source, target);
+                    SFXPlog::wrn(_name) << "NoJackRun : Cannot verify that connection is valid" << endl;
                 }
-                
+            
                 _preset->_connections.insert(c);
 
                 return;
@@ -256,13 +298,16 @@ void EffectHandler::disconnect(Connection c) {
                 if (source == "" || target == "")
                     throw string("Invalid Source or Target Port" + source + " : " + target);
 
-                if (c.m_si == TCTLoader::physicalInput()) {
-                        
-                    _graph[c.m_ti]->getOwner(targetType, c.m_tp)->disconnect(source, target);
-                }
-                else {
+                if (!_nojack) {
+                
+                    if (c.m_si == TCTLoader::physicalInput()) {
+                            
+                        _graph[c.m_ti]->getOwner(targetType, c.m_tp)->disconnect(source, target);
+                    }
+                    else {
 
-                    _graph[c.m_si]->getOwner(sourceType, c.m_sp)->disconnect(source, target);
+                        _graph[c.m_si]->getOwner(sourceType, c.m_sp)->disconnect(source, target);
+                    }
                 }
                 
                 _preset->_connections.erase(c);
@@ -290,16 +335,17 @@ void EffectHandler::disconnect(Connection c) {
     }
 }
 
-void EffectHandler::eventPresetChanged(SFXPEvent& event) {
+void EffectHandler::eventPresetChanged(SFXPEvent* event) {
 
-    if (Preset* np = (Preset*)event._preset._preset) {
+    if (Preset* np = (Preset*)event->_preset._preset) {
 
         this->clearGraph();
 
         // First create effects from param sets
+        if (!_nojack) {
         for (auto& p : np->_paramSets) {
 
-            JackPlugin* plugin = EffectFactory::getPlugin(p.second->type());
+            Plugin* plugin = EffectFactory::getPlugin(p.second->type());
             if (plugin) {
 
                 // Create effect
@@ -313,9 +359,10 @@ void EffectHandler::eventPresetChanged(SFXPEvent& event) {
 
                     // Update it
                     SFXPEvent e = SFXPEvent(SFXPEvent::Type::Event_EffectUpdateAll);
-                    unit->update(e);
+                    unit->update(&e);
                 }
             }
+        }
         }
 
         // Connect effects together
@@ -328,10 +375,10 @@ void EffectHandler::eventPresetChanged(SFXPEvent& event) {
     }
 }
 
-void EffectHandler::eventAddBank(SFXPEvent& event) {
+void EffectHandler::eventAddBank(SFXPEvent* event) {
 
-    id1_t id = event._effect._id;
-    id1_t idx = (id1_t) event._effect._idx;
+    id1_t id = event->_effect._id;
+    id1_t idx = (id1_t) event->_effect._idx;
 
     // Verify that ParamSet exist
     if (_preset->_paramSets.find(id) != _preset->_paramSets.end()) {
@@ -345,21 +392,23 @@ void EffectHandler::eventAddBank(SFXPEvent& event) {
             << id << endl;
     }
 }
-void EffectHandler::eventRemoveBank(SFXPEvent& event) {
+void EffectHandler::eventRemoveBank(SFXPEvent* event) {
 
-    id1_t id = event._effect._id;
-    id1_t idx = (id1_t) event._effect._idx;
+    id1_t id = event->_effect._id;
+    id1_t idx = (id1_t) event->_effect._idx;
 
     // Verify that ParamSet exist
     if (_preset->_paramSets.find(id) != _preset->_paramSets.end()
-        && _graph.find(id) != _graph.end())
+        && (_nojack || (!_nojack && _graph.find(id) != _graph.end()) )
+        )
     {
-
         // Remove the Bank
         _preset->_paramSets[id]->removeBank(idx);
 
         // Update linked effect
-        _graph[id]->attachParamSet(_preset->_paramSets[id]);
+        if (!_nojack) {
+            _graph[id]->attachParamSet(_preset->_paramSets[id]);
+        }
     }
     else {
 
@@ -367,109 +416,122 @@ void EffectHandler::eventRemoveBank(SFXPEvent& event) {
             << id << endl;
     }
 }
-void EffectHandler::eventChangeBank(SFXPEvent& event) {
+void EffectHandler::eventChangeBank(SFXPEvent* event) {
 
-    // Verify that targeted effect exist
-    id1_t id = event._effect._id;
-    id1_t idx = (id1_t) event._effect._idx;
+    if (!_nojack) {
+        
+        // Verify that targeted effect exist
+        id1_t id = event->_effect._id;
+        id1_t idx = (id1_t) event->_effect._idx;
 
-    if (_graph.find(id) != _graph.end()) {
+        if (_graph.find(id) != _graph.end()) {
 
-        _graph[id]->setBank(idx);
+            _graph[id]->setBank(idx);
+        }
     }
 }
-void EffectHandler::eventEditParam(SFXPEvent& event) {
+void EffectHandler::eventEditParam(SFXPEvent* event) {
 
     // Update effect param set
-    id1_t id = event._effect._id;
-    id1_t idx = (id1_t) event._effect._idx;
-    float v = event._effect._value;
+    id1_t id = event->_effect._id;
+    id1_t idx = (id1_t) event->_effect._idx;
+    float v = event->_effect._value;
 
     if (_preset->_paramSets.find(id) != _preset->_paramSets.end()
-        && _graph.find(id) != _graph.end())
+        && (_nojack || (!_nojack && _graph.find(id) != _graph.end()) )
+        )
     {
         // Edit param set
         _preset->_paramSets[id]->editBank(id, idx, v);
 
-        // Update linked effect
-        _graph[id]->update(event);
+        if (!_nojack) {
+            
+            // Update linked effect
+            _graph[id]->update(event);
+        }
     }
 }
 
-void EffectHandler::eventConnect(SFXPEvent& event) {
+void EffectHandler::eventConnect(SFXPEvent* event) {
 
     this->connect(
-        Connection( event._graph._source,
-                    event._graph._sport,
-                    event._graph._target,
-                    event._graph._tport,
-                    event._graph._midi)
+        Connection( event->_graph._source,
+                    event->_graph._sport,
+                    event->_graph._target,
+                    event->_graph._tport,
+                    event->_graph._midi)
                 );
 }
-void EffectHandler::eventDisconnect(SFXPEvent& event) {
+void EffectHandler::eventDisconnect(SFXPEvent* event) {
 
     this->disconnect(
-        Connection( event._graph._source,
-                    event._graph._sport,
-                    event._graph._target,
-                    event._graph._tport,
-                    event._graph._midi)
+        Connection( event->_graph._source,
+                    event->_graph._sport,
+                    event->_graph._target,
+                    event->_graph._tport,
+                    event->_graph._midi)
                 );
 }
 
-void EffectHandler::eventAddEffect(SFXPEvent& event) {
+void EffectHandler::eventAddEffect(SFXPEvent* event) {
 
-    id1_t id(event._edit._id);
-    tc_t type(event._edit._type);
+    id1_t id(event->_edit._id);
+    tc_t type(event->_edit._type);
 
-    if (_graph.find(id) == _graph.end()
-        && _preset->_paramSets.find(id) == _preset->_paramSets.end())
-    {
-        JackPlugin* plugin = EffectFactory::getPlugin(type);
+    try {
 
-        if (plugin) {
+        // Verify that id is not already used
+        if (_preset->_paramSets.find(id) != _preset->_paramSets.end()
+            && (_nojack || (!_nojack && _graph.find(id) != _graph.end()) )
+            )
+        {
+            throw std::string("Id Already Used : ") + std::to_string(id);
+        }
 
+        // Get the correct Plugin
+        Plugin* plugin = EffectFactory::getPlugin(type);
+
+        if (!plugin) throw std::string("TypeCode Not Found ") +
+            std::to_string(type);
+
+        // Create a param set
+        _preset->_paramSets[id] = new ParamSet(id, type, plugin->paramCount());
+
+        if (!_nojack) {
+            
             // Build the EffectUnit
             AbstractEffectUnit* unit = plugin->build(type, id);
 
-            if (unit) {
+            if (!unit) throw std::string("Failed Build EffectUnit");
+            
+            // Attach the unit
+            unit->attachParamSet(_preset->_paramSets[id]);
 
-                // Create a param set
-                _preset->_paramSets[id] = new ParamSet(id, type, plugin->paramCount());
-
-                // Attach the unit
-                unit->attachParamSet(_preset->_paramSets[id]);
-
-                // Add the unit to the graph
-                _graph[id] = unit;
-
-                SFXPlog::log(_name) << "Added Effect : ID:" << id << " TYPE:" << type << endl;
-            }
-            else {
-
-                SFXPlog::err(_name) << "Failed Build EffectUnit" << endl;
-            }
+            // Add the unit to the graph
+            _graph[id] = unit;
         }
-        else {
 
-            SFXPlog::err(_name) << "TypeCode Not Founded : " << type << endl;
-        }
+        SFXPlog::log(_name) << "Added Effect : ID:" << id << " TYPE:" << type << endl;
     }
-    else {
+    catch (const std::string& e) {
 
-        SFXPlog::err(_name) << "Id Already Used : " << id << endl;
+        SFXPlog::err(_name) << e << '\n';
     }
 }
-void EffectHandler::eventRemoveEffect(SFXPEvent& event) {
+void EffectHandler::eventRemoveEffect(SFXPEvent* event) {
 
-    id1_t id(event._edit._id);
+    id1_t id(event->_edit._id);
 
-    if (_graph.find(id) != _graph.end()
-        && _preset->_paramSets.find(id) != _preset->_paramSets.end())
+    if (_preset->_paramSets.find(id) != _preset->_paramSets.end()
+            && (_nojack || (!_nojack && _graph.find(id) != _graph.end()) )
+        )
     {
-        // Destroy the effect and remove it from the graph
-        EffectFactory::getPlugin(_graph[id]->type())->destroy(_graph[id]);
-        _graph.erase(id);
+        if (!_nojack) {
+                
+            // Destroy the effect and remove it from the graph
+            EffectFactory::getPlugin(_graph[id]->type())->destroy(_graph[id]);
+            _graph.erase(id);
+        }
 
         // Remove the effect from the preset
         delete _preset->_paramSets[id];
@@ -480,32 +542,38 @@ void EffectHandler::eventRemoveEffect(SFXPEvent& event) {
 void EffectHandler::eventListAvailable() {
 
     SFXPlog::log(_name) << "Loaded Plugins : " << endl;
-    EffectFactory::print(cout);
+    EffectFactory::print();
 }
-void EffectHandler::eventShowEffect(SFXPEvent& event) {
+void EffectHandler::eventShowEffect(SFXPEvent* event) {
 
-    id1_t id(event._effect._id);
+    id1_t id(event->_effect._id);
 
-    if (_graph.find(id) != _graph.end()) {
+    if (!_nojack) {
+        
+        if (_graph.find(id) != _graph.end()) {
 
-        _graph[id]->printEffect();
-    }
-    else {
+            _graph[id]->printEffect();
+        }
+        else {
 
-        SFXPlog::err(_name) << "Effect not Found : " << id << endl;
+            SFXPlog::err(_name) << "Effect not Found : " << id << endl;
+        }
     }
 }
-void EffectHandler::eventShowEffectPool(SFXPEvent& event) {
+void EffectHandler::eventShowEffectPool(SFXPEvent* event) {
 
-    id1_t id(event._effect._id);
+    id1_t id(event->_effect._id);
 
-    if (_graph.find(id) != _graph.end()) {
+    if (!_nojack) {
+            
+        if (_graph.find(id) != _graph.end()) {
 
-        _graph[id]->printPool();
-    }
-    else {
+            _graph[id]->printPool();
+        }
+        else {
 
-        SFXPlog::err(_name) << "Effect not Found : " << id << endl;
+            SFXPlog::err(_name) << "Effect not Found : " << id << endl;
+        }
     }
 }
 /**
@@ -529,16 +597,33 @@ std::string EffectHandler::buildPortName(SFXP::PortType pt, SFXP::id1_t id, SFXP
     // If requested id is Virtual IO
     if (!flag) {
 
-        if (_graph.find(id) != _graph.end()) {
+        if (_preset->_paramSets.find(id) != _preset->_paramSets.end()
+            && (_nojack || (!_nojack && _graph.find(id) != _graph.end()) )
+            )
+        {
 
-            // return "IDOfEffect:NameOfPort"
-            return to_string(id) + ":" + EffectFactory::getPlugin(_graph[id]->type())->portName(pt, idx);
+            Plugin* plugin = EffectFactory::getPlugin
+                                (_preset->_paramSets[id]->type());
+
+            if (idx >= plugin->portCount()[pt]) {
+
+                return string("Invalid_Port_Index");
+            }
+
+            // return "IdOfEffect:NameOfPort"
+            const std::string** ports = plugin->portName();
+            std::string rtn = to_string(id) + ":" + ports[pt][idx];
+            PLUGIN_DELETE_PORT_NAME_ARRAY(ports);
+            
+            return rtn;
         }
     }
     // Else return Physical Port's name
-    else {
+    else{
 
-        const char** port = jack_get_ports(_client, NULL, SFXP::portTypeString(pt), flag);
+        if (_nojack) return "PhysicalIO";
+
+        const char** port = jack_get_ports(_client, NULL, portTypeString(pt), flag);
 
         if (port == NULL) return "";
         

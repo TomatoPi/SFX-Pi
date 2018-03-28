@@ -15,7 +15,6 @@
 
 #include "core/AbstractHandler.h"
 #include "core/Event.h"
-#include "core/Parser.h"
 
 #include "commands/CommandListener.h"
 #include "commands/Commands.h"
@@ -37,7 +36,7 @@ class CommandHandler : public AbstractHandler {
          * Function used to push an event to an handler
          * The event is imediatly processed
          **/
-        virtual void pushEvent(SFXPEvent& event);
+        virtual void pushEvent(SFXPEvent* event);
 
         /**
          * Function called at each main loop frame

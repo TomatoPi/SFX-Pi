@@ -8,6 +8,8 @@
  **********************************************************************/
 #include "TypeCodeTable.h"
 
+#define NAME ("TCTLoader")
+
 using namespace std;
 using namespace tinyxml2;
 
@@ -42,7 +44,7 @@ TCTLoader::TypeCodeTable TCTLoader::m_tctable = TCTLoader::TypeCodeTable();
  **/
 bool TCTLoader::loadTypeCodeTable(std::string path){
 
-    cout << "TCTLoader : Load TypeCode Table Config File" << endl;
+    SFXPlog::log(NAME) << "Load TypeCode Table Config File" << endl;
 
     try {
         
@@ -50,7 +52,7 @@ bool TCTLoader::loadTypeCodeTable(std::string path){
         XMLDocument config;
         if (config.LoadFile((path+TypeCodeFile).c_str())) {
 
-            cout << "TCTLoader : Error : #" << config.ErrorID() << " : "
+            SFXPlog::err(NAME) << "#" << config.ErrorID() << " : "
                 <<
                 #ifdef __ARCH_LINUX__
                     config.ErrorStr()
@@ -96,7 +98,7 @@ bool TCTLoader::loadTypeCodeTable(std::string path){
         }
         m_physicalOutput = buff;
 
-        cout << "TCTLoader : Registered Physical IO TypeCodes : Input( "
+        SFXPlog::log(NAME) << "Registered Physical IO TypeCodes : Input( "
             << m_physicalInput << " ) Output( " << m_physicalOutput
             << " )" << endl;
 
@@ -115,7 +117,7 @@ bool TCTLoader::loadTypeCodeTable(std::string path){
                     if (elem->QueryUnsignedAttribute("TypeCode", &tc)
                         || (dir = elem->Attribute("Dir")) == "") {
 
-                        cout << "TCTLoader : Warning : Failed get Plugin"
+                        SFXPlog::wrn(NAME) << "Failed get Plugin"
                             << " Attribute" << endl;
                         
                         node = node->NextSibling();
@@ -128,13 +130,13 @@ bool TCTLoader::loadTypeCodeTable(std::string path){
                         
                         #ifdef __DEBUG__
                         if (SFXP::GlobalIsDebugEnabled)
-                            cout << "TCTLoader : Parsed Plugin : "
+                            SFXPlog::debug(NAME) << "Parsed Plugin : "
                                 << dir << " on TC : " << tc << endl;
                         #endif
                     }
                     else{
 
-                        cout << "TCTLoader : Warning : Duplicated TC : "
+                        SFXPlog::wrn(NAME) << "Duplicated TC : "
                         << tc << " Already used by : " << m_tctable[tc]
                         << " ... Can't load : " << dir << endl;
                     }
@@ -146,7 +148,7 @@ bool TCTLoader::loadTypeCodeTable(std::string path){
     }
     catch (string & e) {
 
-        cout << "TCTLoader : Error : " << e << endl;
+        SFXPlog::err(NAME) << e << endl;
         return true;
     }
     return false;

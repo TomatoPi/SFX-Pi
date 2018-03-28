@@ -1,12 +1,14 @@
 CXX=g++
-CXXFLAGS= -g -O3 -Wall -Isrc/
-LDFLAGS=-ljack -lpthread -ltinyxml2 -ldl -Llib/
+CXXFLAGS= -g -Wall -Isrc/
+LDFLAGS=-ljack -lpthread -ltinyxml2 -ldl -lSDL2 -Llib/ -lSDL2_ttf
 LIBFLAGS= -fPIC -shared -ljack -Llib/
 EXEC=SFX-Pi
 vpath %.cc src/
 
 ifndef RELEASE
 	CXXFLAGS += -D__DEBUG__
+else
+	CXXFLAGS += -O3
 endif
 
 ifdef ARCH
@@ -19,15 +21,14 @@ endif
 
 ### Shared Files For Plugins ###
 
-SHARED_PLUGIN_SRC  = $(addprefix plugin/, JackPlugin.cc PluginSourceLoader.cc)
-SHARED_PLUGIN_SRC += $(addprefix effect/, JACKUnit.cc AbstractEffectUnit.cc)
+SHARED_PLUGIN_SRC = $(addprefix effect/, JACKUnit.cc AbstractEffectUnit.cc)
 export SHARED_PLUGIN_LIB = lib/plugin/JackPlugin.so
 
 SHARED_LIB = $(SHARED_PLUGIN_LIB)
 
 ### Shared Files For SFX-PE ###
 
-SFXP_PLUGIN_SRC  = $(addprefix plugin/, Plugin.cc PluginConfigLoader.cc TypeCodeTable.cc)
+SFXP_PLUGIN_SRC  = $(addprefix plugin/, Plugin.cc TypeCodeTable.cc)
 SFXP_PLUGIN_SRC += $(addprefix effect/, EffectParamSet.cc)
 
 SFXP_PLUGIN_OBJ  = $(patsubst %.cc, obj/%.o, $(SFXP_PLUGIN_SRC))
@@ -103,10 +104,24 @@ PI_CMDHANDLER_OBJ = $(patsubst %.cc, obj/%.o, $(PI_CMDHANDLER_SRC))
 PI_CONSOLE_SRC = $(PI_COMMANDS_SRC) $(PI_CMDHANDLER_SRC)
 PI_CONSOLE_OBJ = $(PI_COMMANDS_OBJ) $(PI_CMDHANDLER_OBJ)
 
+### Gui Handling ###
+
+PI_GUICORE_SRC = $(addprefix gui/base/, GraphicObject.cc Container.cc Clickable.cc Layout.cc Dialog.cc Label.cc Button.cc InputBox.cc)
+PI_GUICORE_OBJ = $(patsubst %.cc, obj/%.o, $(PI_GUICORE_SRC))
+
+PI_GUICOMP_SRC = $(addprefix gui/comps/, main/MainContainer.cc menu/Menu.cc menu/MenuItem.cc)
+PI_GUICOMP_OBJ = $(patsubst %.cc, obj/%.o, $(PI_GUICOMP_SRC))
+
+PI_GUIHANDLER_SRC = $(addprefix gui/, GuiHandler.cc)
+PI_GUIHANDLER_OBJ = $(patsubst %.cc, obj/%.o, $(PI_GUI_SRC))
+
+PI_GUI_SRC = $(PI_GUIHANDLER_SRC) $(PI_GUICORE_SRC) $(PI_GUICOMP_SRC)
+PI_GUI_OBJ = $(PI_GUIHANDLER_OBJ) $(PI_GUICORE_OBJ) $(PI_GUICOMP_OBJ)
+
 ### All Objects ###
 
-SRC = $(PI_CORE_SRC) $(PI_PRESET_SRC) $(PI_EFFECT_SRC) $(PI_LOGIC_SRC) $(PI_ANALOG_SRC) $(PI_CONSOLE_SRC) $(PI_EVENT_SRC)
-OBJ = $(PI_CORE_OBJ) $(PI_PRESET_OBJ) $(PI_EFFECT_OBJ) $(PI_LOGIC_OBJ) $(PI_ANALOG_OBJ) $(PI_CONSOLE_OBJ) $(PI_EVENT_OBJ)
+SRC = $(PI_CORE_SRC) $(PI_PRESET_SRC) $(PI_EFFECT_SRC) $(PI_LOGIC_SRC) $(PI_ANALOG_SRC) $(PI_CONSOLE_SRC) $(PI_EVENT_SRC) $(PI_GUI_SRC)
+OBJ = $(PI_CORE_OBJ) $(PI_PRESET_OBJ) $(PI_EFFECT_OBJ) $(PI_LOGIC_OBJ) $(PI_ANALOG_OBJ) $(PI_CONSOLE_OBJ) $(PI_EVENT_OBJ) $(PI_GUI_OBJ)
 
 ########################################################################
 ##   	                         RULES		                          ##
@@ -197,6 +212,13 @@ $(PI_EVENT_OBJ): $(PI_EVENT_SRC) $(SFXP_EVENT_LIB)
 $(PI_COMMANDS_OBJ): $(PI_COMMANDS_SRC)
 
 $(PI_CMDHANDLER_OBJ): $(PI_CMDHANDLER_SRC) $(PI_COMMANDS_SRC)
+
+### Gui Handling ###
+$(PI_GUIHANDLER_OBJ): $(PI_GUIHANDLER_SRC)
+
+$(PI_GUICORE_OBJ): $(PI_GUICORE_SRC)
+
+$(PI_GUICOMP_OBJ): $(PI_GUICOMP_SRC)
 
 ########################################################################
 ##                          Genaral Rules                             ##

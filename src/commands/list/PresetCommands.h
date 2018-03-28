@@ -10,6 +10,7 @@
 
 #include <dirent.h>
 #include "commands/Commands.h"
+#include "core/FileUtils.h"
 
 class CmdLoadPreset : public StrictArgCommand{
 

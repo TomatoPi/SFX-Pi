@@ -9,6 +9,9 @@
  **********************************************************************/
 #include "EffectFactory.h"
 
+#define NAMEP ("PluginLoader")
+#define NAME ("EffectFactory")
+
 using namespace std;
 
 namespace PluginLoader{
@@ -17,50 +20,65 @@ namespace PluginLoader{
  * Main function that will load a plugin from the directory path
  *  return a pointer to loaded plugin, NULL if load failed
  **/
-JackPlugin* loadPlugin(string path){
+PluginInfos* loadPlugin(string path){
 
     #ifdef __DEBUG__
     if (SFXP::GlobalIsDebugEnabled)
-        cout << "PluginLoader : Load Plugin : " << path << endl;
+        SFXPlog::debug(NAMEP) << "Load Plugin : " << path << endl;
     #endif
 
-    // Create the plugin
-    JackPlugin* plugin = new JackPlugin();
-
     try{
+
+        // Open the library
+        void* handle = dlopen(path.c_str(), RTLD_LAZY);
+        if (!handle) {
+
+            throw string("Failed Open Library : ")+string(dlerror());
+        }
         
-        // Try Load his config
-        if (PluginConfigLoader::loadConfig((Plugin*)plugin, path)) {
+        dlerror();
 
-            throw string("Failed Load Config File");
+        // Create plugin infos object
+        PluginInfos* infos = new PluginInfos();
+        infos->_libHandle = handle;
+
+        // Load builder function
+        infos->_builder = (Plugin::builder_f) dlsym(handle, "func_builder");
+        const char* dlsym_error = dlerror();
+        if (dlsym_error){
+            
+            throw string("Failed Load Symbol : ")+string(dlsym_error);
         }
 
-        // Try Load his functions
-        if (PluginSourceLoader::loadFunctions(plugin, path)) {
-
-            throw string("Failed Load Source File");
+        // Load destructor function
+        infos->_destructor = (Plugin::destructor_f) dlsym(handle, "func_destructor");
+        dlsym_error = dlerror();
+        if (dlsym_error){
+            
+            throw string("Failed Load Symbol : ")+string(dlsym_error);
         }
 
-        if (plugin->status()) {
+        // Build the plugin object
+        infos->_plugin = (*(infos->_builder))();
+        if (!infos->_plugin) {
 
-            throw string("Catched Internal Load Error");
+            throw string("Failed Build Plugin");
         }
+
+        #ifdef __DEBUG__
+        if (SFXP::GlobalIsDebugEnabled)
+            SFXPlog::debug(NAMEP) << "Plugin Successfully Loaded : "
+                << infos->_plugin->name() << endl;
+        #endif
+        
+        return infos;
     }
     catch (string & e) {
 
-        cout << "PluginLoader : Error : " << e << endl;
-        cout << "PluginLoader : Error : Plugin Status : " << plugin->status() << endl;
-        delete plugin;
+        SFXPlog::err(NAMEP) << e << endl;
         
-        return NULL;
+        return nullptr;
     }
-
-    #ifdef __DEBUG__
-    if (SFXP::GlobalIsDebugEnabled)
-        cout << "PluginLoader : Plugin Successfully Loaded : " << plugin->name() << endl;
-    #endif
-
-    return plugin;
 }
 
 /**
@@ -70,23 +88,27 @@ JackPlugin* loadPlugin(string path){
  * @warning Effects builded from this plugin must be destroyed before
  *  unloading the plugin
  **/
-void unloadPlugin(JackPlugin* plugin){
+void unloadPlugin(PluginInfos* plugin){
 
     if (plugin == NULL) {
 
-        cout << "PluginConfigLoader : Warning : Tried to unload a null Plugin" << endl;
+        cout << "PluginConfigLoader : Warning : Tried to unload a null Plugin"
+            << endl;
         return;
     }
 
     #ifdef __DEBUG__
     if (SFXP::GlobalIsDebugEnabled)
-        cout << "PluginConfigLoader : Unload Plugin : " << plugin->name() << endl;
+        SFXPlog::debug(NAMEP) << "Unload Plugin : " << plugin->_plugin->name() << endl;
     #endif
-    
-    // Unlink handle
-    dlclose(plugin->handle());
 
     // Destroy plugin
+    (*(plugin->_destructor))(plugin->_plugin);
+    
+    // Unlink handle
+    dlclose(plugin->_libHandle);
+
+    // Destroy Plugininfos
     delete plugin;
 }
 }
@@ -94,7 +116,8 @@ void unloadPlugin(JackPlugin* plugin){
 /**
  * Map of TypeCode/Plugin pairs
  **/
-EffectFactory::EffectFactoryRegistry EffectFactory::m_reg = EffectFactory::EffectFactoryRegistry();
+EffectFactory::EffectFactoryRegistry EffectFactory::m_reg =
+        EffectFactory::EffectFactoryRegistry();
 
 /**
  * Function that Build EffectFactoryRegistry.
@@ -108,7 +131,7 @@ bool EffectFactory::buildRegistry(){
 
     #ifdef __DEBUG__
     if (SFXP::GlobalIsDebugEnabled)
-        cout << "EffectFactory : Build Plugin Registry" << endl;
+        SFXPlog::debug(NAME) << "Build Plugin Registry" << endl;
     #endif
 
     // First load TypeCodeTable
@@ -117,18 +140,20 @@ bool EffectFactory::buildRegistry(){
     // If TypeCodeTable is ok load plugin list
     for (auto & dir : TCTLoader::typeCodeTable()) {
 
-        JackPlugin* plugin = PluginLoader::loadPlugin(SFXP::DIR_PLUG+dir.second);
+        PluginLoader::PluginInfos* plugin =
+                PluginLoader::loadPlugin(SFXP::DIR_PLUG+dir.second);
 
         if (plugin) {
 
             m_reg[dir.first] = plugin;
         
-            cout << "EffectFactory : Registered Plugin : " << plugin->name()
-                << " with TypeCode : " << dir.first << endl;
+            SFXPlog::log(NAME) << "Registered Plugin : "
+                << plugin->_plugin->name() << " with TypeCode : "
+                << dir.first << endl;
         }
         else{
 
-            cout << "EffectFactory : Warning : Failed load plugin : "
+            SFXPlog::wrn(NAME) << "Failed load plugin : "
                 << dir.second << endl;
         }
     }
@@ -140,11 +165,11 @@ bool EffectFactory::buildRegistry(){
  * Function to get a plugin previously loaded from it TypeCode
  * Return NULL if given TC is invalid
  **/
-JackPlugin* EffectFactory::getPlugin(SFXP::tc_t tc){
+Plugin* EffectFactory::getPlugin(SFXP::tc_t tc){
 
     if (m_reg.find(tc) != m_reg.end()) {
 
-        return m_reg[tc];
+        return m_reg[tc]->_plugin;
     }
     return NULL;
 }
@@ -152,16 +177,16 @@ JackPlugin* EffectFactory::getPlugin(SFXP::tc_t tc){
 /**
  * Function to print list of registered Effects
  **/
-std::ostream& EffectFactory::print(std::ostream& os){
+void EffectFactory::print(){
 
-    os << "EffectRegistry :" << endl;
+    cout << "EffectRegistry :" << endl;
 
     for (auto & p : m_reg) {
 
-        os << "    - ";
-        os.width(15); os << left << p.second->name();
-        os << " : ";
-        os.width(3); os << left << p.first;
-        os << endl;
+        cout << "    - ";
+        cout.width(15); cout << left << p.second->_plugin->name();
+        cout << " : ";
+        cout.width(3); cout << left << p.first;
+        cout << endl;
     }
 }

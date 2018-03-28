@@ -8,17 +8,7 @@
  * Signal is passed througth a 3Bands EQ before and after clipping
  * Different Settings can be set for positives and negatives half-wave
  **********************************************************************/
-#include "Drive.h"
-
-extern "C" AbstractEffectUnit* func_builder(SFXP::tc_t typeCode, SFXP::id1_t id, JackPlugin* plugin) {
-
-    return new DriveEffect(typeCode, id, plugin);
-}
-
-extern "C" void func_destructor(AbstractEffectUnit* effect) {
-
-    delete effect;
-}
+#include "DriveEffect.h"
 
 /* ***************************** Consts ***************************** */
 #define BYP 0
@@ -50,16 +40,13 @@ extern "C" void func_destructor(AbstractEffectUnit* effect) {
 bool test = true;
 
 /* *************************** DriveEffect ************************** */
-DriveEffect::DriveEffect(SFXP::tc_t typeCode, SFXP::id1_t id, JackPlugin* plugin):
+DriveEffect_Class::DriveEffect_Class(SFXP::tc_t typeCode, SFXP::id1_t id, Plugin* plugin):
     AbstractEffectUnit( id, typeCode, plugin->pool()),
     m_toneIn(NULL),
     m_toneOut(NULL),
     m_clipP(clipHard),
     m_clipN(clipHard)
 {
-    
-    // Verify that plugin is correctly loaded
-    if (plugin->status()) throw std::string("Plugin Incomplete" + std::to_string(plugin->status()));
 
     // Setup Equalizer, Param used here are not important
     float f[] = {100, 1000};
@@ -71,9 +58,11 @@ DriveEffect::DriveEffect(SFXP::tc_t typeCode, SFXP::id1_t id, JackPlugin* plugin
 
         _jackU = new JACKUnit( SFXP::JACK_SERVER, plugin->name() );
 
-        _jackU->registerPorts( plugin->portNameListList(), plugin->portCountList(), id );
+        const std::string** ports = plugin->portName();
+        _jackU->registerPorts( ports, plugin->portCount(), id );
+        PLUGIN_DELETE_PORT_NAME_ARRAY(ports);
 
-        _jackU->registerCallback( DriveEffect::process, this );
+        _jackU->registerCallback( DriveEffect_Class::process, this );
         
         _jackU->activateClient();
     }
@@ -83,16 +72,16 @@ DriveEffect::DriveEffect(SFXP::tc_t typeCode, SFXP::id1_t id, JackPlugin* plugin
     }
 }
 
-DriveEffect::~DriveEffect(){
+DriveEffect_Class::~DriveEffect_Class(){
 
     // Delete EQ
     delete m_toneIn;
     delete m_toneOut;
 }
 
-int DriveEffect::process(jack_nframes_t nframes, void* arg){
+int DriveEffect_Class::process(jack_nframes_t nframes, void* arg){
 
-    DriveEffect* unit = (DriveEffect*)(arg);
+    DriveEffect_Class* unit = (DriveEffect_Class*)(arg);
 
     SFXP::sample_t *in, *out;
     in  = (SFXP::sample_t*)jack_port_get_buffer( unit->_jackU->getPort(SFXP::PortType::AudioIn, 0), nframes );
@@ -128,12 +117,13 @@ int DriveEffect::process(jack_nframes_t nframes, void* arg){
     return 0;
 }
 
-void DriveEffect::update(SFXPEvent& event){
+void DriveEffect_Class::update(SFXPEvent* event){
 
-    if (event._type == SFXPEvent::Type::Event_EffectEditParam) {
+    if (event) {
+    if (event->_type == SFXPEvent::Type::Event_EffectEditParam) {
         
-        SFXP::usize_t idx = event._effect._idx;
-        _poolArray[idx] = event._effect._value;
+        SFXP::usize_t idx = event->_effect._idx;
+        _poolArray[idx] = event->_effect._value;
 
         if (idx == ILC || idx == IHC) {
 
@@ -154,16 +144,17 @@ void DriveEffect::update(SFXPEvent& event){
         
         test = true;
     }
-    else if (event._type == SFXPEvent::Type::Event_EffectUpdateAll) {
+    else if (event->_type == SFXPEvent::Type::Event_EffectUpdateAll) {
 
         this->updateAll();
     }
+    }// if event
 }
 
 /**
  * Function called when all effect parameters has changed
  **/
-void DriveEffect::updateAll() {
+void DriveEffect_Class::updateAll() {
 
     memcpy( _poolArray, _currentBank->second, _poolSize * sizeof( float ) );
 

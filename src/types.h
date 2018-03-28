@@ -81,6 +81,8 @@ namespace SFXP{
     const string DIR_PLUG = "plugins/";
     const string DIR_PRST = "preset/";
 
+    const string FONT_FILE = DIR_CONF+"Ubuntu-R.ttf";
+
     const string VERSION = "3.0.0";
     const string BUILD   = string(__DATE__) + "   " + string(__TIME__);
 
@@ -107,13 +109,6 @@ namespace SFXP{
         MidiIn  =2,
         MidiOut =3
     };
-
-    static const char* portTypeString(PortType t) {
-
-        if (t == PortType::AudioIn || t == PortType::AudioOut)
-            return JACK_DEFAULT_AUDIO_TYPE;
-        return JACK_DEFAULT_MIDI_TYPE;
-    }
 }
 
 #ifdef __cplusplus
