@@ -1,0 +1,117 @@
+/*
+Copyright (C) 2018 Space-Computer
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+/* 
+    Created on : 26 juin 2018, 04:16:22
+    Author     : Space-Computer
+*/
+
+/*
+    Regles generales
+*/
+body 
+{
+    margin-left: 5%;
+    margin-right: 5%;
+    
+    font-family:monospace;
+    background-color:#2E2F33;
+    color:#E4E7F8;
+}
+
+div.entry div a
+{
+    float: right;
+}
+div.entry div a:link
+{
+    color: #1b88e8;
+}
+div.entry div a:visited
+{
+    color: #1bbfe8;
+}
+div.entry div a:hover
+{
+    color: red;
+}
+div.entry div a:active
+{
+    color: #5fe81b;
+}
+/*
+    Entrées
+*/
+div.entry
+{
+    background-color: #1A1A1A;
+    padding : 0.1%;
+}
+div.entry h2
+{
+    text-decoration: underline;
+    font-weight: bold;
+}
+div.entry h3
+{
+    text-decoration: underline;
+}
+div.entry div
+{
+    margin: 0.2%;
+    
+    margin-left: 5%;
+    margin-right: 5%;
+}
+/*
+    Type de Log
+*/
+div.implementation h3
+{
+    color: #15DA2F;
+}
+div.implementation ul
+{
+    background-color: #153F1A;
+}
+div.todo h3
+{
+    color: #11D4DB;
+}
+div.todo ul
+{
+    background-color: #164152;
+}
+div.bug h3
+{
+    color: #DBBC11;
+}
+div.bug ul
+{
+    background-color: #524E16;
+}
+div.correction h3
+{
+    color: #5961E6;
+}
+div.correction ul
+{
+    background-color: #2A2F78;
+}
+span.done {
+    
+    text-decoration:  line-through;
+}

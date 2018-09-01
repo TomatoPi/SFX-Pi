@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<!--
+Copyright (C) 2018 Space-Computer
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<html>
+    <head>
+        <title>Space Engine Changelog</title>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" type="text/css" href="Changelog.css">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!--
+Fonctions de Log
+-->
+        <script>
+            function entry(title, datas)
+            {
+                entryHTML =
+                    "<div class=\"entry\">"
+                    +   "<a name=\"" +title+ "\"></a>"
+                    +   "<h2>" +title+ " :</h2>"
+                    +   datas.reduce((a, v) => {return a + v;}, "")
+                    +"</div>";
+                
+                document.body.innerHTML += entryHTML;
+            }
+            function addLink(date)
+            {
+                res = "<a href=\"#" +date+ "\"> -ok- " +date+ "</a>";
+                return res;
+            }
+            function logData(type, title, datas)
+            {
+                res =
+                    "<div class=\"" +type+ "\">"
+                    +   "<h3>" +title+ " :</h3>"
+                    +   "<ul>"
+                    +   datas.reduce((a, v) => {return a + "<li>" + v + "</li>"}, "")
+                    +   "</ul></div>";
+                return res;
+            }
+            function logTODO(datas)
+            {
+                return logData("todo", "TODO", datas);
+            }
+            function logImpl(datas)
+            {
+                return logData("implementation", "Implementations", datas);
+            }
+            function logBug(datas)
+            {
+                return logData("bug", "Bugs / Troubles", datas);
+            }
+            function logCorr(datas)
+            {
+                return logData("correction", "Correctif", datas);
+            }
+            function logMisc(title, datas)
+            {
+                return logData("misc", title, datas);
+            }
+            function done(data, date)
+            {
+                res = "<span class=\"done\">"
+                    + data
+                    + "</span>"
+                    + addLink(date);
+                return res;
+            }
+            function UList(datas)
+            {
+                res ="<ul>"
+                    +   datas.reduce((a, v) => {return a + "<li>" + v + "</li>"}, "")
+                    +"</ul>";
+                return res;
+            }
+            function list(titre, datas)
+            {
+                return titre + UList(datas);
+            }
+        </script>
+    </head>
+    <body>
+<!--
+Header
+-->
+        <pre>
+         _______________________________________________________________________________________
+        ________    ________ _        _  _                 _  ___
+       / _         / ______   \      _/ /                  / /__ \      ###        
+      / /         / /          \   _/ /                   /     \ |   #    #      _/ /
+     / /_____    / /_           \_/ /      _ ______      / ___ / /     ###      _/ /    /
+    /_____  /   / _____        _/\/       / /_____/_/   / ____ -     _  _     _/ /___/ /_
+         / /   / /           _/ / \                    / /           / /     /______  _
+       _/ /   / /          _/ /    \                  / /           / /            / /
+ ________/  _/ /_        _/ /_      \_              _/ /_         _/ /_          _/ /_
+_______________________________________________________________________________________
+        </pre>
+        <h1>Objectifs : </h1>
+        <script>
+            entry("Fonctionalités",
+                [UList([
+                    done("2018/07/24 : Tap Tempo","2018/08/01"),
+                    done("2018/07/24 : Support des fonctionnalités du clavier Maitre MIDI", "2018/08/30"),
+                    "2018/08/30 : Système de preset et de banques",
+                    "2018/08/30 : Interface en console pour SFX-Pi"
+                ])]);
+            entry("Effets",
+                [UList([
+                    done("2018/08/02 : SingleTap Delay", "2018/08/10"),
+                    done("2018/08/02 : Chorus", "2018/08/10"),
+                    done("2018/07/31 : Distortion Simple", "2018/08/01"),
+                    "2018/07/24 : Looper avec alignement sur le temps",
+                    done("2018/07/24 : Synthétiseur MIDI polyphonique, fonctions d'onde simples", "2018/08/06")
+                ])]);
+        </script>
+        <h1>Changelog : </h1>
+<!--
+Changelog
+-->
+        <script>
+            entry("2018/08/30",
+                [
+                    logImpl([
+                            "Début d'implementation du système de Modules chargés dynamiquement",
+                            "Implementation du système de slots et structure commune à tout les modules",
+                            "Implementation du support natif du midi dans les modules (grace aux slots)",
+                            "Portage du module de Distortion vers le système dynamique pour tests"
+                        ]),
+                    logTODO([
+                            "Implementer un système de preset et de banque pour les modules",
+                            "Implementer un système de commandes pour agir sur SFX-Pi en cours de fonctionnement",
+                            "Implementer la base du gestionnaire d'Effets",
+                            "Ajouter des slots génériques pour les blocs tels que les Buffers, Filtres , etc ..."
+                        ])
+                ]);
+            entry("2018/08/26",
+                [
+                    logImpl([
+                            "Ajout d'un wrapper pour les fonctions jack, de creation de client et de ports"
+                        ]),
+                    logTODO([
+                            done("Rendre modulaire l'ajout de modules d'effets (séparer le code des modules dans des librairie dynamique", "2018/08/30")
+                        ])
+                ]);
+            entry("2018/08/21",
+                [
+                    logImpl([
+                            "Ajout des envelopes ADSR au Synthetiseur polyphonique",
+                            "Ajout d'une nouvelle forme d'onde : supperposition de sinus"
+                        ]),
+                    logTODO([
+                            "Rendre les paramèrtres changeables en temps reel"
+                        ]),
+                    logBug([
+                            "Plantage de l'audio quand plus de 7 touches sont relachées \"simultanéments\""
+                        ])
+                ]);
+            entry("2018/08/10",
+                [
+                    logImpl([
+                            list("Portage basique des modules depuis l'ancien programme :",
+                                ["Delay Simple",
+                                "Chorus",
+                                "LFO"]),
+                            "Implementation d'une liaison sommaire entre certains effets et les footswitchs",
+                            "Portage des librairies de Filtres Audio et de Buffers vers la nouvelle version du programme",
+                            "Ajout d'entrées de controle MIDI sur les Modules",
+                            "Implementation d'un système rudimentaire de Jeux de paramètres"
+                        ]),
+                    logTODO([
+                            done("Ameliorer et rentre modulaire la gestion des signaux de controle MIDI par les modules","2018/08/30"),
+                            done("Simplifier la creation des clients Jack des Modules","2018/08/26"),
+                            "Ameliorer le Système de \"Banques\" (jeux) de paramètres"
+                        ]),
+                    logBug([
+                            "Problème en connectant le Midi du module Tap tempo => plus aucun signal midi ne fonctionne pour les auters modules (liaisons GPIO <=> Modules)"
+                        ])
+                ]);
+            entry("2018/08/06",
+                [
+                    logImpl([
+                            "Première version de synthé polyphonique, multi voies, forme d'onde, gestion velocité"
+                        ]),
+                    logTODO([
+                            "Rendre le synthé reactif au MIDI : changer l'onde, le gain, etc, etc",
+                            "Implementer la possibilité de limiter un synthé à une voie donnée",
+                            "Mieux gerer l'initialisation de la Table de Notes MIDI"
+                        ])
+                ]);
+            entry("2018/08/02",
+                [
+                    logImpl([
+                            "Ajout de la gestion des signatures pour le TapTempo"
+                        ]),
+                    logBug([
+                            "Problème avec le TapTempo, démarage trop rapide et mauvais alignement sur les signatures complexes"
+                        ])
+                ]);
+            entry("2018/08/01",
+                [
+                    logImpl([
+                            "Implementation d'une distortion basique, avec fonction de transfert en double tanh (shape, softness)"
+                            ,"Ajout du cligonetement de la led du footswitch utilisé en TapTempo"
+                        ]),
+                    logTODO([
+                            done("Rendre la distortion réactive au MIDI : changer gain, shape, softness, fonction de clipping", "2018/08/30"),
+                            ,done("Ajout de la gestion des Signatures pour le tap Tempo", "2018/08/02")
+                        ])
+                ]);
+            entry("2018/07/31",
+                [
+                    logImpl([
+                            "Ajout du traitement des entrées sorties dans la boucle en temps reel du programme"
+                            ,"Implementation du TapTempo"
+                            ,"Ajout de l'evenement MIDI pour mettre à jour l'etat d'une sortie"
+                        ]),
+                    logTODO([
+                            done("Implementer un Module de Distortion", "2018/08/01")
+                            ,done("Implementer le Clignotement de la led du Tempo", "2018/08/01")
+                            ,done("Implementer la possibilité de specifier une source unique pour le tempo", "2018/08/01")
+                        ])
+                ]);
+            entry("2018/07/23",
+                [
+                    logImpl([
+                            "Reprise du programme de Zéro ... Sous une approche fonctionelle et en priorisant l'ajout et l'amelioration des fonctionnalités"
+                            ,"Implementation du Support des entrées logiques avec une table <adresse, id> en utilisant le CC Midi correspondant"
+                            ,"Implementation du Support des sorties logiques avec une table <id, adresse> liées aux CC Midi"
+                        ]),
+                    logTODO([
+                            done("Mettre la mise à jour et cycle de verification des entrées sorties dans la chaine en temps reel", "2018/07/31")
+                            ,done("Implementer une fonction de TapTempo", "2018/07/31")
+                        ])
+                ]);
+            entry("2018/07/22",
+                [
+                    logImpl([
+                            "Reprise du code après mise à plat des besoins sur diagrame de cas d'utilisation et d'activité UML"
+                            ,"Mise à jour de la structure d'arbre de configuration : plus stable et correction de bugs à l'interpretation"
+                            ,"Réduction du nombre de types de paramètres différents : suppression des types Free et Shadow"
+                        ]),
+                    logTODO([
+                            "Implementer les comportements internes aux Modules, edition paramètres, banques, etc..."
+                            ,"Découper le code pour séparer Noyau, Processeur et Editeur"
+                        ])
+                ]);
+            entry("2018/06/27",
+                [
+                    logImpl([
+                            list("Creation des classes de bases des effets : découpées en trois modèles :"
+                                ,["ProcessModel : Structure contenant les objets concernant JACK et la partie traitement du signal"
+                                    ,"EditionModel : Structure contenant les differentes banques sous forme facilement éditable"
+                                    ,"PresetModel  : Structure contenant les données de l'effet sous forme Serializable"])
+                            ,"Récupération de la structure ConfigTree dans une forme allégée et plus polyvalente"
+                            ,"Implementation quasi complète du modèle Preset"
+                        ]),
+                    logTODO([
+                            "Ecrire le Corps des classes des differents Modèles"
+                            ,"Creer la structure de la classe Module, anciennement appelée Plugin"
+                            ,"Effectuer des test unitaires des differents constructeurs et fonction de passage d'un modèle à l'autre"
+                        ])
+                ]);
+            entry("2018/06/26",
+                [
+                    logMisc("Initialisation", ["Début de la creation de la Révision 4 de SFX-Pi"])
+                ]);
+        </script>
+    </body>
+</html>

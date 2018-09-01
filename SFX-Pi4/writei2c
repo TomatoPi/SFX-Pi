@@ -1,0 +1,4 @@
+ #!/bin/bash
+
+ i2cset 1 0x20 $1 $2
+ i2cset 1 0x24 $1 $2

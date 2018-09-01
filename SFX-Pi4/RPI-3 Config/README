@@ -193,17 +193,5 @@
  V : Let's get Started Mudda Fukkazz
 ***************************************
 
- 1 - Creer un service pour lancer le software au démarage du Pi :
-
- 	- Mettre le fichier sfx_pi.service dans ~/.config/systemd/user/
-
-    - Mettre le script run_sfx_pi.sh dans /usr/bin/
-        - le rendre executable :
-            # chmod +x /usr/bin/run_sfx_pi.sh
-    
-    - Activer le service, en temps que sfxp :
-        # systemctl --user enable sfx_pi.service
-
- 2 - Redemarer le Pi
-
- 3 - Let's get Started Mudda Fukkazz
+ - Lancer le controleur d'effets :
+    # ./SFX-Pi

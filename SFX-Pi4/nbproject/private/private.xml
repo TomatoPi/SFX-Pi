@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-private xmlns="http://www.netbeans.org/ns/project-private/1">
+    <code-assistance-data xmlns="http://www.netbeans.org/ns/make-project-private/1">
+        <code-model-enabled>true</code-model-enabled>
+    </code-assistance-data>
+    <data xmlns="http://www.netbeans.org/ns/make-project-private/1">
+        <activeConfTypeElem>0</activeConfTypeElem>
+        <activeConfIndexElem>0</activeConfIndexElem>
+    </data>
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
+    <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
+        <group>
+            <file>file:/D:/Documents/SFX-Pi4/src/modules/midi/Polysynth.h</file>
+            <file>file:/D:/Documents/SFX-Pi4/src/process/gpio/Footswitch.cc</file>
+            <file>file:/D:/Documents/SFX-Pi4/src/process/gpio/Footswitch.h</file>
+            <file>file:/D:/Documents/SFX-Pi4/src/lib/buffer/Buffer.cc</file>
+            <file>file:/D:/Documents/SFX-Pi4/src/modules/midi/Polysynth.cc</file>
+            <file>file:/D:/Documents/SFX-Pi4/src/lib/filter/MonoPoleFilter.cc</file>
+            <file>file:/D:/Documents/SFX-Pi4/src/noyau/log.h</file>
+            <file>file:/D:/Documents/SFX-Pi4/src/modules/temps/Delay.cc</file>
+            <file>file:/D:/Documents/SFX-Pi4/src/modules/gain/Distortion_old.cc</file>
+            <file>file:/D:/Documents/SFX-Pi4/html/changelog.css</file>
+            <file>file:/D:/Documents/SFX-Pi4/src/noyau/modules/ModuleLoader.cc</file>
+            <file>file:/D:/Documents/SFX-Pi4/src/lib/filter/MultibandEQ.cc</file>
+            <file>file:/D:/Documents/SFX-Pi4/src/lib/filter/ParametricEQ.h</file>
+            <file>file:/D:/Documents/SFX-Pi4/src/lib/filter/GraphicEQ.cc</file>
+            <file>file:/D:/Documents/SFX-Pi4/src/noyau/modules/ModuleLoader.h</file>
+            <file>file:/D:/Documents/SFX-Pi4/src/noyau/utils.h</file>
+            <file>file:/D:/Documents/SFX-Pi4/src/noyau/types.h</file>
+            <file>file:/D:/Documents/SFX-Pi4/src/modules/module_file_template.cc</file>
+            <file>file:/D:/Documents/SFX-Pi4/src/modules/modulation/LFO.h</file>
+            <file>file:/D:/Documents/SFX-Pi4/src/noyau/modules/ModuleBase.h</file>
+            <file>file:/D:/Documents/SFX-Pi4/src/modules/temps/Chorus.h</file>
+            <file>file:/D:/Documents/SFX-Pi4/src/modules/gain/Distortion.cc</file>
+            <file>file:/D:/Documents/SFX-Pi4/src/SFXPi.cc</file>
+            <file>file:/D:/Documents/SFX-Pi4/src/lib/envelope/ADSR.h</file>
+            <file>file:/D:/Documents/SFX-Pi4/src/lib/envelope/ADSR.cc</file>
+            <file>file:/D:/Documents/SFX-Pi4/src/lib/filter/FilterBase.h</file>
+            <file>file:/D:/Documents/SFX-Pi4/html/changelog.html</file>
+            <file>file:/D:/Documents/SFX-Pi4/src/process/gpio/mcp23017.h</file>
+            <file>file:/D:/Documents/SFX-Pi4/src/process/gpio/mcp23017.cc</file>
+            <file>file:/D:/Documents/SFX-Pi4/src/modules/modulation/LFO.cc</file>
+            <file>file:/D:/Documents/SFX-Pi4/src/modules/temps/Chorus.cc</file>
+            <file>file:/D:/Documents/SFX-Pi4/src/lib/filter/MonoPoleFilter.h</file>
+            <file>file:/D:/Documents/SFX-Pi4/src/modules/TapTempo.h</file>
+            <file>file:/D:/Documents/SFX-Pi4/src/noyau/modules/ModuleBase.cc</file>
+            <file>file:/D:/Documents/SFX-Pi4/src/modules/TapTempo.cc</file>
+            <file>file:/D:/Documents/SFX-Pi4/src/lib/filter/ParametricEQ.cc</file>
+            <file>file:/D:/Documents/SFX-Pi4/src/lib/filter/GraphicEQ.h</file>
+            <file>file:/D:/Documents/SFX-Pi4/Makefile</file>
+            <file>file:/D:/Documents/SFX-Pi4/src/lib/filter/MultibandEQ.h</file>
+            <file>file:/D:/Documents/SFX-Pi4/src/noyau/midi.h</file>
+            <file>file:/D:/Documents/SFX-Pi4/src/modules/temps/Delay.h</file>
+            <file>file:/D:/Documents/SFX-Pi4/src/lib/buffer/Buffer.h</file>
+            <file>file:/D:/Documents/SFX-Pi4/src/process/module/jackWrapper.h</file>
+        </group>
+    </open-files>
+</project-private>

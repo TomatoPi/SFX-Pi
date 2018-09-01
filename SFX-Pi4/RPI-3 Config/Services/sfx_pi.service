@@ -1,0 +1,11 @@
+# Service de lancement du software SFX-Pi
+
+[Unit]
+Description=SFX_Pi_SERVICE
+After=jack.service
+
+[Service]
+ExecStart=/usr/bin/run_sfx_pi.sh
+
+[Install]
+WantedBy=default.target

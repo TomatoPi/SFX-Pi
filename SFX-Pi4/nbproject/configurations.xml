@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="100">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <df root="D:/Documents/SFX-Pi4" name="0">
+      <df name="src">
+        <df name="modules">
+          <df name="gain">
+            <in>Distortion.cc</in>
+            <in>Distortion_old.cc</in>
+          </df>
+          <df name="midi">
+            <in>Polysynth.cc</in>
+          </df>
+          <df name="modulation">
+            <in>LFO.cc</in>
+          </df>
+          <df name="temps">
+            <in>Chorus.cc</in>
+            <in>Delay.cc</in>
+          </df>
+          <in>TapTempo.cc</in>
+          <in>module_file_template.cc</in>
+        </df>
+        <df name="noyau">
+          <df name="modules">
+            <in>ModuleBase.cc</in>
+            <in>ModuleBase.h</in>
+            <in>ModuleLoader.cc</in>
+            <in>ModuleLoader.h</in>
+          </df>
+        </df>
+        <in>SFXPi.cc</in>
+      </df>
+    </df>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>D:/Documents/SFX-Pi4/nbproject/private/launcher.properties</itemPath>
+    </logicalFolder>
+  </logicalFolder>
+  <sourceFolderFilter>^(nbproject)$</sourceFolderFilter>
+  <sourceRootList>
+    <Elem>D:\Documents\SFX-Pi4</Elem>
+  </sourceRootList>
+  <projectmakefile></projectmakefile>
+  <confs>
+    <conf name="Default" type="0">
+      <toolsSet>
+        <compilerSet>default</compilerSet>
+        <dependencyChecking>false</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <flagsDictionary>
+        <element flagsID="0" commonFlags="-std=c++14"/>
+        <element flagsID="1" commonFlags="-std=c++17 -std=gnu++17"/>
+      </flagsDictionary>
+      <codeAssistance>
+      </codeAssistance>
+      <makefileType>
+        <makeTool>
+          <buildCommandWorkingDir>D:/Documents/SFX-Pi4</buildCommandWorkingDir>
+          <buildCommand>${MAKE} WINDOWS=0</buildCommand>
+          <cleanCommand>${MAKE} WINDOWS=0 clean</cleanCommand>
+          <executablePath>D:\Documents\SFX-Pi4\nbproject\private\tools\localhost\MinGW\g++.exe</executablePath>
+        </makeTool>
+        <preBuild>
+          <preBuildCommandWorkingDir>.</preBuildCommandWorkingDir>
+          <preBuildCommand></preBuildCommand>
+        </preBuild>
+      </makefileType>
+      <item path="D:/Documents/SFX-Pi4/src/SFXPi.cc" ex="false" tool="1" flavor2="11">
+        <ccTool flags="1">
+          <incDir>
+            <pElem>src</pElem>
+            <pElem>includes</pElem>
+            <pElem></pElem>
+          </incDir>
+        </ccTool>
+      </item>
+      <item path="D:/Documents/SFX-Pi4/src/modules/TapTempo.cc"
+            ex="false"
+            tool="1"
+            flavor2="11">
+        <ccTool flags="0">
+        </ccTool>
+      </item>
+      <item path="D:/Documents/SFX-Pi4/src/modules/gain/Distortion.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="D:/Documents/SFX-Pi4/src/modules/gain/Distortion_old.cc"
+            ex="false"
+            tool="1"
+            flavor2="11">
+        <ccTool flags="0">
+        </ccTool>
+      </item>
+      <item path="D:/Documents/SFX-Pi4/src/modules/midi/Polysynth.cc"
+            ex="false"
+            tool="1"
+            flavor2="11">
+        <ccTool flags="0">
+        </ccTool>
+      </item>
+      <item path="D:/Documents/SFX-Pi4/src/modules/modulation/LFO.cc"
+            ex="false"
+            tool="1"
+            flavor2="11">
+        <ccTool flags="0">
+        </ccTool>
+      </item>
+      <item path="D:/Documents/SFX-Pi4/src/modules/module_file_template.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="D:/Documents/SFX-Pi4/src/modules/temps/Chorus.cc"
+            ex="false"
+            tool="1"
+            flavor2="11">
+        <ccTool flags="0">
+        </ccTool>
+      </item>
+      <item path="D:/Documents/SFX-Pi4/src/modules/temps/Delay.cc"
+            ex="false"
+            tool="1"
+            flavor2="11">
+        <ccTool flags="0">
+        </ccTool>
+      </item>
+      <item path="D:/Documents/SFX-Pi4/src/noyau/modules/ModuleBase.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="D:/Documents/SFX-Pi4/src/noyau/modules/ModuleBase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="D:/Documents/SFX-Pi4/src/noyau/modules/ModuleLoader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="D:/Documents/SFX-Pi4/src/noyau/modules/ModuleLoader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+    </conf>
+  </confs>
+</configurationDescriptor>
