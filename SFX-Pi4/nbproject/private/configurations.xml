@@ -146,6 +146,7 @@
           <df name="envelope">
             <in>ADSR.cc</in>
             <in>ADSR.h</in>
+            <in>Fonctions.h</in>
           </df>
           <df name="filter">
             <in>FilterBase.cc</in>
@@ -169,6 +170,7 @@
           <df name="midi">
             <in>Polysynth.cc</in>
             <in>Polysynth.h</in>
+            <in>Polysynth_old.cc</in>
           </df>
           <df name="modulation">
             <in>LFO.cc</in>

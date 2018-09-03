@@ -53,7 +53,7 @@ namespace sfx
 // Status Bits
 ////////////////////////////////////////////////////////////////////
     
-    const hex_t Midi_ControlChange      = 0xA0;
+    const hex_t Midi_ControlChange      = 0xB0;
     
     const hex_t Midi_SystemExclusive    = 0xF0;
     const hex_t Midi_SystemExclusiveEnd = 0xF7;
@@ -117,6 +117,17 @@ namespace sfx
         
         buff[1] = ctrl;
         buff[2] = val;
+    }
+    
+    inline void Midi_reserve_ControlChange_Throught(void* port_buff, jack_nframes_t i
+        , const hex_t* source)
+    {
+        unsigned char* buff = jack_midi_event_reserve(port_buff, i, 3);
+        
+        buff[0] = source[0];
+        
+        buff[1] = source[1];
+        buff[2] = source[2];
     }
     
     inline void Midi_reserve_14bitControlChange(void* port_buff, jack_nframes_t i

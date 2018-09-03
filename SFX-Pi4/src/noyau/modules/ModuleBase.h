@@ -58,6 +58,9 @@ struct Module
          */
         typedef float (*slot_f)(sfx::hex_t, Module*);
         
+        Slot():Slot("Empty", 0, nullptr)
+        {
+        }
         Slot(std::string n, sfx::hex_t d, slot_f s):name(n), value(d),callback(s)
         {
         }
@@ -155,14 +158,15 @@ struct Module
         sfx::hex_t ccs = sfx::Midi_read_CCSource(event);
         sfx::hex_pair_t cc = std::make_pair(ccc, ccs);
         
-        //sfx::debug("Native-MIDI", "Process Midi Event : %i %i\n", ccc, ccs);
+        sfx::debug("Native-MIDI", "Process Midi Event : %i %i\n", ccc, ccs);
         
         if (links.find(cc) != links.end())
             for (auto& slot : links[cc])
-            {
-                float v = (*infos->slots[slot].callback)(sfx::Midi_read_CCValue(event), this);
-                sfx::debug("Native-MIDI", "Called slot : \"%s\" with value : %i => %f\n", slot, sfx::Midi_read_CCValue(event), v);
-            }
+                if (infos->slots[slot].callback != nullptr)
+                {
+                    float v = (*infos->slots[slot].callback)(sfx::Midi_read_CCValue(event), this);
+                    sfx::debug("Native-MIDI", "Called slot : \"%s\" with value : %i => %f\n", slot, sfx::Midi_read_CCValue(event), v);
+                }
     }
 #else
     

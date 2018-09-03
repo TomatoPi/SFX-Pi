@@ -3,6 +3,11 @@
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <df root="D:/Documents/SFX-Pi4" name="0">
       <df name="src">
+        <df name="lib">
+          <df name="envelope">
+            <in>Fonctions.h</in>
+          </df>
+        </df>
         <df name="modules">
           <df name="gain">
             <in>Distortion.cc</in>
@@ -10,6 +15,7 @@
           </df>
           <df name="midi">
             <in>Polysynth.cc</in>
+            <in>Polysynth_old.cc</in>
           </df>
           <df name="modulation">
             <in>LFO.cc</in>
@@ -97,7 +103,7 @@
         <ccTool flags="0">
         </ccTool>
       </item>
-      <item path="D:/Documents/SFX-Pi4/src/modules/midi/Polysynth.cc"
+      <item path="D:/Documents/SFX-Pi4/src/modules/midi/Polysynth_old.cc"
             ex="false"
             tool="1"
             flavor2="11">
@@ -149,6 +155,10 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="src/lib/envelope/Fonctions.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/modules/midi/Polysynth.cc" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
   </confs>

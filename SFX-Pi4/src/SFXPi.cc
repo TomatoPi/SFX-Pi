@@ -81,6 +81,12 @@ int main(int argc, char** argv)
         exit(1);
     }
     
+    std::shared_ptr<Module::Info> SYNTH_MODULE = loadModule("modules/midi/Polysynth.so");
+    if (!SYNTH_MODULE)
+    {
+        exit(1);
+    }
+    
     ///////////////////////////////////////////////////////////////
     
 	const char **physic_in;
@@ -110,6 +116,7 @@ int main(int argc, char** argv)
     
     std::unique_ptr<Module> DISTO(new Module(DISTO_MODULE));
     
+    /*
     DISTO->linkSlot(std::make_pair(8, 10), "Gain");
     DISTO->linkSlot(std::make_pair(9, 10), "Shape");
     DISTO->linkSlot(std::make_pair(10, 10), "Softness");
@@ -119,6 +126,13 @@ int main(int argc, char** argv)
     DISTO->linkSlot(std::make_pair(13, 10), "In Highcut");
     DISTO->linkSlot(std::make_pair(14, 10), "Out Lowcut");
     DISTO->linkSlot(std::make_pair(15, 10), "Out Highcut");
+    //*/
+    
+    ///////////////////////////////////////////////////////////////
+    
+    std::unique_ptr<Module> SYNTH(new Module(SYNTH_MODULE));
+    
+    ///////////////////////////////////////////////////////////////
     
 	if (jack_connect (DISTO->client, physic_in[0], jack_port_name (DISTO->audioIns[0].port))) 
     {
@@ -134,7 +148,23 @@ int main(int argc, char** argv)
 		sfx::err (NAME, "cannot connect output ports : \"%s\" \"%s\"\n", jack_port_name (DISTO->audioOuts[0].port), physic_out[1]);
 	}
     
-	if (jack_connect (DISTO->client, midi_in[0], jack_port_name (DISTO->midiIns[0].port))) 
+//	if (jack_connect (DISTO->client, midi_in[0], jack_port_name (DISTO->midiIns[0].port))) 
+//    {
+//		sfx::err (NAME, "cannot connect input ports\n");
+//	}
+    
+    ///////////////////////////////////////////////////////////////
+    
+	if (jack_connect (SYNTH->client, jack_port_name (SYNTH->audioOuts[0].port), physic_out[0])) 
+    {
+		sfx::err (NAME, "cannot connect output ports : \"%s\" \"%s\"\n", jack_port_name (SYNTH->audioOuts[0].port), physic_out[0]);
+	}
+	if (jack_connect (SYNTH->client, jack_port_name (SYNTH->audioOuts[0].port), physic_out[1])) 
+    {
+		sfx::err (NAME, "cannot connect output ports : \"%s\" \"%s\"\n", jack_port_name (SYNTH->audioOuts[0].port), physic_out[1]);
+	}
+    
+	if (jack_connect (SYNTH->client, midi_in[0], jack_port_name (SYNTH->midiIns[0].port))) 
     {
 		sfx::err (NAME, "cannot connect input ports\n");
 	}

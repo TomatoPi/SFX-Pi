@@ -64,6 +64,22 @@ namespace sfx
     }
 
     /**
+    * Convert a length in ms to sample
+    */
+    static inline int mstos(float ms, int sr){
+
+        return (int)( (ms*sr) / 1000.0f );
+    }
+
+    /**
+    * Convert a length in sample to ms
+    */
+    static inline int stoms(float sample, int sr){
+
+        return (int)( (sample * 1000.0f) / (float)(sr) );
+    }
+
+    /**
      * Remap given float from [fmin,fmax] to [tmin,tmax]
      **/
     static inline float map(float in, float fmin, float fmax, float tmin, float tmax)
@@ -94,6 +110,22 @@ namespace sfx
     {
         return (440.0 / 32.0) * pow(2, ((float)in-9.0)/12.0);
     }
+    
+    /**
+     * Remap given midi_cc value to [tmin;tmax] interval, return sample count
+     */
+    static inline float mapfm_mstos(sfx::hex_t in, float tmin, float tmax, int sr)
+    {
+        return mstos(map(in, 0, 127, tmin, tmax), sr);
+    }
+    
+    /**
+     * Remap given midi_cc value to [tmin;tmax] interval, return ms duration
+     */
+    static inline float mapfm_stoms(sfx::hex_t in, float tmin, float tmax, int sr)
+    {
+        return stoms(map(in, 0, 127, tmin, tmax), sr);
+    }
 
     /**
      * Return random float between min and max
@@ -107,22 +139,6 @@ namespace sfx
             max = a;
         }
         return frand()*(max - min) + min;
-    }
-
-    /**
-    * Convert a length in ms to sample
-    */
-    static inline int mstos(float ms, int sr){
-
-        return (int)( (ms*sr) / 1000.0f );
-    }
-
-    /**
-    * Convert a length in sample to ms
-    */
-    static inline int stoms(float sample, int sr){
-
-        return (int)( (sample * 1000.0f) / (float)(sr) );
     }
 
     /**
