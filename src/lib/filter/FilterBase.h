@@ -11,26 +11,24 @@
 #include <cstring>
 #include <math.h>
 
-#include "types.h"
+#include "noyau/types.h"
 
 /**
  * Interface for encapsulate FilterPole class
  * Herited by Single and Multi pole filters
  * It has a Pure Virtual Destructor used to make class non instanciable
- * All Functions provided except constructors are inline to save function
- * calls
- * https://en.wikipedia.org/wiki/Inline_expansion
  **/
 class AFilterBase{
 
     protected :
 
-        AFilterBase();
+        AFilterBase(sfx::usize_t order);
         virtual ~AFilterBase() = 0;
-        
-        SFXP::sample_t m_sm1, m_sm2, m_sm3; /**< Filter's last samples */
 
-        inline void shuffleBuffer( SFXP::sample_t in ){
+        sfx::usize_t _order;
+        sfx::sample_t m_sm1, m_sm2, m_sm3; /**< Filter's last samples */
+
+        inline void shuffleBuffer( sfx::sample_t in ){
 
             m_sm3 = m_sm2;
             m_sm2 = m_sm1;
@@ -46,7 +44,8 @@ class AFilterBase{
             public :
 
                 FilterPole();
-                FilterPole(float freq, float samplerate);
+                FilterPole(float freq, float samplerate, sfx::usize_t order=4);
+                ~FilterPole();
                 
             private :
                 
@@ -57,34 +56,54 @@ class AFilterBase{
 
             private :
 
-                float m_f;
-                float m_fBak;
+                float _f;
+                float _fBak;
+                sfx::usize_t _order;
                 
-                SFXP::sample_t m_p0, m_p1, m_p2, m_p3;
+                sfx::sample_t* _poles;
 
             public :
 
                 static const float vsa;
             
-                inline SFXP::sample_t compute(SFXP::sample_t in){
+                inline sfx::sample_t compute(sfx::sample_t in){
 
-                    this->m_p0 += ( this->m_f * ( in - this->m_p0 ) ) + vsa;
-                    this->m_p1 += ( this->m_f * ( this->m_p0 - this->m_p1 ) );
-                    this->m_p2 += ( this->m_f * ( this->m_p1 - this->m_p2 ) );
-                    this->m_p3 += ( this->m_f * ( this->m_p2 - this->m_p3 ) );
+                    _poles[0] += ( _f * ( in - _poles[0] ) ) + vsa;
 
-                    return this->m_p3;
+                    for (sfx::usize_t i = 1; i < _order; i++) {
+                        
+                        _poles[i] += ( _f * ( _poles[i-1] - _poles[i] ) );
+                    }
+                    
+                    return _poles[_order-1];
                 }
 
                 inline void setFrequency(float f, float sr){
                     
-                    this->m_fBak = f;
-                    this->m_f = scaleFrequency( f, sr );
+                    this->_fBak = f;
+                    this->_f = scaleFrequency( f, sr );
                 }
 
                 inline float getFrequency() const{
 
-                    return m_fBak;
+                    return _fBak;
+                }
+
+                inline void setOrder(sfx::usize_t order) {
+
+                    if (order < 1) order = 1;
+
+                    if (_poles) delete[] _poles;
+                    
+                    _poles = new sfx::sample_t[order];
+                    _order = order;
+
+                    memset(_poles, 0, order * sizeof(sfx::sample_t));
+                }
+                
+                inline sfx::usize_t getOrder() const {
+
+                    return _order;
                 }
         };
 };

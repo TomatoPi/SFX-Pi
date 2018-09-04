@@ -24,52 +24,54 @@ class ParametricEQ : public AFilterBase{
 
     public :
     
-        ParametricEQ(SFXP::usize_t poleCount, float* poles, float* qf, float samplerate);
+        ParametricEQ(sfx::usize_t poleCount, float* poles, float* qf, float samplerate
+                    ,sfx::usize_t* orders);
         virtual ~ParametricEQ();
 
         /**
          * Compute given input and output mix of all bands
          * Use getBand function for get a specific band value
          **/
-        SFXP::sample_t compute(SFXP::sample_t in, SFXP::usize_t poleCount, float* gains);
-        SFXP::sample_t compute(SFXP::sample_t in, SFXP::usize_t idx);
-        SFXP::sample_t getBand(SFXP::usize_t idx);
+        sfx::sample_t compute(sfx::sample_t in, sfx::usize_t poleCount, float* gains);
+        sfx::sample_t compute(sfx::sample_t in, sfx::usize_t idx);
+        sfx::sample_t getBand(sfx::usize_t idx);
 
-        void setPole(SFXP::usize_t idx, float f, float q, float sr);
+        void setPole(sfx::usize_t idx, float f, float q, float sr, sfx::usize_t order);
 
         /**
          * Change EQ Configuration
          **/
-        void setFrequency(SFXP::usize_t idx, float f, float sr);
-        void setFrequency(SFXP::usize_t poleCount, float* poles, float sr);
-        float getFrequency(SFXP::usize_t idx) const;
+        void setFrequency(sfx::usize_t idx, float f, float sr);
+        void setFrequency(sfx::usize_t poleCount, float* poles, float sr);
+        float getFrequency(sfx::usize_t idx) const;
         
         /**
          * Change EQ Configuration
          **/
-        void setQFactor(SFXP::usize_t idx, float qf, float sr);
-        void setQFactor(SFXP::usize_t poleCount, float* qf, float sr);
-        float getQFactor(SFXP::usize_t idx) const;
+        void setQFactor(sfx::usize_t idx, float qf, float sr);
+        void setQFactor(sfx::usize_t poleCount, float* qf, float sr);
+        float getQFactor(sfx::usize_t idx) const;
 
-        SFXP::usize_t getBandCount() const;
+        sfx::usize_t getBandCount() const;
         
     private :
 
         /**
          * Scale Given Band's poles from it center Frenquency and Q factor
          **/
-        void updatePole(SFXP::usize_t idx, float cf, float qf, float sr);
+        void updatePole(sfx::usize_t idx, float cf, float qf, float sr, sfx::usize_t order);
 
         /** Store non Scalled Bands **/
         float*  m_band;
 
         /** EQ Poles **/
-        float*  m_qf;
-        float*  m_cf;
+        float*          m_qf;
+        float*          m_cf;
+        sfx::usize_t*  m_orders;
         
-        FilterPole*     m_poleL;
-        FilterPole*     m_poleH;
-        SFXP::usize_t   m_poleCount;
+        FilterPole**    m_poleL;
+        FilterPole**    m_poleH;
+        sfx::usize_t   m_poleCount;
 };
 
 #endif

@@ -8,8 +8,8 @@
 #ifndef DEF_BUFFER_H
 #define DEF_BUFFER_H
 
-#include "types.h"
-#include "core/Utils.h"
+#include "noyau/types.h"
+#include "noyau/utils.h"
 
 #include <cstring>
 
@@ -31,7 +31,7 @@ class Buffer{
 		/**
 		*	Write the value
 		*/
-		virtual void write(SFXP::sample_t value);
+		virtual void write(sfx::sample_t value);
 		
 		virtual void set_length(int l, int sr);
 		virtual void set_length(int s);
@@ -41,7 +41,7 @@ class Buffer{
 	
 	protected :
 	
-		SFXP::sample_t *buffer_;
+		sfx::sample_t *buffer_;
 		int size_;
 	
 		int write_i_;
@@ -66,8 +66,8 @@ class Buffer_S : public Buffer{
 		virtual void set_length(int l, int sr);
 		virtual void set_length(int s);
 		
-		SFXP::sample_t read();
-		SFXP::sample_t read(float speed);
+		sfx::sample_t read();
+		sfx::sample_t read(float speed);
         
 	protected :
 	
@@ -84,8 +84,8 @@ class Buffer_M : public Buffer{
 		virtual void set_length(int l, int sr);
 		virtual void set_length(int s);
 		
-		SFXP::sample_t read(int idx);
-		virtual SFXP::sample_t read(int idx, float speed);
+		sfx::sample_t read(int idx);
+		virtual sfx::sample_t read(int idx, float speed);
 		
 		void set_reader(int count, int *delay, int sr);
 		void set_reader(int count, int *delay);
@@ -112,11 +112,11 @@ class Buffer_R : public Buffer{
         void set_length( int length, int samplerate );
         void set_length( int length );
         
-        SFXP::sample_t read();
+        sfx::sample_t read();
         
         float get_rms2();
         
-        virtual void write( SFXP::sample_t data );
+        virtual void write( sfx::sample_t data );
         
     protected :
     
@@ -136,7 +136,7 @@ class Buffer_A : public Buffer_M{
         Buffer_A(int length, int samplerate, int count, int *delay);
         ~Buffer_A();
 
-        virtual SFXP::sample_t read(int idx, float speed);
+        virtual sfx::sample_t read(int idx, float speed);
 
         /**
          * Function that reset Readers positions.

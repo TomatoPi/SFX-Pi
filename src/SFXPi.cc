@@ -1,271 +1,446 @@
-/**********************************************************************
- * @file SFXPi.cc
- * @author TomatoPi
- * @version 1.0
+/*
+ * Copyright (C) 2018 Space-Computer
  *
- * Main
- **********************************************************************/
-#include <iostream>
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/* 
+ * File:   SFX-Pi.cc
+ * Author: Space-Computer
+ *
+ * Created on 23 juillet 2018, 15:00
+ */
 #include <unistd.h>
+#include <chrono>
 
-#include "types.h"
-#include "log.h"
+#include "noyau/log.h"
+#include "process/gpio/Footswitch.h"
 
-#include "effect/EffectFactory.h"
-#include "effect/EffectHandler.h"
+#include "noyau/modules/ModuleLoader.h"
 
-#include "preset/PresetHandler.h"
+/*
+#include "modules/TapTempo.h"
+//#include "modules/gain/Distortion.h"
+#include "modules/midi/Polysynth.h"
+#include "modules/temps/Delay.h"
 
-#include "commands/CommandHandler.h"
+#include "modules/temps/Chorus.h"
+#include "modules/modulation/LFO.h"
+ */
 
-#include "event/EventHandler.h"
+#define NAME "SFX-Pi"
 
-#include "logic/LogicHandler.h"
-
-#include "analog/AnalogHandler.h"
-
-#include "gui/GuiHandler.h"
-
-using namespace SFXP;
-
-#ifdef __DEBUG__
-bool SFXP::GlobalIsDebugEnabled = true;
-#endif
-bool SFXP::GlobalNeedToExit     = false;
-int  SFXP::GlobalErrState       = 0;
-
-int main(int argc, char* argv[]){
-
-    cout << endl <<
-    "******************************************************************"
-    << endl <<
-    "******************************************************************"
-    << endl <<
+int main(int argc, char** argv)
+{
+    sfx::sfxStream << '\n' << 
+    "====================================================================================================="
+    << '\n' <<
+    "=====================================================================================================\n"
+    "         _________    _________ _          _  _                 _  ___                           \n"
+    "        // ___       // ______   \\\\      _/ /                  // /__ \\       ###                \n"
+    "       // /         // /          \\\\   _/ /                   //     \\ |    #    #      _/ /     \n"
+    "      // /_____    // /_           \\\\_/ /      _ ______      // ___ / /      ###      _/ /    /  \n"
+    "     //_____  /   // _____        _/\\\\/       / /_____/_/   // ____ -     _   _     _/ /___/ /_  \n"
+    "          // /   // /           _/ / \\\\                    // /           // /     /______  _    \n"
+    "      ___// /   // /          _/ /    \\\\                  // /           // /           // /     \n"
+    "  _________/  _// /_        _/ /_      \\\\_              _// /_         _// /_         _// /_     \n"
+    "                                                                                                 \n"
+    "=====================================================================================================\n"
+    << '\n' <<
     "   SFX-Pi : The Embedded System"
-    << endl <<
-    "   Program Version : ";
-    cout.width(5); cout << left << SFXP::VERSION << endl <<
-    "   Build : " << SFXP::BUILD << endl <<
-    #ifdef __DEBUG__
-    "   DEBUG BUILD : Use \'make RELEASE=true\' to build a release"
-    << endl <<
+    << '\n' << 
+    "   Program Version : " << sfx::VERSION
+    << '\n' <<
+    "      Build : " << sfx::BUILD
+    << '\n' <<
+    #ifndef NDEBUG
+    "      DEBUG BUILD : Use \'make RELEASE=1\' to build a release"
+    << '\n' <<
     #endif
-    "******************************************************************"
-    << endl <<
-    "******************************************************************"
-    << endl << endl;
-
-    //// PARSE START ARGS ////
-    bool argNogui   = false; // Doesn't enable GUI Handler if true
-    bool argNoio    = false; // Doesn't enable Physical IO if true
-    bool argNojack  = false; // Doesn't enable Audio if true
-    SFXPlog::log("SFX-Pi") << "Parse Launch Args :";
-    for (int i = 0; i < argc; i++){
-
-        if (strcmp(argv[i], "-nogui") == 0) {
-
-            cout << " (Console)";
-            argNogui = true;
-        }
-        else if (strcmp(argv[i], "-noio") == 0){
-
-            cout << " (Headless)";
-            argNoio = true;
-        }
-        else if (strcmp(argv[i], "-nojack") == 0) {
-
-            cout << " (No Audio)";
-            argNojack = true;
-        }
-        else if (strcmp(argv[i], "-editor") == 0) {
-
-            cout << " (Preset Editor Mode)";
-            argNoio = true;
-            argNojack = true;
-        }
-    }
-    if (!(argNogui || argNoio || argNojack)) {
-
-        cout << " Standard Run";
-    }
-    cout << '\n';
-
-    //// BUILD PROGRAM ////
-    PresetHandler*  PRESET_HANDLER  (nullptr);
-    EffectHandler*  EFFECT_HANDLER  (nullptr);
-    CommandHandler* COMMAND_HANDLER (nullptr);
-    EventHandler*   EVENT_HANDLER   (nullptr);
-    LogicHandler*   LOGIC_HANDLER   (nullptr);
-    AnalogHandler*  ANALOG_HANDLER  (nullptr);
-    GuiHandler*     GUI_HANDLER     (nullptr);
-    try {
-        
-        // REGISTER PLUGIN LIST //
-        if (EffectFactory::buildRegistry())
-            throw string("Failed Build Pugin Registry");
-
-        // CREATE PRESET HANDLER //
-        PRESET_HANDLER = new PresetHandler();
-        if (PRESET_HANDLER->errored())
-            throw string("Failed Build Preset Handler");
-
-        // CREATE EFFECT HANDLER //
-        EFFECT_HANDLER = new EffectHandler(argNojack);
-        if (EFFECT_HANDLER->errored())
-            throw string("Failed Build Effect Handler");
-
-        // CREATE COMMAND HANDLER //
-        COMMAND_HANDLER = new CommandHandler();
-        if (COMMAND_HANDLER->errored())
-            SFXPlog::err("SFXPi") << "Failed Build Command Handler" << endl;
-
-        // CREATE EVENT HANDLER //
-        EVENT_HANDLER = new EventHandler();
-        if (EVENT_HANDLER->errored())
-            throw string("Failed Build Event Handler");
-
-        // CREATE LOGIC HANDLER //
-        LOGIC_HANDLER = new LogicHandler(argNoio);
-        if (LOGIC_HANDLER->errored())
-            throw string("Failed Build Logic Handler");
-
-        // CREATE ANALOG HANDLER //
-        ANALOG_HANDLER = new AnalogHandler(argNoio);
-        if (ANALOG_HANDLER->errored())
-            throw string("Failed Build Analog Handler");
-
-        // CREATE ANALOG HANDLER //
-        GUI_HANDLER = new GuiHandler(argNogui);
-        if (GUI_HANDLER->errored())
-            throw string("Failed Build Gui Handler");
-
-        // ATTACH HANDLERS TOGETHER //
-        PRESET_HANDLER->attachPresetHandler (PRESET_HANDLER);
-        PRESET_HANDLER->attachEffectHandler (EFFECT_HANDLER);
-        PRESET_HANDLER->attachCommandHandler(COMMAND_HANDLER);
-        PRESET_HANDLER->attachEventHandler  (EVENT_HANDLER);
-        PRESET_HANDLER->attachLogicHandler  (LOGIC_HANDLER);
-        PRESET_HANDLER->attachAnalogHandler (ANALOG_HANDLER);
-        PRESET_HANDLER->attachGuiHandler    (GUI_HANDLER);
-
-        EFFECT_HANDLER->attachPresetHandler (PRESET_HANDLER);
-        EFFECT_HANDLER->attachEffectHandler (EFFECT_HANDLER);
-        EFFECT_HANDLER->attachCommandHandler(COMMAND_HANDLER);
-        EFFECT_HANDLER->attachEventHandler  (EVENT_HANDLER);
-        EFFECT_HANDLER->attachLogicHandler  (LOGIC_HANDLER);
-        EFFECT_HANDLER->attachAnalogHandler (ANALOG_HANDLER);
-        EFFECT_HANDLER->attachGuiHandler    (GUI_HANDLER);
-
-        COMMAND_HANDLER->attachPresetHandler(PRESET_HANDLER);
-        COMMAND_HANDLER->attachEffectHandler(EFFECT_HANDLER);
-        COMMAND_HANDLER->attachCommandHandler(COMMAND_HANDLER);
-        COMMAND_HANDLER->attachEventHandler (EVENT_HANDLER);
-        COMMAND_HANDLER->attachLogicHandler (LOGIC_HANDLER);
-        COMMAND_HANDLER->attachAnalogHandler(ANALOG_HANDLER);
-        COMMAND_HANDLER->attachGuiHandler   (GUI_HANDLER);
-
-        EVENT_HANDLER->attachPresetHandler  (PRESET_HANDLER);
-        EVENT_HANDLER->attachEffectHandler  (EFFECT_HANDLER);
-        EVENT_HANDLER->attachCommandHandler (COMMAND_HANDLER);
-        EVENT_HANDLER->attachEventHandler   (EVENT_HANDLER);
-        EVENT_HANDLER->attachLogicHandler   (LOGIC_HANDLER);
-        EVENT_HANDLER->attachAnalogHandler  (ANALOG_HANDLER);
-        EVENT_HANDLER->attachGuiHandler     (GUI_HANDLER);
-
-        LOGIC_HANDLER->attachPresetHandler  (PRESET_HANDLER);
-        LOGIC_HANDLER->attachEffectHandler  (EFFECT_HANDLER);
-        LOGIC_HANDLER->attachCommandHandler (COMMAND_HANDLER);
-        LOGIC_HANDLER->attachEventHandler   (EVENT_HANDLER);
-        LOGIC_HANDLER->attachLogicHandler   (LOGIC_HANDLER);
-        LOGIC_HANDLER->attachAnalogHandler  (ANALOG_HANDLER);
-        LOGIC_HANDLER->attachGuiHandler     (GUI_HANDLER);
-
-        ANALOG_HANDLER->attachPresetHandler (PRESET_HANDLER);
-        ANALOG_HANDLER->attachEffectHandler (EFFECT_HANDLER);
-        ANALOG_HANDLER->attachCommandHandler(COMMAND_HANDLER);
-        ANALOG_HANDLER->attachEventHandler  (EVENT_HANDLER);
-        ANALOG_HANDLER->attachLogicHandler  (LOGIC_HANDLER);
-        ANALOG_HANDLER->attachAnalogHandler (ANALOG_HANDLER);
-        ANALOG_HANDLER->attachGuiHandler    (GUI_HANDLER);
-        
-        GUI_HANDLER->attachPresetHandler    (PRESET_HANDLER);
-        GUI_HANDLER->attachEffectHandler    (EFFECT_HANDLER);
-        GUI_HANDLER->attachCommandHandler   (COMMAND_HANDLER);
-        GUI_HANDLER->attachEventHandler     (EVENT_HANDLER);
-        GUI_HANDLER->attachLogicHandler     (LOGIC_HANDLER);
-        GUI_HANDLER->attachAnalogHandler    (ANALOG_HANDLER);
-        GUI_HANDLER->attachGuiHandler       (GUI_HANDLER);
-
-        // INIT AND SYNC HANDLERS //
-        SFXPEvent INIT_ALL = SFXPEvent(SFXPEvent::Type::Event_InitAll);
-        PRESET_HANDLER->pushEvent   (&INIT_ALL);
-        EFFECT_HANDLER->pushEvent   (&INIT_ALL);
-        COMMAND_HANDLER->pushEvent  (&INIT_ALL);
-        EVENT_HANDLER->pushEvent    (&INIT_ALL);
-        LOGIC_HANDLER->pushEvent    (&INIT_ALL);
-        ANALOG_HANDLER->pushEvent   (&INIT_ALL);
-        GUI_HANDLER->pushEvent      (&INIT_ALL);
-
-        // PRET POUR FAIRE DU SALE MAMENE //
-        cout << endl <<
-        "******************************************************************"
-        << endl <<
-        "   Progam Setup Is OK : Let's get Started Mudda Fukkazz"
-        << endl <<
-        "******************************************************************"
-        << endl << endl;
-    }
-    catch (const string & e) {
-
-        SFXPlog::fatal("SFX-Pi") << e << endl;
-        SFXPlog::fatal("SFX-Pi") << "Abort Program Launch" << endl;
-
-        SFXP::GlobalNeedToExit = true;
-        SFXP::GlobalErrState = 1;
-    }
-
-    //// MAIN LOOP ////
-    while (!SFXP::GlobalNeedToExit){
-
-        // UPDATE HANDLERS //
-        PRESET_HANDLER  ->run();
-        EFFECT_HANDLER  ->run();
-        COMMAND_HANDLER ->run();
-        EVENT_HANDLER   ->run();
-        LOGIC_HANDLER   ->run();
-        ANALOG_HANDLER  ->run();
-        GUI_HANDLER     ->run();
-        // Sleep for 10ms ( 100Hz )
-        usleep(10000);
-    }
-
-    cout << endl <<
-    "******************************************************************"
-    << endl <<
-    "   Progam End : Deconstruct Everything"
-    << endl <<
-    "******************************************************************"
-    << endl << endl;
-
-    // TELL THE PROGRAM TO STOP //
-    SFXP::GlobalNeedToExit = true;
-
-    // DESTROY HANDLERS //
-    delete GUI_HANDLER;
-    delete ANALOG_HANDLER;
-    delete LOGIC_HANDLER;
-    delete EVENT_HANDLER;
-    delete COMMAND_HANDLER;
-    delete EFFECT_HANDLER;
-    delete PRESET_HANDLER;
+    "====================================================================================================="
+    << '\n' << 
+    "====================================================================================================="
+    << '\n' << '\n';
     
-    cout << endl <<
-    "******************************************************************"
-    << endl <<
-    "   Progam End : GoodBye"
-    << endl <<
-    "******************************************************************"
-    << endl << endl;
+    std::unique_ptr<GPIOJackClient> GPIO(new GPIOJackClient({mcp23017::HEX_MCP_0, mcp23017::HEX_MCP_1}));
     
-    return SFXP::GlobalErrState;
+    std::shared_ptr<Module::Info> DISTO_MODULE = loadModule("modules/gain/Distortion.so");
+    if (!DISTO_MODULE)
+    {
+        exit(1);
+    }
+    
+    std::shared_ptr<Module::Info> SYNTH_MODULE = loadModule("modules/midi/Polysynth.so");
+    if (!SYNTH_MODULE)
+    {
+        exit(1);
+    }
+    
+    ///////////////////////////////////////////////////////////////
+    
+	const char **physic_in;
+    physic_in = jack_get_ports (GPIO->client, NULL, NULL,
+				JackPortIsPhysical|JackPortIsOutput);
+	if (physic_in == NULL) 
+    {
+		sfx::err(NAME, "no physical capture ports\n");
+	}
+
+	const char **physic_out;
+	physic_out = jack_get_ports (GPIO->client, NULL, NULL,
+				JackPortIsPhysical|JackPortIsInput);
+	if (physic_out == NULL) 
+    {
+		sfx::err(NAME, "no physical playback ports\n");
+	}
+    
+    const char **midi_in;
+    midi_in = jack_get_ports(GPIO->client, NULL, JACK_DEFAULT_MIDI_TYPE,
+            JackPortIsPhysical|JackPortIsOutput);
+    if ( midi_in == NULL ){
+        sfx::err(NAME, "No Physical MIDI Capture Ports");
+    }
+    
+    ///////////////////////////////////////////////////////////////
+    
+    std::unique_ptr<Module> DISTO(new Module(DISTO_MODULE));
+    
+    /*
+    DISTO->linkSlot(std::make_pair(8, 10), "Gain");
+    DISTO->linkSlot(std::make_pair(9, 10), "Shape");
+    DISTO->linkSlot(std::make_pair(10, 10), "Softness");
+    DISTO->linkSlot(std::make_pair(11, 10), "Volume");
+    
+    DISTO->linkSlot(std::make_pair(12, 10), "In Lowcut");
+    DISTO->linkSlot(std::make_pair(13, 10), "In Highcut");
+    DISTO->linkSlot(std::make_pair(14, 10), "Out Lowcut");
+    DISTO->linkSlot(std::make_pair(15, 10), "Out Highcut");
+    //*/
+    
+    ///////////////////////////////////////////////////////////////
+    
+    std::unique_ptr<Module> SYNTH(new Module(SYNTH_MODULE));
+    
+    ///////////////////////////////////////////////////////////////
+    
+	if (jack_connect (DISTO->client, physic_in[0], jack_port_name (DISTO->audioIns[0].port))) 
+    {
+		sfx::err (NAME, "cannot connect input ports\n");
+	}
+    
+	if (jack_connect (DISTO->client, jack_port_name (DISTO->audioOuts[0].port), physic_out[0])) 
+    {
+		sfx::err (NAME, "cannot connect output ports : \"%s\" \"%s\"\n", jack_port_name (DISTO->audioOuts[0].port), physic_out[0]);
+	}
+	if (jack_connect (DISTO->client, jack_port_name (DISTO->audioOuts[0].port), physic_out[1])) 
+    {
+		sfx::err (NAME, "cannot connect output ports : \"%s\" \"%s\"\n", jack_port_name (DISTO->audioOuts[0].port), physic_out[1]);
+	}
+    
+//	if (jack_connect (DISTO->client, midi_in[0], jack_port_name (DISTO->midiIns[0].port))) 
+//    {
+//		sfx::err (NAME, "cannot connect input ports\n");
+//	}
+    
+    ///////////////////////////////////////////////////////////////
+    
+	if (jack_connect (SYNTH->client, jack_port_name (SYNTH->audioOuts[0].port), physic_out[0])) 
+    {
+		sfx::err (NAME, "cannot connect output ports : \"%s\" \"%s\"\n", jack_port_name (SYNTH->audioOuts[0].port), physic_out[0]);
+	}
+	if (jack_connect (SYNTH->client, jack_port_name (SYNTH->audioOuts[0].port), physic_out[1])) 
+    {
+		sfx::err (NAME, "cannot connect output ports : \"%s\" \"%s\"\n", jack_port_name (SYNTH->audioOuts[0].port), physic_out[1]);
+	}
+    
+	if (jack_connect (SYNTH->client, midi_in[0], jack_port_name (SYNTH->midiIns[0].port))) 
+    {
+		sfx::err (NAME, "cannot connect input ports\n");
+	}
+    
+	free (physic_in);
+	free (physic_out);
+    free (midi_in);
+    
+    while(1);
+    
+    unloadModule(DISTO_MODULE);
+    
+    /*
+    std::unique_ptr<ModuleTapTempo> TTP(new ModuleTapTempo());
+    
+    //std::unique_ptr<ModuleDistortion> DIST(new ModuleDistortion());
+    std::unique_ptr<ModulePolysynth> SYNTH(new ModulePolysynth());
+    
+    std::unique_ptr<ModuleChorus> CHORUS_L(new ModuleChorus());
+    std::unique_ptr<ModuleChorus> CHORUS_R(new ModuleChorus());
+    std::unique_ptr<ModuleChorus> CHORUS_SL(new ModuleChorus());
+    std::unique_ptr<ModuleChorus> CHORUS_SR(new ModuleChorus());
+    
+    std::unique_ptr<ModuleLFO> LFO(new ModuleLFO());
+    
+    std::unique_ptr<ModuleDelay> DELAY_L(new ModuleDelay());
+    std::unique_ptr<ModuleDelay> DELAY_R(new ModuleDelay());
+    std::unique_ptr<ModuleDelay> DELAY_SL(new ModuleDelay());
+    std::unique_ptr<ModuleDelay> DELAY_SR(new ModuleDelay());
+    
+    CHORUS_L->setBank1();
+    CHORUS_R->setBank2();
+    CHORUS_SL->setBank3();
+    CHORUS_SR->setBank4();
+    
+    DELAY_L->setBank1();
+    DELAY_R->setBank2();
+    DELAY_SL->setBank3();
+    DELAY_SR->setBank4();
+    
+	if (jack_connect (GPIO->client, jack_port_name(GPIO->logic_out), jack_port_name(TTP->midi_in))) 
+    {
+		sfx::err (NAME, "cannot connect ports\n");
+	}
+	if (jack_connect (TTP->client, jack_port_name(TTP->midi_out), jack_port_name(GPIO->logic_in))) 
+    {
+		sfx::err (NAME, "cannot connect ports\n");
+	}
+    //*/
+    
+    ///////////////////////////////////////////////////////////////
+    /*
+	const char **physic_in;
+    physic_in = jack_get_ports (DIST->client, NULL, NULL,
+				JackPortIsPhysical|JackPortIsOutput);
+	if (physic_in == NULL) 
+    {
+		sfx::err(NAME, "no physical capture ports\n");
+	}
+
+	const char **physic_out;
+	physic_out = jack_get_ports (DIST->client, NULL, NULL,
+				JackPortIsPhysical|JackPortIsInput);
+	if (physic_out == NULL) 
+    {
+		sfx::err(NAME, "no physical playback ports\n");
+	}
+    
+    const char **midi_in;
+    midi_in = jack_get_ports(SYNTH->client, NULL, JACK_DEFAULT_MIDI_TYPE,
+            JackPortIsPhysical|JackPortIsOutput);
+    if ( midi_in == NULL ){
+        sfx::err(NAME, "No Physical MIDI Capture Ports");
+    }
+    
+    ///////////////////////////////////////////////////////////////
+
+	if (jack_connect (DIST->client, physic_in[0], jack_port_name (DIST->audio_in))) 
+    {
+		sfx::err (NAME, "cannot connect input ports\n");
+	}
+    
+    
+    
+	if (jack_connect (DIST->client, jack_port_name (DIST->audio_out), jack_port_name (CHORUS_L->audio_in))) 
+    {
+		sfx::err (NAME, "cannot connect input ports\n");
+	}
+    
+	if (jack_connect (DIST->client, jack_port_name (DIST->audio_out), jack_port_name (CHORUS_R->audio_in))) 
+    {
+		sfx::err (NAME, "cannot connect input ports\n");
+	}
+
+    
+	if (jack_connect (SYNTH->client, jack_port_name (SYNTH->audio_out), jack_port_name (DELAY_L->audio_in))) 
+    {
+		sfx::err (NAME, "cannot connect input ports\n");
+	}
+    
+	if (jack_connect (SYNTH->client, jack_port_name (SYNTH->audio_out), jack_port_name (DELAY_R->audio_in))) 
+    {
+		sfx::err (NAME, "cannot connect input ports\n");
+	}
+    
+	if (jack_connect (LFO->client, jack_port_name (LFO->audio_out), jack_port_name (CHORUS_L->mod_in))) 
+    {
+		sfx::err (NAME, "cannot connect input ports\n");
+	}
+    
+	if (jack_connect (LFO->client, jack_port_name (LFO->audio_out), jack_port_name (CHORUS_R->mod_in))) 
+    {
+		sfx::err (NAME, "cannot connect input ports\n");
+	}
+    
+    
+    
+	if (jack_connect (CHORUS_L->client, jack_port_name (CHORUS_L->audio_out), jack_port_name (DELAY_L->audio_in))) 
+    {
+		sfx::err (NAME, "cannot connect input ports\n");
+	}
+    
+	if (jack_connect (CHORUS_R->client, jack_port_name (CHORUS_R->audio_out), jack_port_name (DELAY_R->audio_in))) 
+    {
+		sfx::err (NAME, "cannot connect input ports\n");
+	}
+    
+    
+
+	if (jack_connect (DELAY_L->client, jack_port_name (DELAY_L->audio_out), physic_out[0])) 
+    {
+		sfx::err (NAME, "cannot connect output ports\n");
+	}
+	if (jack_connect (DELAY_R->client, jack_port_name (DELAY_R->audio_out), physic_out[1])) 
+    {
+		sfx::err (NAME, "cannot connect output ports\n");
+	}
+    
+    
+    ///////////////////////////////////////////////////////////////
+    
+	if (jack_connect (LFO->client, jack_port_name (LFO->audio_out), jack_port_name (CHORUS_SL->mod_in))) 
+    {
+		sfx::err (NAME, "cannot connect input ports\n");
+	}
+    
+	if (jack_connect (LFO->client, jack_port_name (LFO->audio_out), jack_port_name (CHORUS_SR->mod_in))) 
+    {
+		sfx::err (NAME, "cannot connect input ports\n");
+	}
+    
+    
+    
+	if (jack_connect (CHORUS_SL->client, jack_port_name (CHORUS_SL->audio_out), jack_port_name (DELAY_SL->audio_in))) 
+    {
+		sfx::err (NAME, "cannot connect input ports\n");
+	}
+    
+	if (jack_connect (CHORUS_SR->client, jack_port_name (CHORUS_SR->audio_out), jack_port_name (DELAY_SR->audio_in))) 
+    {
+		sfx::err (NAME, "cannot connect input ports\n");
+	}
+    
+    
+
+	if (jack_connect (DELAY_SL->client, jack_port_name (DELAY_SL->audio_out), physic_out[2])) 
+    {
+		sfx::err (NAME, "cannot connect output ports\n");
+	}
+	if (jack_connect (DELAY_SR->client, jack_port_name (DELAY_SR->audio_out), physic_out[3])) 
+    {
+		sfx::err (NAME, "cannot connect output ports\n");
+	}
+    
+    ///////////////////////////////////////////////////////////////
+
+	if (jack_connect (SYNTH->client, midi_in[0], jack_port_name (SYNTH->midi_in))) 
+    {
+		sfx::err (NAME, "cannot connect input ports\n");
+	}
+
+	if (jack_connect (SYNTH->client, jack_port_name (SYNTH->audio_out), physic_out[0])) 
+    {
+		sfx::err (NAME, "cannot connect output ports\n");
+	}
+	if (jack_connect (SYNTH->client, jack_port_name (SYNTH->audio_out), physic_out[1])) 
+    {
+		sfx::err (NAME, "cannot connect output ports\n");
+	}
+    
+    ///////////////////////////////////////////////////////////////
+    
+	if (jack_connect (DIST->client, jack_port_name (DIST->midi_out), jack_port_name (GPIO->logic_in))) 
+    {
+		sfx::err (NAME, "cannot connect input ports\n");
+	}
+	if (jack_connect (DELAY_L->client, jack_port_name (DELAY_L->midi_out), jack_port_name (GPIO->logic_in))) 
+    {
+		sfx::err (NAME, "cannot connect input ports\n");
+	}
+	if (jack_connect (DELAY_R->client, jack_port_name (DELAY_R->midi_out), jack_port_name (GPIO->logic_in))) 
+    {
+		sfx::err (NAME, "cannot connect input ports\n");
+	}
+	if (jack_connect (DELAY_SL->client, jack_port_name (DELAY_SL->midi_out), jack_port_name (GPIO->logic_in))) 
+    {
+		sfx::err (NAME, "cannot connect input ports\n");
+	}
+	if (jack_connect (DELAY_SR->client, jack_port_name (DELAY_SR->midi_out), jack_port_name (GPIO->logic_in))) 
+    {
+		sfx::err (NAME, "cannot connect input ports\n");
+	}
+    
+    
+	if (jack_connect (GPIO->client, jack_port_name (GPIO->logic_out), jack_port_name (DIST->midi_in))) 
+    {
+		sfx::err (NAME, "cannot connect input ports\n");
+	}
+	if (jack_connect (GPIO->client, jack_port_name (GPIO->logic_out), jack_port_name (DELAY_L->midi_in))) 
+    {
+		sfx::err (NAME, "cannot connect input ports\n");
+	}
+	if (jack_connect (GPIO->client, jack_port_name (GPIO->logic_out), jack_port_name (DELAY_R->midi_in))) 
+    {
+		sfx::err (NAME, "cannot connect input ports\n");
+	}
+	if (jack_connect (GPIO->client, jack_port_name (GPIO->logic_out), jack_port_name (DELAY_SL->midi_in))) 
+    {
+		sfx::err (NAME, "cannot connect input ports\n");
+	}
+	if (jack_connect (GPIO->client, jack_port_name (GPIO->logic_out), jack_port_name (DELAY_SR->midi_in))) 
+    {
+		sfx::err (NAME, "cannot connect input ports\n");
+	}
+    
+    ///////////////////////////////////////////////////////////////
+
+	if (jack_connect (DIST->client, physic_in[1], physic_out[0])) 
+    {
+		sfx::err (NAME, "cannot connect output ports\n");
+	}
+	if (jack_connect (DIST->client, physic_in[1], physic_out[1])) 
+    {
+		sfx::err (NAME, "cannot connect output ports\n");
+	}
+
+	free (physic_in);
+	free (physic_out);
+    free (midi_in);
+    */
+    //while(1);// UpdateMCP(regs, status, ftable, ltable);
+    
+    /*
+    sfx::log(NAME, "Test Temps de lecture GPIO\n");
+    
+    std::clock_t c_start = std::clock();
+    
+    size_t n_test = 100;
+    for (size_t i = 0; i < n_test; i++)
+        UpdateMCP(regs, status);
+    
+    std::clock_t c_end = std::clock();
+    
+    double c_total = 1000.0 * (c_end-c_start) / CLOCKS_PER_SEC;
+    
+    sfx::log(NAME, "Temps de lecture total : %.2fms, Temps de lecture Moyen : %.2fms\n", c_total, c_total/n_test);
+    //*/
+    
+    sfx::sfxStream << '\n' <<
+    "====================================================================================================="
+    << '\n' <<
+    "   Progam End : GoodBye                                                                          "
+    << '\n' <<
+    "====================================================================================================="
+    << '\n' << '\n';
+    
+    return 0;
 }
+

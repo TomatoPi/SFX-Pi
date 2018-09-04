@@ -25,34 +25,35 @@ class MultibandEQ : public AFilterBase{
 
     public :
 
-        MultibandEQ(SFXP::usize_t poleCount, float* poles, float samplerate);
+        MultibandEQ(sfx::usize_t poleCount, float* poles, float samplerate
+                    ,sfx::usize_t order=4);
         virtual ~MultibandEQ();
 
         /**
          * Compute given input and output mix of all bands
          * Use getBand function for get a specific band value
          **/
-        float compute(float in, SFXP::usize_t bandCount, float* gains);
-        float getBand(SFXP::usize_t idx);
+        float compute(float in, sfx::usize_t bandCount, float* gains);
+        float getBand(sfx::usize_t idx);
 
         /**
          * Change EQ Configuration
          **/
-        void setFrequency(SFXP::usize_t idx, float f, float sr);
-        void setFrequency(SFXP::usize_t poleCount, float* poles, float sr);
-        float getFrequency(SFXP::usize_t idx) const;
+        void setFrequency(sfx::usize_t idx, float f, float sr);
+        void setFrequency(sfx::usize_t poleCount, float* poles, float sr);
+        float getFrequency(sfx::usize_t idx) const;
 
-        SFXP::usize_t getBandCount() const;
+        sfx::usize_t getBandCount() const;
 
     protected :
     
         /** store non-scalled band outputs **/
         float*          m_band;
-        SFXP::usize_t   m_bandCount;
+        sfx::usize_t   m_bandCount;
 
         /** Store EQ Poles **/
-        FilterPole*     m_pole;
-        SFXP::usize_t   m_poleCount;
+        FilterPole**    m_pole;
+        sfx::usize_t   m_poleCount;
 };
 
 #endif

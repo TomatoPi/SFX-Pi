@@ -1,224 +1,231 @@
 CXX=g++
-CXXFLAGS= -g -Wall -Isrc/
-LDFLAGS=-ljack -lpthread -ltinyxml2 -ldl -lSDL2 -Llib/ -lSDL2_ttf
-LIBFLAGS= -fPIC -shared -ljack -Llib/
-EXEC=SFX-Pi
+CXXFLAGS= -g -Wall -Isrc/ -std=c++17 -std=gnu++17
+LDFLAGS = -ltinyxml2 -ldl -Llib/
+Pi_LDFLAGS= -ljack -lpthread
+Pe_LDFLAGS= -lSDL2 -lSDL2_ttf
+LIBFLAG= -fPIC -shared -ljack -Llib/
 vpath %.cc src/
 
-ifndef RELEASE
-	CXXFLAGS += -D__DEBUG__
-else
-	CXXFLAGS += -O3
+### Preprocessor defines ###
+
+ifdef RELEASE
+    CXXFLAGS += -O3 -DNDEBUG
 endif
 
 ifdef ARCH
-	CXXFLAGS += -D__ARCH_LINUX__
-	LDFLAGS +=  -lwiringPi
+    CXXFLAGS += -D__ARCH_LINUX__ -D__UNIX__
+    LDFLAGS +=  -lwiringPi
+else ifdef LUBUNTU
+    CXXFLAGS += -D__LUBUNTU__ -D__UNIX__
+else ifdef WINDOWS
+    CXXFLAGS += -Iincludes/
 else
-	CXXFLAGS += -D__LUBUNTU__
+    $(error Use make ARCH LUBUNTU or WINDOWS to compile for a specific plateform)
 endif
+
+########################################################################
+
+### Modules ###
+Mod_DIR = modules/
+Mod_TAR = $(Mod_DIR)
+
+Mod_Tempo_DIR = ./
+Mod_Tempo_SRC = $(Mod_DIR)$(Mod_Tempo_DIR)TapTempo.cc
+Mod_Tempo_LIB = $(Mod_TAR)$(Mod_Tempo_DIR)TapTempo.so
+
+Mod_Disto_DIR = gain/
+Mod_Disto_SRC = $(Mod_DIR)$(Mod_Disto_DIR)Distortion.cc
+Mod_Disto_LIB = $(Mod_TAR)$(Mod_Disto_DIR)Distortion.so
+
+Mod_Midi_DIR = midi/
+Mod_Midi_SRC = $(Mod_DIR)$(Mod_Midi_DIR)Polysynth.cc
+Mod_Midi_LIB = $(Mod_TAR)$(Mod_Midi_DIR)Polysynth.so
+
+Mod_Temps_DIR = temps/
+Mod_Temps_SRC = $(addprefix $(Mod_DIR)$(Mod_Temps_DIR), Delay.cc Chorus.cc)
+Mod_Temps_LIB = $(Mod_TAR)$(Mod_Temps_DIR)Temps.so
+
+Mod_Modulation_DIR = modulation/
+Mod_Modulation_SRC = $(Mod_DIR)$(Mod_Modulation_DIR)LFO.cc
+Mod_Modulation_LIB = $(Mod_TAR)$(Mod_Modulation_DIR)LFO.so
+
+Mod_All_TAR = $(Mod_TAR) \
+    $(Mod_TAR)$(Mod_Disto_DIR)\
+    $(Mod_TAR)$(Mod_Midi_DIR) \
+    $(Mod_TAR)$(Mod_Temps_DIR)\
+    $(Mod_TAR)$(Mod_Modulation_DIR)
+
+Mod_All_LIB = $(Mod_Tempo_LIB)\
+    $(Mod_Disto_LIB)\
+    $(Mod_Midi_LIB)\
+    $(Mod_Temps_LIB)\
+    $(Mod_Modulation_LIB)
+
+### Librairies ###
+
+Lib_DIR = lib/
+Lib_OBJ = obj/lib/
+Lib_TAR = lib/lib/
+
+Lib_Buffer_DIR = buffer/
+Lib_Buffer_SRC = $(Lib_DIR)$(Lib_Buffer_DIR)Buffer.cc
+Lib_Buffer_LIB = $(Lib_TAR)$(Lib_Buffer_DIR)Buffer.so
+
+Lib_Filter_DIR = filter/
+Lib_Filter_Base_SRC = $(Lib_DIR)$(Lib_Filter_DIR)FilterBase.cc
+
+Lib_Filter_GEQ_SRC = $(Lib_DIR)$(Lib_Filter_DIR)GraphicEQ.cc
+Lib_Filter_GEQ_LIB = $(Lib_TAR)$(Lib_Filter_DIR)GraphicEQ.so
+
+Lib_Filter_MPF_SRC = $(Lib_DIR)$(Lib_Filter_DIR)MonoPoleFilter.cc
+Lib_Filter_MPF_LIB = $(Lib_TAR)$(Lib_Filter_DIR)MonoPoleFilter.so
+
+Lib_Filter_MEQ_SRC = $(Lib_DIR)$(Lib_Filter_DIR)MultibandEQ.cc
+Lib_Filter_MEQ_LIB = $(Lib_TAR)$(Lib_Filter_DIR)MultibandEQ.so
+
+Lib_Filter_PEQ_SRC = $(Lib_DIR)$(Lib_Filter_DIR)ParametricEQ.cc
+Lib_Filter_PEQ_LIB = $(Lib_TAR)$(Lib_Filter_DIR)ParametricEQ.so
+
+Lib_Envelope_DIR = envelope/
+
+Lib_Env_ADSR_SRC = $(Lib_DIR)$(Lib_Envelope_DIR)ADSR.cc
+Lib_Env_ADSR_LIB = $(Lib_TAR)$(Lib_Envelope_DIR)ADSR.so
+
+Lib_All_TAR = $(Lib_TAR) \
+    $(Lib_TAR)$(Lib_Buffer_DIR) \
+    $(Lib_TAR)$(Lib_Filter_DIR) \
+    $(Lib_TAR)$(Lib_Envelope_DIR) \
+    $(Lib_OBJ)
+
+Lib_All_LIB = $(Lib_Buffer_LIB) \
+    $(Lib_Filter_GEQ_LIB) \
+    $(Lib_Filter_MPF_LIB) \
+    $(Lib_Filter_MEQ_LIB) \
+    $(Lib_Filter_PEQ_LIB) \
+    $(Lib_Env_ADSR_LIB) \
+    $(Lib_XML_LIB)
+
+### Noyau ###
+Ker_DIR = noyau/
+Ker_TAR = lib/noyau/
+ker_OBJ = obj/noyau/
+
+Ker_Module_DIR = modules/
+Ker_Module_lib_SRC = $(addprefix $(Ker_DIR)$(Ker_Module_DIR), ModuleBase.cc)
+Ker_Module_lib_LIB = $(Ker_TAR)$(Ker_Module_DIR)ModuleBase.so
+
+Ker_Module_load_SRC = $(Ker_DIR)$(Ker_Module_DIR)ModuleLoader.cc
+Ker_Module_load_OBJ = $(ker_OBJ)$(Ker_Module_DIR)ModuleLoader.o
+
+Ker_All_SRC = $(Ker_Module_lib_SRC) $(Ker_Module_load_SRC)
+ker_All_OBJ = $(Ker_Module_load_OBJ)
+Ker_All_LIB = $(Ker_Module_lib_LIB)
+Ker_All_TAR = $(Ker_TAR)$(Ker_Module_DIR) \
+    $(ker_OBJ)$(Ker_Module_DIR)
+
+### SFX-Pi ###
+
+SFX_Pi_DIR = process/
+
+Pi_GPIO_DIR = $(SFX_Pi_DIR)gpio/
+Pi_GPIO_SRC = $(addprefix $(Pi_GPIO_DIR), Footswitch.cc mcp23017.cc)
+Pi_GPIO_OBJ = $(patsubst %.cc, obj/%.o, $(Pi_GPIO_SRC))
+
+SFX_Pi_All_TAR = obj/$(Pi_GPIO_DIR)
+
+### SFX-Pe ###
+
+### All ###
+Pi_DIR = obj/ $(Mod_All_TAR) $(Ker_All_TAR) $(Lib_All_TAR) $(SFX_Pi_All_TAR)
+Pi_SRC = $(Ker_All_SRC) $(Pi_GPIO_SRC)
+Pi_OBJ = $(ker_All_OBJ) $(Pi_GPIO_OBJ)
+Pi_LIB = $(Ker_All_LIB)
+
+Pe_DIR = obj/ $(Mod_All_TAR) $(Ker_All_TAR) $(Lib_All_TAR)
+Pe_SRC = $(Ker_All_SRC)
+Pe_OBJ = $(ker_All_OBJ)
+Pe_LIB = $(Ker_All_LIB)
+
+########################################################################
+##   	                         RULES		                      ##
+########################################################################
+Modules : Pi_dirs $(Mod_All_LIB)
 	
+SFX-Pi: obj/SFXPi.o $(Pi_OBJ) $(Pi_LIB)
+	$(CXX) -o $@ $^ $(LDFLAGS) $(Pi_LDFLAGS)
 
-### Shared Files For Plugins ###
+SFX-PE: obj/SFXPe.o $(Pe_OBJ) $(Pe_LIB)
+	$(CXX) -o $@ $^ $(LDFLAGS) $(Pe_LDFLAGS)
+	
+obj/SFXPi.o: Pi_dirs SFXPi.cc $(Pi_SRC)
+obj/SFXPe.o: Pe_dirs SFXPe.cc $(Pe_SRC)
 
-SHARED_PLUGIN_SRC = $(addprefix effect/, JACKUnit.cc AbstractEffectUnit.cc)
-export SHARED_PLUGIN_LIB = lib/plugin/JackPlugin.so
-
-SHARED_LIB = $(SHARED_PLUGIN_LIB)
-
-### Shared Files For SFX-PE ###
-
-SFXP_PLUGIN_SRC  = $(addprefix plugin/, Plugin.cc TypeCodeTable.cc)
-SFXP_PLUGIN_SRC += $(addprefix effect/, EffectParamSet.cc)
-
-SFXP_PLUGIN_OBJ  = $(patsubst %.cc, obj/%.o, $(SFXP_PLUGIN_SRC))
-export SFXP_PLUGIN_LIB  = lib/plugin/NonJackPlugin.so
-
-SFXP_PRESET_SRC = preset/PresetParser.cc
-SFXP_PRESET_OBJ = obj/preset/PresetParser.o
-SFXP_PRESET_LIB = lib/preset/Preset.so
-
-SFXP_EVENT_SRC = event/EventSequencer.cc
-SFXP_EVENT_OBJ = obj/event/EventSequencer.o
-SFXP_EVENT_LIB = lib/event/EventSequencer.so
-
-SFXP_LOGIC_SRC = $(addprefix logic/, Footswitch.cc Led.cc)
-SFXP_LOGIC_OBJ = $(patsubst %.cc, obj/%.o, $(SFXP_LOGIC_SRC))
-SFXP_LOGIC_LIB = lib/logic/Logic.so
-
-SFXP_ANALOG_SRC = analog/AnalogLink.cc
-SFXP_ANALOG_OBJ = obj/analog/AnalogLink.o
-SFXP_ANALOG_LIB = lib/analog/Analog.so
-
-SFXP_LIB = $(SFXP_PLUGIN_LIB) $(SFXP_PRESET_LIB) $(SFXP_EVENT_LIB) $(SFXP_LOGIC_LIB) $(SFXP_ANALOG_LIB)
-SFXP_SLIB = lib/lib-SFX-PE.a
-
-### Libraries Specific for Plugins ###
-
-export EXTERN_DRIVE_LIB = lib/drive/DriveBase.so
-export EXTERN_BUFF_LIB	= lib/buffer/Buffer.so
-
-EXTERN_FILTERB_SRC = lib/filter/FilterBase.cc
-EXTERN_FILTER_LIB  = $(addprefix lib/filter/, GraphicEQ.so MonoPoleFilter.so MultibandEQ.so ParametricEQ.so) 
-
-EXTERN_LIB = $(EXTERN_DRIVE_LIB) $(EXTERN_FILTER_LIB) $(EXTERN_BUFF_LIB)
-
-### SFX-Pi Core ###
-
-PI_CORE_SRC = $(addprefix core/, AbstractHandler.cc)
-PI_CORE_OBJ = $(patsubst %.cc, obj/%.o, $(PI_CORE_SRC))
-
-### Preset Handling ###
-
-PI_PRESET_SRC = preset/PresetHandler.cc
-PI_PRESET_OBJ = $(patsubst %.cc, obj/%.o, $(PI_PRESET_SRC))
-
-### Effect Handling ###
-
-PI_EFFECT_SRC = $(addprefix effect/, EffectFactory.cc EffectHandler.cc)
-PI_EFFECT_OBJ = $(patsubst %.cc, obj/%.o, $(PI_EFFECT_SRC))
-
-### Logic IO Handling ###
-
-PI_LOGIC_SRC = $(addprefix logic/, LogicConfigLoader.cc mcp23017.cc LogicHandler.cc)
-PI_LOGIC_OBJ = $(patsubst %.cc, obj/%.o, $(PI_LOGIC_SRC))
-
-### Analog IO Handling ###
-
-PI_ANALOG_SRC = $(addprefix analog/, AnalogHandler.cc Potentiometer.cc)
-PI_ANALOG_OBJ = $(patsubst %.cc, obj/%.o, $(PI_ANALOG_SRC))
-
-### Dynamic Event Handling ###
-
-PI_EVENT_SRC = event/EventHandler.cc
-PI_EVENT_OBJ = $(patsubst %.cc, obj/%.o, $(PI_EVENT_SRC))
-
-### Console IO Handling ###
-
-PI_COMMANDS_SRC = $(addprefix commands/list/, EffectHandlerCommands.cc PresetCommands.cc EventHandlerCommands.cc)
-PI_COMMANDS_OBJ = $(patsubst %.cc, obj/%.o, $(PI_COMMANDS_SRC))
-
-PI_CMDHANDLER_SRC = $(addprefix commands/, CommandHandler.cc CommandListener.cc Commands.cc)
-PI_CMDHANDLER_OBJ = $(patsubst %.cc, obj/%.o, $(PI_CMDHANDLER_SRC))
-
-PI_CONSOLE_SRC = $(PI_COMMANDS_SRC) $(PI_CMDHANDLER_SRC)
-PI_CONSOLE_OBJ = $(PI_COMMANDS_OBJ) $(PI_CMDHANDLER_OBJ)
-
-### Gui Handling ###
-
-PI_GUICORE_SRC = $(addprefix gui/base/, GraphicObject.cc Container.cc Clickable.cc Layout.cc Dialog.cc Label.cc Button.cc InputBox.cc)
-PI_GUICORE_OBJ = $(patsubst %.cc, obj/%.o, $(PI_GUICORE_SRC))
-
-PI_GUICOMP_SRC = $(addprefix gui/comps/, main/MainContainer.cc menu/Menu.cc menu/MenuItem.cc)
-PI_GUICOMP_OBJ = $(patsubst %.cc, obj/%.o, $(PI_GUICOMP_SRC))
-
-PI_GUIHANDLER_SRC = $(addprefix gui/, GuiHandler.cc)
-PI_GUIHANDLER_OBJ = $(patsubst %.cc, obj/%.o, $(PI_GUI_SRC))
-
-PI_GUI_SRC = $(PI_GUIHANDLER_SRC) $(PI_GUICORE_SRC) $(PI_GUICOMP_SRC)
-PI_GUI_OBJ = $(PI_GUIHANDLER_OBJ) $(PI_GUICORE_OBJ) $(PI_GUICOMP_OBJ)
-
-### All Objects ###
-
-SRC = $(PI_CORE_SRC) $(PI_PRESET_SRC) $(PI_EFFECT_SRC) $(PI_LOGIC_SRC) $(PI_ANALOG_SRC) $(PI_CONSOLE_SRC) $(PI_EVENT_SRC) $(PI_GUI_SRC)
-OBJ = $(PI_CORE_OBJ) $(PI_PRESET_OBJ) $(PI_EFFECT_OBJ) $(PI_LOGIC_OBJ) $(PI_ANALOG_OBJ) $(PI_CONSOLE_OBJ) $(PI_EVENT_OBJ) $(PI_GUI_OBJ)
-
-########################################################################
-##   	                         RULES		                          ##
-########################################################################
-SFX-Pi: obj/SFXPi.o $(OBJ) $(SFXP_LIB) $(SHARED_LIB)
-	$(CXX) -o $@ $^ $(LDFLAGS)
-
-SFX-PE: $(SFXP_SLIB)
-
-obj/SFXPi.o: SFXPi.cc $(SRC)
-
-all: SFX-Pi lib plugins
-
-lib: $(EXTERN_LIB) $(SFXP_LIB) $(SHARED_LIB)
-
-plugins: $(EXTERN_LIB) $(SHARED_LIB)
-	$(MAKE) -fMakeEffects
+Pi_dirs : 
+	mkdir -p $(Pi_DIR)
+Pe_dirs : 
+	mkdir -p $(Pe_DIR)
 
 ########################################################################
 
-### Shared Files For Plugins ###
-#	$(CXX) $(LIBFLAGS) $(CXXFLAGS) -o $@ $^
-$(SHARED_PLUGIN_LIB): $(SHARED_PLUGIN_SRC) $(SFXP_PLUGIN_LIB)
-	$(CXX) $(LIBFLAGS) $(CXXFLAGS) -o $@ $^
+###### Noyau ######
 
-### Shared Files For SFX-PE ###
-#	ar crf $@ $^
-$(SFXP_PLUGIN_OBJ): $(SFXP_PLUGIN_SRC)
-$(SFXP_PLUGIN_LIB): $(SFXP_PLUGIN_SRC)
-	$(CXX) $(LIBFLAGS) $(CXXFLAGS) -o $@ $^
+$(Ker_Module_lib_LIB) : $(Ker_Module_lib_SRC)
+	$(CXX) $(LIBFLAG) $(CXXFLAGS) -o $@ $^
+	
+$(Ker_Module_load_OBJ): $(Ker_Module_load_SRC)
+	$(CXX) -o $@ -c $< $(CXXFLAGS)
 
-$(SFXP_PRESET_OBJ): $(SFXP_PRESET_SRC)
-$(SFXP_PRESET_LIB): $(SFXP_PRESET_SRC) $(SFXP_PLUGIN_LIB) $(SFXP_EVENT_LIB) $(SFXP_ANALOG_LIB)
-	$(CXX) $(LIBFLAGS) $(CXXFLAGS) -o $@ $^
+###### Modules ######
 
-$(SFXP_EVENT_OBJ): $(SFXP_EVENT_SRC)
-$(SFXP_EVENT_LIB): $(SFXP_EVENT_SRC)
-	$(CXX) $(LIBFLAGS) $(CXXFLAGS) -o $@ $^
+$(Mod_Tempo_LIB) : $(Mod_Tempo_SRC)
+	$(CXX) $(LIBFLAG) $(CXXFLAGS) -o $@ $^
+	
+$(Mod_Disto_LIB) : $(Mod_Disto_SRC) $(Lib_Filter_GEQ_SRC)
+	$(CXX) $(LIBFLAG) $(CXXFLAGS) -o $@ $^ $(Lib_Filter_GEQ_LIB)
+	
+$(Mod_Midi_LIB) : $(Mod_Midi_SRC) $(Lib_Env_ADSR_SRC)
+	$(CXX) $(LIBFLAG) $(CXXFLAGS) -o $@ $^ $(Lib_Env_ADSR_LIB)
+	
+$(Mod_Temps_LIB) : $(Mod_Temps_SRC) $(Lib_Buffer_SRC)
+	$(CXX) $(LIBFLAG) $(CXXFLAGS) -o $@ $^ $(Lib_Buffer_LIB)
+	
+$(Mod_Modulation_LIB) : $(Mod_Modulation_SRC)
+	$(CXX) $(LIBFLAG) $(CXXFLAGS) -o $@ $^
+	
+###### Librairies ######
 
-$(SFXP_LOGIC_OBJ): $(SFXP_LOGIC_SRC)
-$(SFXP_LOGIC_LIB): $(SFXP_LOGIC_SRC)
-	$(CXX) $(LIBFLAGS) $(CXXFLAGS) -o $@ $^
-
-$(SFXP_ANALOG_OBJ): $(SFXP_ANALOG_SRC)
-$(SFXP_ANALOG_LIB): $(SFXP_ANALOG_SRC)
-	$(CXX) $(LIBFLAGS) $(CXXFLAGS) -o $@ $^
-
-$(SFXP_SLIB): $(SFXP_ANALOG_OBJ) $(SFXP_EVENT_OBJ) $(SFXP_LOGIC_OBJ) $(SFXP_PLUGIN_OBJ) $(SFXP_PRESET_OBJ)
+## Buffer ##
+$(Lib_Buffer_LIB) : $(Lib_Buffer_SRC)
+	$(CXX) $(LIBFLAG) $(CXXFLAGS) -o $@ $^
+	
+## Filter ##
+$(Lib_Filter_GEQ_LIB) : $(Lib_Filter_GEQ_SRC) $(Lib_Filter_Base_SRC)
+	$(CXX) $(LIBFLAG) $(CXXFLAGS) -o $@ $^
+	
+$(Lib_Filter_MPF_LIB) : $(Lib_Filter_MPF_SRC) $(Lib_Filter_Base_SRC)
+	$(CXX) $(LIBFLAG) $(CXXFLAGS) -o $@ $^
+	
+$(Lib_Filter_MEQ_LIB) : $(Lib_Filter_MEQ_SRC) $(Lib_Filter_Base_SRC)
+	$(CXX) $(LIBFLAG) $(CXXFLAGS) -o $@ $^
+	
+$(Lib_Filter_PEQ_LIB) : $(Lib_Filter_PEQ_SRC) $(Lib_Filter_Base_SRC)
+	$(CXX) $(LIBFLAG) $(CXXFLAGS) -o $@ $^
+	
+## ADSR ##
+$(Lib_Env_ADSR_LIB) : $(Lib_Env_ADSR_SRC)
+	$(CXX) $(LIBFLAG) $(CXXFLAGS) -o $@ $^
+	
+## XML ##
+$(Lib_XML_OBJ): $(Lib_XML_SRC)
+	
+$(Lib_XML_LIB): $(Lib_XML_OBJ)
 	ar crf $@ $^
+	
+###### SFX-Pi ######
 
-### Libraries Specific for Plugins ###
-$(EXTERN_DRIVE_LIB): lib/driveBase/DriveBase.cc
-	$(CXX) $(LIBFLAGS) $(CXXFLAGS) -o $@ $^
+$(Pi_GPIO_OBJ): $(Pi_GPIO_SRC)
 
-$(EXTERN_BUFF_LIB): lib/buffer/Buffer.cc
-	$(CXX) $(LIBFLAGS) $(CXXFLAGS) -o $@ $^
-
-lib/filter/GraphicEQ.so: lib/filter/GraphicEQ.cc $(EXTERN_FILTERB_SRC)
-	$(CXX) $(LIBFLAGS) $(CXXFLAGS) -o $@ $^
-
-lib/filter/MonoPoleFilter.so: lib/filter/MonoPoleFilter.cc $(EXTERN_FILTERB_SRC)
-	$(CXX) $(LIBFLAGS) $(CXXFLAGS) -o $@ $^
-
-lib/filter/MultibandEQ.so: lib/filter/MultibandEQ.cc $(EXTERN_FILTERB_SRC)
-	$(CXX) $(LIBFLAGS) $(CXXFLAGS) -o $@ $^
-
-lib/filter/ParametricEQ.so: lib/filter/ParametricEQ.cc $(EXTERN_FILTERB_SRC)
-	$(CXX) $(LIBFLAGS) $(CXXFLAGS) -o $@ $^
-
-### SFX-Pi Core ###
-
-### Preset Handling ###
-$(PI_PRESET_OBJ): $(PI_PRESET_SRC) $(SFXP_PRESET_LIB)
-
-### Effect Handling ###
-$(PI_EFFECT_OBJ): $(PI_EFFECT_SRC) $(SHARED_PLUGIN_LIB)
-
-### Logic IO Handling ###
-$(PI_LOGIC_OBJ): $(PI_LOGIC_SRC) $(SFXP_LOGIC_LIB)
-
-### Analog IO Handling ###
-$(PI_ANALOG_OBJ): $(PI_ANALOG_SRC) $(SFXP_ANALOG_LIB)
-
-### Dynamic Event Handling ###
-$(PI_EVENT_OBJ): $(PI_EVENT_SRC) $(SFXP_EVENT_LIB)
-
-### Console IO Handling ###
-$(PI_COMMANDS_OBJ): $(PI_COMMANDS_SRC)
-
-$(PI_CMDHANDLER_OBJ): $(PI_CMDHANDLER_SRC) $(PI_COMMANDS_SRC)
-
-### Gui Handling ###
-$(PI_GUIHANDLER_OBJ): $(PI_GUIHANDLER_SRC)
-
-$(PI_GUICORE_OBJ): $(PI_GUICORE_SRC)
-
-$(PI_GUICOMP_OBJ): $(PI_GUICOMP_SRC)
+###### SFX-Pe ######
 
 ########################################################################
 ##                          Genaral Rules                             ##

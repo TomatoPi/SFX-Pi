@@ -28,17 +28,18 @@ class SinglePoleFilter : public AFilterBase{
             MIXPASS  = 2  /**< Mix Low and High Bands with given gain */
         }FilterType;
 
-        SinglePoleFilter(float freq, float samplerate, FilterType type);
+        SinglePoleFilter(float freq, float samplerate, FilterType type
+                        ,sfx::usize_t order=4);
         virtual ~SinglePoleFilter();
 
-        SFXP::sample_t compute(SFXP::sample_t in, float g1, float g2);
+        sfx::sample_t compute(sfx::sample_t in, float g1, float g2);
 
         void setFrequency(float f, float sr);
         float getFrequency() const;
 
     private :
 
-        FilterPole m_pole;
+        FilterPole* m_pole;
         FilterType m_type;
 };
 

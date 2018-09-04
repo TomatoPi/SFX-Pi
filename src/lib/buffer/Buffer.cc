@@ -6,7 +6,10 @@
  * File providing data structures to store and read samples
  **********************************************************************/
 #include "Buffer.h"
-using namespace SFXP;
+#include <iostream>
+
+using namespace sfx;
+using namespace std;
 
 /**********************************************************************
  *	                    Basic buffer stuff
@@ -15,9 +18,9 @@ Buffer::Buffer(int length, int samplerate){
 
     length = length <= 0 ? 1 : length;
 
-	this->size_ = utils::mstos(length, samplerate);
+	this->size_ = sfx::mstos(length, samplerate);
 	
-	this->buffer_ = new sample_t[this->size_];
+	this->buffer_ = new sfx::sample_t[this->size_];
 	this->write_i_ = 0;
 }
 
@@ -26,7 +29,7 @@ Buffer::~Buffer(){
 	delete this->buffer_;
 }
 
-void Buffer::write(sample_t value){
+void Buffer::write(sfx::sample_t value){
 
 	this->write_i_ = ( this->write_i_ + 1 ) % this->size_;
     this->buffer_[(int)this->write_i_] = value;
@@ -34,7 +37,7 @@ void Buffer::write(sample_t value){
 
 void Buffer::set_length(int l, int sr){
 	
-	this->set_length(utils::mstos(l, sr));
+	this->set_length(sfx::mstos(l, sr));
 }
 
 void Buffer::set_length(int s){
@@ -43,7 +46,7 @@ void Buffer::set_length(int s){
     s = s <= 0 ? 1 : s;
     
 	delete this->buffer_;
-    this->buffer_ = new sample_t[s];
+    this->buffer_ = new sfx::sample_t[s];
     
     this->size_ = s;
     this->write_i_ = 0;
@@ -60,7 +63,7 @@ int Buffer::get_length() const{
 
 int Buffer::get_length(int sr) const{
 	
-	return utils::stoms(this->size_, sr);
+	return sfx::stoms(this->size_, sr);
 }
 
 void Buffer::clear(){
@@ -78,7 +81,7 @@ void Buffer::clear(){
 */
 Buffer_S::Buffer_S(int length, int samplerate, int delay):Buffer( (length>delay)?length:delay, samplerate){
 	
-	this->read_i_ = this->size_ - utils::mstos(delay, samplerate);
+	this->read_i_ = this->size_ - sfx::mstos(delay, samplerate);
     if ( this->read_i_ < 0 ) this->read_i_ = 0;
 }
 
@@ -99,13 +102,13 @@ void Buffer_S::set_length(int s){
 	this->read_i_ = 0;
 }
 
-sample_t Buffer_S::read(){
+sfx::sample_t Buffer_S::read(){
 	
 	this->read_i_ = fmod( this->read_i_ +1, this->size_);
 	return this->buffer_[(int)this->read_i_];
 }
 
-sample_t Buffer_S::read(float speed){
+sfx::sample_t Buffer_S::read(float speed){
 	
 	this->read_i_ = fmod(this->read_i_ + speed, this->size_);
 	return ( (1 - fmod(this->read_i_, 1.0f)) * this->buffer_[(int)(this->read_i_)] )
@@ -131,21 +134,21 @@ Buffer_M::Buffer_M(int length, int samplerate, int count, int *delay):Buffer(len
     
 	for(int i = 0; i < count; i++){
         
-        this->read_i_[i] = (this->size_ - utils::mstos(delay[i], samplerate)) % this->size_;
+        this->read_i_[i] = (this->size_ - sfx::mstos(delay[i], samplerate)) % this->size_;
         //cout << "R : " << read_i_[i] << "frames ( " << delay[i] << " ms ) -- ";
     }
     
-   //cout << endl << "Buffer created" << endl;
+  // cout << endl << "Buffer created : Write Head : " << write_i_ << endl;
 }
 
 Buffer_M::~Buffer_M(){
     
-    delete read_i_;
+    delete[] read_i_;
 }
 
 void Buffer_M::set_length(int l, int sr){
 
-	this->set_length(utils::mstos(l, sr));
+	this->set_length(sfx::mstos(l, sr));
 }
 
 void Buffer_M::set_length(int s){
@@ -157,7 +160,7 @@ void Buffer_M::set_length(int s){
 	this->write_i_ = w;
 }
 
-sample_t Buffer_M::read(int idx){
+sfx::sample_t Buffer_M::read(int idx){
 	
 	if(idx < this->count_){
 		
@@ -167,7 +170,7 @@ sample_t Buffer_M::read(int idx){
 	return 0;
 }
 
-sample_t Buffer_M::read(int idx, float speed){
+sfx::sample_t Buffer_M::read(int idx, float speed){
 		
 	if(idx < this->count_){
 		
@@ -180,7 +183,7 @@ sample_t Buffer_M::read(int idx, float speed){
 
 void Buffer_M::set_reader(int count, int *delay, int sr){
 
-	for(int i = 0; i < count; i++) delay[i] = utils::mstos(delay[i], sr);
+	for(int i = 0; i < count; i++) delay[i] = sfx::mstos(delay[i], sr);
 	this->set_reader(count, delay);
 }
 
@@ -232,7 +235,7 @@ void Buffer_R::set_length( int length ){
     summ_ = 0;
 }
 
-sample_t Buffer_R::read(){
+sfx::sample_t Buffer_R::read(){
     
     return buffer_[write_i_];
 }
@@ -242,7 +245,7 @@ float Buffer_R::get_rms2(){
     return summ_;
 }
 
-void Buffer_R::write( sample_t data ){
+void Buffer_R::write( sfx::sample_t data ){
     
     // Remove oldest sample from the summ
     summ_ -= ( buffer_[write_i_]*buffer_[write_i_] ) / (float)size_;
@@ -275,7 +278,7 @@ Buffer_A::~Buffer_A(){
     delete read_anchor_;
 }
 
-sample_t Buffer_A::read(int idx, float speed){
+sfx::sample_t Buffer_A::read(int idx, float speed){
 
     if ( idx < count_ ){
 
