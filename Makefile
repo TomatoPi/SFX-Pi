@@ -149,7 +149,7 @@ Pe_LIB = $(Ker_All_LIB)
 ########################################################################
 ##   	                         RULES		                      ##
 ########################################################################
-Modules : Pi_dirs $(Mod_All_LIB)
+Modules : Pi_dirs $(Mod_All_LIB) $(Lib_All_LIB)
 	
 SFX-Pi: obj/SFXPi.o $(Pi_OBJ) $(Pi_LIB)
 	$(CXX) -o $@ $^ $(LDFLAGS) $(Pi_LDFLAGS)
@@ -180,10 +180,10 @@ $(Ker_Module_load_OBJ): $(Ker_Module_load_SRC)
 $(Mod_Tempo_LIB) : $(Mod_Tempo_SRC)
 	$(CXX) $(LIBFLAG) $(CXXFLAGS) -o $@ $^
 	
-$(Mod_Disto_LIB) : $(Mod_Disto_SRC) $(Lib_Filter_GEQ_SRC)
+$(Mod_Disto_LIB) : $(Mod_Disto_SRC) $(Lib_Filter_GEQ_SRC) src/noyau/modules/ModuleBase.h src/noyau/utils.h
 	$(CXX) $(LIBFLAG) $(CXXFLAGS) -o $@ $^ $(Lib_Filter_GEQ_LIB)
 	
-$(Mod_Midi_LIB) : $(Mod_Midi_SRC) $(Lib_Env_ADSR_SRC)
+$(Mod_Midi_LIB) : $(Mod_Midi_SRC) $(Lib_Env_ADSR_SRC) src/noyau/modules/ModuleBase.h src/noyau/utils.h
 	$(CXX) $(LIBFLAG) $(CXXFLAGS) -o $@ $^ $(Lib_Env_ADSR_LIB)
 	
 $(Mod_Temps_LIB) : $(Mod_Temps_SRC) $(Lib_Buffer_SRC)

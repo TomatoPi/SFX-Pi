@@ -75,6 +75,15 @@ namespace sfx
     const hex_t Midi_AnalogChange       = 11;
     
 ////////////////////////////////////////////////////////////////////
+// General Midi Functions
+////////////////////////////////////////////////////////////////////
+    
+    inline void Midi_reserve_MidiThroughMessage(void* port_buff, const jack_midi_event_t& event)
+    {
+        jack_midi_event_write(port_buff, event.time, event.buffer, event.size);
+    }
+    
+////////////////////////////////////////////////////////////////////
 // Specific Midi Message Parsing Functions
 ////////////////////////////////////////////////////////////////////
     
@@ -117,17 +126,6 @@ namespace sfx
         
         buff[1] = ctrl;
         buff[2] = val;
-    }
-    
-    inline void Midi_reserve_ControlChange_Throught(void* port_buff, jack_nframes_t i
-        , const hex_t* source)
-    {
-        unsigned char* buff = jack_midi_event_reserve(port_buff, i, 3);
-        
-        buff[0] = source[0];
-        
-        buff[1] = source[1];
-        buff[2] = source[2];
     }
     
     inline void Midi_reserve_14bitControlChange(void* port_buff, jack_nframes_t i

@@ -16,9 +16,19 @@
 //  You may modify and use this source code to create binary code for your own purposes, free or commercial.
 //
 
+/**
+ * Modifications : Space-Computer
+ * 
+ * Changement des calculs de croissance et decroissance des pahses A, D et R, il y avais un problème dans 
+ * la version initiale : Le taux de croissance ne variais pas en fonction de la distance encore à parcourir...
+ */
+
 #ifndef ADRS_h
 #define ADRS_h
 
+#include "noyau/log.h"
+
+#define NAME "ADSR"
 
 class ADSR {
 public:
@@ -68,26 +78,32 @@ inline float ADSR::process() {
         case env_idle:
             break;
         case env_attack:
-            output = attackBase + output * attackCoef;
+            output += (1 + targetRatioA - output) * attackCoef;
             if (output >= 1.0) {
                 output = 1.0;
                 state = env_decay;
+                
+                sfx::debug(NAME, "State => Decay\n");
             }
             break;
         case env_decay:
-            output = decayBase + output * decayCoef;
+            output += (sustainLevel - targetRatioDR - output) * decayCoef;
             if (output <= sustainLevel) {
                 output = sustainLevel;
                 state = env_sustain;
+                
+                sfx::debug(NAME, "State => Sustain\n");
             }
             break;
         case env_sustain:
             break;
         case env_release:
-            output = releaseBase + output * releaseCoef;
+            output += (-targetRatioDR - output) * releaseCoef;
             if (output <= 0.0) {
                 output = 0.0;
                 state = env_idle;
+                
+                sfx::debug(NAME, "State => Idle\n");
             }
 	}
 	return output;
@@ -95,9 +111,17 @@ inline float ADSR::process() {
 
 inline void ADSR::gate(int gate) {
 	if (gate)
+    {
+        output = 0.0;
 		state = env_attack;
+        
+        sfx::debug(NAME, "State => Attack\n");
+    }
 	else if (state != env_idle)
+    {
         state = env_release;
+        sfx::debug(NAME, "State => Release\n");
+    }
 }
 
 inline int ADSR::getState() {
@@ -113,4 +137,5 @@ inline float ADSR::getOutput() {
 	return output;
 }
 
+#undef NAME
 #endif

@@ -58,15 +58,15 @@ struct Module
          */
         typedef float (*slot_f)(sfx::hex_t, Module*);
         
-        Slot():Slot("Empty", 0, nullptr)
-        {
-        }
-        Slot(std::string n, sfx::hex_t d, slot_f s):name(n), value(d),callback(s)
-        {
-        }
+//        Slot():Slot("Empty", 0, nullptr)
+//        {
+//        }
+//        Slot(std::string n, sfx::hex_t d, slot_f s):name(n), value(d),callback(s)
+//        {
+//        }
         
         std::string name;
-        sfx::hex_t  value;
+        //sfx::hex_t  value;
         
         slot_f callback;
     };
@@ -158,15 +158,22 @@ struct Module
         sfx::hex_t ccs = sfx::Midi_read_CCSource(event);
         sfx::hex_pair_t cc = std::make_pair(ccc, ccs);
         
-        sfx::debug("Native-MIDI", "Process Midi Event : %i %i\n", ccc, ccs);
+        //sfx::debug("Native-MIDI", "Process Midi Event : %i %i\n", ccc, ccs);
         
         if (links.find(cc) != links.end())
+        {
             for (auto& slot : links[cc])
-                if (infos->slots[slot].callback != nullptr)
+                if (infos->slots.find(slot) != infos->slots.end())
                 {
+                    //sfx::debug("Native-MIDI", "Call slot : \"%s\" with value : %i\n", infos->slots[slot].name, sfx::Midi_read_CCValue(event));
                     float v = (*infos->slots[slot].callback)(sfx::Midi_read_CCValue(event), this);
                     sfx::debug("Native-MIDI", "Called slot : \"%s\" with value : %i => %f\n", slot, sfx::Midi_read_CCValue(event), v);
                 }
+                else
+                {
+                    //sfx::wrn("Native-MIDI", "Unable to find slot : \"%s\" linked to CC : %i %i\n", slot, ccc, ccs);
+                }
+        }
     }
 #else
     

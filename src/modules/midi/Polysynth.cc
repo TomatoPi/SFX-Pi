@@ -21,8 +21,9 @@
 #include "noyau/midi.h"
 #include "noyau/modules/ModuleBase.h"
 
-#include "lib/envelope/Fonctions.h"
 #include "lib/envelope/ADSR.h"
+
+#include "lib/math/FonctionsOndes.h"
 
 #define NAME "Polysynth"
 #define VERSION "1.0.0"
@@ -39,11 +40,11 @@ struct PolysynthDatas
 
     PolysynthDatas(int sr):
         phase(0), sign(1), volume(0.1f),
-        param1(4), param2(2), phase_distortion(0.5), phase_fix(0),
+        param1(2), param2(2), phase_distortion(0.5), phase_fix(0),
         
         samplerate(sr),
         
-        a(100), d(100), s(-12), r(100),
+        a(100), d(100), s(0.5), r(100),
 
         notes_map(),
 
@@ -59,7 +60,7 @@ struct PolysynthDatas
     
     float a, d, s, r;
     
-    std::map<sfx::hex_t, Note> notes_map;
+    std::list<std::pair<sfx::hex_t, Note>> notes_map;
     
     sfx::WaveForm waveform;
     sfx::transfert_f tfunc;
@@ -133,7 +134,7 @@ Module::SlotTable function_register_module_slots(void)
     /*
      * Register all slots with :
      *
-    table["NOM"] = Module::Slot("NOM", 0, [](sfx::hex_t val, Module* mod)
+    table["NOM"] = Module::Slot{"NOM", 0, [](sfx::hex_t val, Module* mod)
         {
             if (val < 128)
             {
@@ -153,10 +154,10 @@ Module::SlotTable function_register_module_slots(void)
                 ((PolysynthDatas*)mod->datas)->PARAM = sfx::mapfm_stoms(val, MIN, MAX, SAMPLERATE); 
             }
             return ((PolysynthDatas*)mod->datas)->PARAM; // Retourner la valeur du paramètre modulé
-        });
+        }};
      */
     
-    table["Phase"] = Module::Slot("Phase", 0, [](sfx::hex_t val, Module* mod)
+    table["Phase"] = Module::Slot{"Phase", [](sfx::hex_t val, Module* mod)
         {
             if (val < 128)
             {
@@ -164,8 +165,8 @@ Module::SlotTable function_register_module_slots(void)
                 ((PolysynthDatas*)mod->datas)->phase = sfx::mapfm_lin(val, 0, 1); 
             }
             return ((PolysynthDatas*)mod->datas)->phase; // Retourner la valeur du paramètre modulé
-        });
-    table["Signe"] = Module::Slot("Signe", 0, [](sfx::hex_t val, Module* mod)
+        }};
+    table["Signe"] = Module::Slot{"Signe", [](sfx::hex_t val, Module* mod)
         {
             if (val < 128)
             {
@@ -173,8 +174,8 @@ Module::SlotTable function_register_module_slots(void)
                 ((PolysynthDatas*)mod->datas)->sign = sfx::mapfm_lin(val, -1, 1); 
             }
             return ((PolysynthDatas*)mod->datas)->sign; // Retourner la valeur du paramètre modulé
-        });
-    table["Volume"] = Module::Slot("Volume", 0, [](sfx::hex_t val, Module* mod)
+        }};
+    table["Volume"] = Module::Slot{"Volume", [](sfx::hex_t val, Module* mod)
         {
             if (val < 128)
             {
@@ -182,10 +183,10 @@ Module::SlotTable function_register_module_slots(void)
                 ((PolysynthDatas*)mod->datas)->volume = sfx::mapfm_db(val, -50, 10); 
             }
             return ((PolysynthDatas*)mod->datas)->volume; // Retourner la valeur du paramètre modulé
-        });
+        }};
         
         
-    table["Param1"] = Module::Slot("Param1", 0, [](sfx::hex_t val, Module* mod)
+    table["Param1"] = Module::Slot{"Param1", [](sfx::hex_t val, Module* mod)
         {
             if (val < 128)
             {
@@ -193,8 +194,8 @@ Module::SlotTable function_register_module_slots(void)
                 ((PolysynthDatas*)mod->datas)->param1 = sfx::mapfm_lin(val, 0, 10);
             }
             return ((PolysynthDatas*)mod->datas)->param1; // Retourner la valeur du paramètre modulé
-        });
-    table["Param2"] = Module::Slot("Param2", 0, [](sfx::hex_t val, Module* mod)
+        }};
+    table["Param2"] = Module::Slot{"Param2", [](sfx::hex_t val, Module* mod)
         {
             if (val < 128)
             {
@@ -202,9 +203,9 @@ Module::SlotTable function_register_module_slots(void)
                 ((PolysynthDatas*)mod->datas)->param1 = sfx::mapfm_lin(val, 0, 10);
             }
             return ((PolysynthDatas*)mod->datas)->param1; // Retourner la valeur du paramètre modulé
-        });
+        }};
         
-    table["Distortion-Phase"] = Module::Slot("Distortion-Phase", 0, [](sfx::hex_t val, Module* mod)
+    table["Distortion-Phase"] = Module::Slot{"Distortion-Phase", [](sfx::hex_t val, Module* mod)
         {
             if (val < 128)
             {
@@ -212,8 +213,8 @@ Module::SlotTable function_register_module_slots(void)
                 ((PolysynthDatas*)mod->datas)->phase_distortion = sfx::mapfm_lin(val, 0, 1);
             }
             return ((PolysynthDatas*)mod->datas)->phase_distortion; // Retourner la valeur du paramètre modulé
-        });
-    table["Point-Fixe-Phase"] = Module::Slot("Point-Fixe-Phase", 0, [](sfx::hex_t val, Module* mod)
+        }};
+    table["Point-Fixe-Phase"] = Module::Slot{"Point-Fixe-Phase", [](sfx::hex_t val, Module* mod)
         {
             if (val < 128)
             {
@@ -221,9 +222,9 @@ Module::SlotTable function_register_module_slots(void)
                 ((PolysynthDatas*)mod->datas)->phase_fix = sfx::mapfm_lin(val, 0, 10);
             }
             return ((PolysynthDatas*)mod->datas)->phase_fix; // Retourner la valeur du paramètre modulé
-        });
+        }};
         
-    table["A"] = Module::Slot("A", 0, [](sfx::hex_t val, Module* mod)
+    table["A"] = Module::Slot{"A", [](sfx::hex_t val, Module* mod)
         {
             if (val < 128)
             {
@@ -231,8 +232,8 @@ Module::SlotTable function_register_module_slots(void)
                 ((PolysynthDatas*)mod->datas)->a = sfx::mapfm_mstos(val, 0, 1000, ((PolysynthDatas*)mod->datas)->samplerate); 
             }
             return ((PolysynthDatas*)mod->datas)->a; // Retourner la valeur du paramètre modulé
-        });
-    table["D"] = Module::Slot("D", 0, [](sfx::hex_t val, Module* mod)
+        }};
+    table["D"] = Module::Slot{"D", [](sfx::hex_t val, Module* mod)
         {
             if (val < 128)
             {
@@ -240,8 +241,8 @@ Module::SlotTable function_register_module_slots(void)
                 ((PolysynthDatas*)mod->datas)->d = sfx::mapfm_mstos(val, 0, 1000, ((PolysynthDatas*)mod->datas)->samplerate); 
             }
             return ((PolysynthDatas*)mod->datas)->d; // Retourner la valeur du paramètre modulé
-        });
-    table["S"] = Module::Slot("S", 0, [](sfx::hex_t val, Module* mod)
+        }};
+    table["S"] = Module::Slot{"S", [](sfx::hex_t val, Module* mod)
         {
             if (val < 128)
             {
@@ -249,8 +250,8 @@ Module::SlotTable function_register_module_slots(void)
                 ((PolysynthDatas*)mod->datas)->s = sfx::mapfm_db(val, -50, 10); 
             }
             return ((PolysynthDatas*)mod->datas)->s; // Retourner la valeur du paramètre modulé
-        });
-    table["R"] = Module::Slot("R", 0, [](sfx::hex_t val, Module* mod)
+        }};
+    table["R"] = Module::Slot{"R", [](sfx::hex_t val, Module* mod)
         {
             if (val < 128)
             {
@@ -258,12 +259,12 @@ Module::SlotTable function_register_module_slots(void)
                 ((PolysynthDatas*)mod->datas)->r = sfx::mapfm_mstos(val, 0, 1000, ((PolysynthDatas*)mod->datas)->samplerate); 
             }
             return ((PolysynthDatas*)mod->datas)->r; // Retourner la valeur du paramètre modulé
-        });
+        }};
 
     return table;
 }
 
-#ifdef __ARCH_LINUX__
+//#ifdef __ARCH_LINUX__
 
 extern "C"
 int function_process_callback(jack_nframes_t nframes, void* arg)
@@ -279,7 +280,7 @@ int function_process_callback(jack_nframes_t nframes, void* arg)
     jack_nframes_t event_index = 0;
     jack_nframes_t event_count = jack_midi_get_event_count(midi_port);
 
-    //*
+    /*
     for (jack_nframes_t i = 0; i < event_count; ++i)
     {
         jack_midi_event_get(&in_event, midi_port, i);
@@ -299,6 +300,8 @@ int function_process_callback(jack_nframes_t nframes, void* arg)
     {
         if (in_event.time == i && event_index < event_count)
         {
+            sfx::Midi_reserve_MidiThroughMessage(midi_throught, in_event);
+            
             if (sfx::Midi_verify_ChanneledMessage(in_event.buffer, sfx::Midi_NoteOn))
             {
                 sfx::hex_t note = sfx::Midi_read_NoteValue(in_event.buffer);
@@ -315,7 +318,7 @@ int function_process_callback(jack_nframes_t nframes, void* arg)
                 n.envelope.setSustainLevel(synth->s);
                 n.envelope.gate(1);
 
-                synth->notes_map[note] = n;
+                synth->notes_map.push_back(std::make_pair(note, n));
                 
                 //*
                 sfx::debug(NAME, "Midi note on : %x : Note : %i : Velocity : %i : Rbs : %f\n",
@@ -326,7 +329,11 @@ int function_process_callback(jack_nframes_t nframes, void* arg)
             {
                 sfx::hex_t note = sfx::Midi_read_NoteValue(in_event.buffer);
                 
-                synth->notes_map[note].envelope.gate(0);
+                for (auto& note_struct : synth->notes_map)
+                    if(note_struct.first == note)
+                    {
+                        note_struct.second.envelope.gate(0);
+                    }
                 
                 //*
                 sfx::debug(NAME, "Midi note off : %x : Note : %i : Velocity : %i\n",
@@ -336,7 +343,6 @@ int function_process_callback(jack_nframes_t nframes, void* arg)
             else if (sfx::Midi_verify_ChanneledMessage(in_event.buffer, sfx::Midi_ControlChange))
             {
                 mod->veryfyAndComputeCCMessage(in_event.buffer);
-                sfx::Midi_reserve_ControlChange_Throught(midi_throught, i, in_event.buffer);
             }
             event_index++;
             if (event_index < event_count)
@@ -351,14 +357,16 @@ int function_process_callback(jack_nframes_t nframes, void* arg)
         
         out[i] = 0;
         
-        for (auto& note : synth->notes_map)
+        for (std::list<std::pair<sfx::hex_t, Note>>::iterator note_itr = synth->notes_map.begin();
+            note_itr != synth->notes_map.end();
+            ++note_itr)
         {
-            if (note.second.envelope.getState())
+            if (note_itr->second.envelope.getState())
             {
-                note.second.ramp += note.second.rbs;
-                note.second.ramp = fmod(note.second.ramp - o, 1.0f);
+                note_itr->second.ramp += note_itr->second.rbs;
+                note_itr->second.ramp = fmod(note_itr->second.ramp - o, 1.0f);
 
-                float pp = note.second.ramp;
+                float pp = note_itr->second.ramp;
                 if ( d != 0.5f )
                 {
                     pp = (pp>d)? (pp+1.0f - 2.0f*d)/(2.0f*(1.0f-d)) : pp/(2.0f*d);
@@ -366,13 +374,17 @@ int function_process_callback(jack_nframes_t nframes, void* arg)
                     pp = fmod(pp, 1.0f);
                 }
 
-                out[i] += synth->volume * note.second.envelope.process() * (*synth->tfunc)(pp, synth->sign, synth->param1, synth->param2);
+                //note_itr->second.envelope.process();
+                out[i] += synth->volume * note_itr->second.envelope.process() * (*synth->tfunc)(pp, synth->sign, synth->param1, synth->param2);
             }
             else
             {
-                synth->notes_map.erase(note.first);
+                note_itr = synth->notes_map.erase(note_itr);
+                //sfx::debug(NAME, "Erased note : %u left\n", synth->notes_map.size());
             }
         }
+        
+        //sfx::debug(NAME, "%u left\n", synth->notes_map.size());
         
         if (out[i]>1.0f) out[i] = 1.0f;
         else if (out[i]<-1.0f) out[i] = -1.0f;
@@ -380,4 +392,4 @@ int function_process_callback(jack_nframes_t nframes, void* arg)
 
     return 0;
 }
-#endif
+//#endif

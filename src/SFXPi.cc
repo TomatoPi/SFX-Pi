@@ -116,21 +116,19 @@ int main(int argc, char** argv)
     
     std::unique_ptr<Module> DISTO(new Module(DISTO_MODULE));
     
-    /*
-    DISTO->linkSlot(std::make_pair(8, 10), "Gain");
-    DISTO->linkSlot(std::make_pair(9, 10), "Shape");
-    DISTO->linkSlot(std::make_pair(10, 10), "Softness");
-    DISTO->linkSlot(std::make_pair(11, 10), "Volume");
-    
     DISTO->linkSlot(std::make_pair(12, 10), "In Lowcut");
     DISTO->linkSlot(std::make_pair(13, 10), "In Highcut");
     DISTO->linkSlot(std::make_pair(14, 10), "Out Lowcut");
     DISTO->linkSlot(std::make_pair(15, 10), "Out Highcut");
-    //*/
     
     ///////////////////////////////////////////////////////////////
     
     std::unique_ptr<Module> SYNTH(new Module(SYNTH_MODULE));
+    
+    SYNTH->linkSlot(std::make_pair(8, 10), "A");
+    SYNTH->linkSlot(std::make_pair(9, 10), "D");
+    SYNTH->linkSlot(std::make_pair(10, 10), "R");
+    SYNTH->linkSlot(std::make_pair(11, 10), "Volume");
     
     ///////////////////////////////////////////////////////////////
     
@@ -148,10 +146,10 @@ int main(int argc, char** argv)
 		sfx::err (NAME, "cannot connect output ports : \"%s\" \"%s\"\n", jack_port_name (DISTO->audioOuts[0].port), physic_out[1]);
 	}
     
-//	if (jack_connect (DISTO->client, midi_in[0], jack_port_name (DISTO->midiIns[0].port))) 
-//    {
-//		sfx::err (NAME, "cannot connect input ports\n");
-//	}
+	if (jack_connect (DISTO->client, midi_in[0], jack_port_name (DISTO->midiIns[0].port))) 
+    {
+		sfx::err (NAME, "cannot connect input ports\n");
+	}
     
     ///////////////////////////////////////////////////////////////
     
@@ -164,7 +162,7 @@ int main(int argc, char** argv)
 		sfx::err (NAME, "cannot connect output ports : \"%s\" \"%s\"\n", jack_port_name (SYNTH->audioOuts[0].port), physic_out[1]);
 	}
     
-	if (jack_connect (SYNTH->client, midi_in[0], jack_port_name (SYNTH->midiIns[0].port))) 
+	if (jack_connect (SYNTH->client, jack_port_name (DISTO->midiOuts[0].port), jack_port_name (SYNTH->midiIns[0].port))) 
     {
 		sfx::err (NAME, "cannot connect input ports\n");
 	}

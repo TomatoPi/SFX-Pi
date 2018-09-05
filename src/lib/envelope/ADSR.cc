@@ -29,7 +29,7 @@ ADSR::ADSR(void) {
     setDecayRate(0);
     setReleaseRate(0);
     setSustainLevel(1.0);
-    setTargetRatioA(0.3);
+    setTargetRatioA(0.0001);
     setTargetRatioDR(0.0001);
 }
 
@@ -55,7 +55,7 @@ void ADSR::setReleaseRate(float rate) {
 }
 
 float ADSR::calcCoef(float rate, float targetRatio) {
-    return (rate <= 0) ? 0.0 : exp(-log((1.0 + targetRatio) / targetRatio) / rate);
+    return (rate <= 0) ? 0.0 : 1-exp(-log((1.0 + targetRatio) / targetRatio) / rate);
 }
 
 void ADSR::setSustainLevel(float level) {
