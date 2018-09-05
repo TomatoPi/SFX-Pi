@@ -252,7 +252,7 @@ float gradiant(float valeur, float seuil, float shoot, float knee)
 {
     if (valeur > seuil)
     {
-        return knee*(exp((shoot*(valeur-seuil))/(seuil-0.95))-exp(-seuil));
+        return knee*(exp((shoot*(valeur-seuil))/(seuil-0.95))-exp(-shoot));
     }
     else return 1;
 }
