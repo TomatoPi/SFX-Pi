@@ -31,7 +31,7 @@
  * @param path Chemin d'accès au module à charger
  * @return Pointeur vers le module chargé ou nullptr si le chargement a échoué
  */
-std::shared_ptr<Module::Info> loadModule(std::string path)
+std::shared_ptr<Module> loadModule(std::string path)
 {
     sfx::log(NAME, "Chargement du Module : \"%s\" ... ", path);
     
@@ -51,13 +51,13 @@ std::shared_ptr<Module::Info> loadModule(std::string path)
         
         // Chargement de la fonction Builder
 #ifdef __ARCH_LINUX__
-        Module::create_module_f builder_fptr = (Module::create_module_f)load_function(handle, "function_create_jack_module");
+        Module::create_module_data_f builder_fptr = (Module::create_module_data_f)load_function(handle, "function_create_jack_module");
 #else
-        Module::create_module_f builder_fptr = (Module::create_module_f)load_function(handle, "function_create_non_jack_module");
+        Module::create_module_data_f builder_fptr = (Module::create_module_data_f)load_function(handle, "function_create_non_jack_module");
 #endif
         
         // Chargement de la fonction Destructor
-        Module::destroy_module_f destructor_fptr = (Module::destroy_module_f)load_function(handle, "function_destroy_module");
+        Module::destroy_module_data_f destructor_fptr = (Module::destroy_module_data_f)load_function(handle, "function_destroy_module");
         
         // Chargement de la Table des Slots
         Module::register_slot_table_f slots_load_fptr = (Module::register_slot_table_f)load_function(handle, "function_register_module_slots");
@@ -68,14 +68,15 @@ std::shared_ptr<Module::Info> loadModule(std::string path)
 #endif
         
         sfx::sfxStream << "Succès du Chargement \n";
-        return std::make_unique<Module::Info>(Module::Info{
-            loaded_infos
-                , builder_fptr, destructor_fptr
-                , loaded_slot_table
+        return std::make_unique<Module>(Module{
+                .infos = loaded_infos,
+                .builder = builder_fptr, 
+                .destructor = destructor_fptr,
+                .slots = loaded_slot_table,
 #ifdef __ARCH_LINUX__
-                , process_callback_fptr
+                .callback = process_callback_fptr,
 #endif
-                , handle});
+                .lib_handle = handle});
     }
     catch(std::ios_base::failure const& e)
     {
@@ -91,7 +92,7 @@ std::shared_ptr<Module::Info> loadModule(std::string path)
  * @brief Fonction à appeller pour décharger un Module
  * @param module module à décharger
  */
-void unloadModule(std::shared_ptr<Module::Info> module)
+void unloadModule(std::shared_ptr<Module> module)
 {
 #if defined(__UNIX__)
     

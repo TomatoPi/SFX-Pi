@@ -75,13 +75,13 @@ int main(int argc, char** argv)
     
     std::unique_ptr<GPIOJackClient> GPIO(new GPIOJackClient({mcp23017::HEX_MCP_0, mcp23017::HEX_MCP_1}));
     
-    std::shared_ptr<Module::Info> DISTO_MODULE = loadModule("modules/gain/Distortion.so");
+    std::shared_ptr<Module> DISTO_MODULE = loadModule("modules/gain/Distortion.so");
     if (!DISTO_MODULE)
     {
         exit(1);
     }
     
-    std::shared_ptr<Module::Info> SYNTH_MODULE = loadModule("modules/midi/Polysynth.so");
+    std::shared_ptr<Module> SYNTH_MODULE = loadModule("modules/midi/Polysynth.so");
     if (!SYNTH_MODULE)
     {
         exit(1);
@@ -114,21 +114,21 @@ int main(int argc, char** argv)
     
     ///////////////////////////////////////////////////////////////
     
-    std::unique_ptr<Module> DISTO(new Module(DISTO_MODULE));
+    std::unique_ptr<EffectUnit> DISTO(new EffectUnit(DISTO_MODULE));
     
-    DISTO->linkSlot(std::make_pair(12, 10), "In Lowcut");
-    DISTO->linkSlot(std::make_pair(13, 10), "In Highcut");
-    DISTO->linkSlot(std::make_pair(14, 10), "Out Lowcut");
-    DISTO->linkSlot(std::make_pair(15, 10), "Out Highcut");
+    DISTO->linkSlot(std::make_pair(12, 10), "in_lowcut");
+    DISTO->linkSlot(std::make_pair(13, 10), "in_highcut");
+    DISTO->linkSlot(std::make_pair(14, 10), "out_lowcut");
+    DISTO->linkSlot(std::make_pair(15, 10), "out_highcut");
     
     ///////////////////////////////////////////////////////////////
     
-    std::unique_ptr<Module> SYNTH(new Module(SYNTH_MODULE));
+    std::unique_ptr<EffectUnit> SYNTH(new EffectUnit(SYNTH_MODULE));
     
-    SYNTH->linkSlot(std::make_pair(8, 10), "A");
-    SYNTH->linkSlot(std::make_pair(9, 10), "D");
-    SYNTH->linkSlot(std::make_pair(10, 10), "R");
-    SYNTH->linkSlot(std::make_pair(11, 10), "Volume");
+    SYNTH->linkSlot(std::make_pair(8, 10), "a");
+    SYNTH->linkSlot(std::make_pair(9, 10), "d");
+    SYNTH->linkSlot(std::make_pair(10, 10), "r");
+    SYNTH->linkSlot(std::make_pair(11, 10), "volume");
     
     ///////////////////////////////////////////////////////////////
     

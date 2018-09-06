@@ -26,9 +26,9 @@
 #define MODULEBASE_H
 
 #include <map>
+#include <list>
 #include <vector>
 #include <memory>
-#include <set>
 
 #include "noyau/types.h"
 #include "noyau/utils.h"
@@ -38,11 +38,15 @@
 #include "process/module/jackWrapper.h"
 #endif
 
+struct EffectUnit;
+
+/**
+ * Objet représentant un type d'effet, contiens les informations relatives
+ *  et les fonctions permettant d'initialiser un EffectUnit correspondant
+ */
+extern "C"
 struct Module
 {
-////////////////////////////////////////////////////////////////////
-// Declarations des structures communes
-////////////////////////////////////////////////////////////////////
     
     /**
      * Structure utilisée pour representer une possible connection
@@ -56,74 +60,73 @@ struct Module
          * @param void* Pointeur vers le bloc de paramètres du module
          * @return la valeur nouvelle valeur du slot;
          */
-        typedef float (*slot_f)(sfx::hex_t, Module*);
+        typedef float (*slot_f)(sfx::hex_t, EffectUnit*);
         
-//        Slot():Slot("Empty", 0, nullptr)
-//        {
-//        }
-//        Slot(std::string n, sfx::hex_t d, slot_f s):name(n), value(d),callback(s)
-//        {
-//        }
-        
-        std::string name;
-        //sfx::hex_t  value;
-        
+        std::string internal_name;
         slot_f callback;
+        
+        std::string display_name;
+        sfx::hex_t default_value;
     };
     /**
      * Table stoquant les Slots par nom
      */
-    typedef std::map<std::string, Slot> SlotTable;
-    typedef std::map<sfx::hex_pair_t, std::set<std::string>> LinkTable;
+    typedef std::map<std::string, std::shared_ptr<Slot>> SlotTable;
+    /**
+     * Fonction utilisée pour enregistrer un slot
+     * @param table la table où ajouter le slot
+     * @param internal_name nom interne du slot
+     * @param display_name nom d'affichage du slot
+     * @param callback fonction appekée pour modifier la valeur controlée par le slot
+     */
+    static inline void register_slot(SlotTable& table, sfx::hex_t def_val
+        , std::string internal_name, std::string display_name, Slot::slot_f callback)
+    {
+        table[internal_name] = std::shared_ptr<Slot>(new Slot{ 
+            .internal_name = internal_name,
+            .callback      = callback,
+            .display_name  = display_name,
+            .default_value = def_val
+        });
+    }
+    
     /**
      * Prototype de la fonction de déclaration des Slots
      */
     typedef SlotTable (*register_slot_table_f)(void);
-    
-    /**
-     * Structure utilisée pour representer un Port
-     */
-    struct Port
-    {
-        std::string name;
-#ifdef __ARCH_LINUX__
-        jack_port_t* port;
-#endif
-    };
-    /**
-     * Liste des Ports d'un Effet
-     */
-    typedef std::vector<Port> PortArray;
-    
     /**
      * Proptotype de la fonction pour creer les datas d'un Module
      */
-    typedef void* (*create_module_f)(Module*);
-    typedef void (*destroy_module_f)(void*);
+    typedef void* (*create_module_data_f)(EffectUnit*);
+    typedef void (*destroy_module_data_f)(void*);
     
     struct ShortInfo
     {
+        ShortInfo(std::string n, std::string v):name(n),version(v)
+        {
+        }
+        
         std::string name;
         std::string version;
-    };
+    }infos;
+    
     typedef ShortInfo (*register_module_info_f)(void);
-    
-    struct Info
-    {
-        ShortInfo infos;
-    
-        Module::create_module_f builder;
-        Module::destroy_module_f destructor;
 
-        Module::SlotTable slots;
-        
+    Module::create_module_data_f builder;
+    Module::destroy_module_data_f destructor;
+
+    Module::SlotTable slots;
+
 #ifdef __ARCH_LINUX__
-        JackProcessCallback callback;
+    JackProcessCallback callback;
 #endif
 
-        void* lib_handle;
-    };
-    
+    void* lib_handle;
+};
+
+extern "C"
+struct EffectUnit
+{
 #ifdef __ARCH_LINUX__
 ////////////////////////////////////////////////////////////////////
 // Attributs Jack
@@ -152,26 +155,31 @@ struct Module
             });
     }
     
+    /**
+     * Fonction à appeller dans la boucle de process pour traiter les CC midi et 
+     *  déclancher les slots eventuels
+     * @param event pointeur vers le buffer de l'evenement midi 
+     */
     inline void veryfyAndComputeCCMessage(sfx::hex_t* event)
     {
         sfx::hex_t ccc = sfx::Midi_read_CCChannel(event);
         sfx::hex_t ccs = sfx::Midi_read_CCSource(event);
+        sfx::hex_t val = sfx::Midi_read_CCValue(event);
         sfx::hex_pair_t cc = std::make_pair(ccc, ccs);
         
-        //sfx::debug("Native-MIDI", "Process Midi Event : %i %i\n", ccc, ccs);
+        sfx::debug("Native-MIDI", "Process Midi Event : %i %i\n", ccc, ccs);
         
         if (links.find(cc) != links.end())
         {
             for (auto& slot : links[cc])
-                if (infos->slots.find(slot) != infos->slots.end())
+                if (slots.find(slot) != slots.end())
                 {
-                    //sfx::debug("Native-MIDI", "Call slot : \"%s\" with value : %i\n", infos->slots[slot].name, sfx::Midi_read_CCValue(event));
-                    float v = (*infos->slots[slot].callback)(sfx::Midi_read_CCValue(event), this);
-                    sfx::debug("Native-MIDI", "Called slot : \"%s\" with value : %i => %f\n", slot, sfx::Midi_read_CCValue(event), v);
+                    sfx::debug("Native-MIDI", "Call slot : \"%s\" with value : %i\n", module->slots[slot]->internal_name, val);
+                    this->setSlotValue(slot, val);
                 }
                 else
                 {
-                    //sfx::wrn("Native-MIDI", "Unable to find slot : \"%s\" linked to CC : %i %i\n", slot, ccc, ccs);
+                    sfx::wrn("Native-MIDI", "Unable to find slot : \"%s\" linked to CC : %i %i\n", slot, ccc, ccs);
                 }
         }
     }
@@ -200,37 +208,174 @@ struct Module
 // Attributs Communs
 ////////////////////////////////////////////////////////////////////
     
+    EffectUnit(std::shared_ptr<Module> module);
+    ~EffectUnit();
+    
     std::string name;
     
     void* datas;
     
-    std::vector<Port> audioIns, audioOuts, midiIns, midiOuts;
+    std::shared_ptr<Module> module;
     
-    std::shared_ptr<Info> infos;
+////////////////////////////////////////////////////////////////////
+// Attributs Communs
+////////////////////////////////////////////////////////////////////
     
+    /**
+     * Structure utilisée pour representer un Port
+     */
+    struct Port
+    {
+        std::string name;
+#ifdef __ARCH_LINUX__
+        jack_port_t* port;
+#endif
+    };
+    /**
+     * Liste des Ports d'un Effet
+     */
+    typedef std::vector<Port> PortArray;
+    
+    PortArray audioIns, audioOuts, midiIns, midiOuts;
+    
+////////////////////////////////////////////////////////////////////
+// Gestion des Slots
+////////////////////////////////////////////////////////////////////
+    
+    static const int MISSING_SLOT   = -1;
+    static const int DISABLED_SLOT  = 1;
+    
+    struct SlotStatus
+    {
+        std::shared_ptr<Module::Slot> slot;
+        sfx::hex_t value;
+        
+        enum
+        {
+            ENABLED=0,DISABLED
+        } status;
+        
+        inline bool operator!() const { return status!=ENABLED; };
+    };
+    
+    typedef std::map<sfx::hex_pair_t, std::vector<std::string>> LinkTable;
     LinkTable links;
     
-////////////////////////////////////////////////////////////////////
-// Fonctions Membres
-////////////////////////////////////////////////////////////////////
-    
-    Module(std::shared_ptr<Info> infos);
-    ~Module();
+    typedef std::map<std::string, SlotStatus> SlotStatusTable;
+    SlotStatusTable slots;
     
     /**
      * Fonction utilisée pour connecter un slot à un cc midi
      * @param cc paire <channel,source> du cc à connecter
-     * @param slot nom du slot à connecter
-     * @return 0 on success, -1 is slot doesn't exist, 1 if link already exist
+     * @param slot nom interne du slot à connecter
+     * @return 0 on success, MISSING_SLOT is slot doesn't exist
      */
     int linkSlot(sfx::hex_pair_t cc, std::string slot);
     /**
      * Fonction utilisée pour déconnecter un slot à d'un cc midi
      * @param cc paire <channel,source> du cc à connecter
-     * @param slot nom du slot à connecter
-     * @return 0 on success, -1 is slot doesn't exist, 1 if link doesn't exist
+     * @param slot nom interne du slot à connecter
+     * @return 0 on success, MISSING_SLOT if slot doesn't exist, 1 if link doesn't exist
      */
     int unlinkSlot(sfx::hex_pair_t cc, std::string slot);
+    
+    /**
+     * Fonction utilisée pour activer un slot
+     * @param slot le nom interne du slot à activer
+     * @return 0 on success, MISSING_SLOT if slot doesn't exist
+     */
+    int enableSlot(std::string slot);
+    /**
+     * Fonction utilisée pour désactiver un slot
+     * @param slot le nom interne du slot à désactiver
+     * @return 0 on success, MISSING_SLOT if slot doesn't exist
+     */
+    int disableSlot(std::string slot);
+    
+    /**
+     * Fonction utiliée pour changer la valeur d'un slot
+     *  Si le slot est désactivé la fonction est sans effet
+     * @param slot nom interne du slot à changer
+     * @param value valleur à assigner au slot (sur 7bit)
+     * @return 0 on success, MISSING_SLOT if slot doesn't exist, DISABLED_SLOT if slot is not active
+     */
+    int setSlotValue(std::string slot, sfx::hex_t value, bool force=false);
+    /**
+     * Fonction utiliée pour récuperer la valeur interne d'un slot
+     *  Si le slot est désactivé la fonction est sans effet.
+     *  laisser à nullptr les valeurs non souhaitées
+     * @param slot nom interne du slot ciblé
+     * @param x_result pointeur pour récuperer la valeur sur 7bit du slot
+     * @param f_result pointeur pour récuperer la valeur interne du slot
+     * @return 0 on success, MISSING_SLOT if slot doesn't exist, DISABLED_SLOT if slot is not active
+     */
+    int getSlotValue(std::string slot, sfx::hex_t* x_result, float* f_result);
+    
+////////////////////////////////////////////////////////////////////
+// Gestion des Banques
+////////////////////////////////////////////////////////////////////
+    
+    static const int MISSING_BANK   = -1;
+    static const int EXISTING_BANK  = 1;
+    
+    typedef std::map<std::string,sfx::hex_t>    ParamArray;
+    typedef std::map<sfx::hex_t, ParamArray>    BankTable;
+    typedef std::list<sfx::hex_t>               BankIdList;
+    
+    BankTable  banks;
+    BankIdList banks_order;
+    
+    BankIdList::iterator current_bank;
+    
+    /**
+     * @brief Change current bank
+     * @pre current_bank bank is valid
+     * @post current_bank bank is valid
+     **/
+    int setBank(sfx::hex_t id);
+    /**
+     * @brief Change current bank
+     * @pre current_bank bank is valid
+     * @post current_bank bank is valid
+     **/
+    void nextBank();
+    /**
+     * @brief Change current bank
+     * @pre current_bank bank is valid
+     * @post current_bank bank is valid
+     **/
+    void prevBank();
+    
+    /**
+     * Fonction interne utilisée pour mettre à jour l'effet en appelant tout les slots
+     *  actifs de la banque courante
+     * @pre current_bank bank is valid
+     */
+    void updateCurrentBank();
+    
+    /**
+     * @brief method to add a bank to the effect
+     *  Usage :
+     *      createBank() to create a bank filled with default values
+     *      createBank(id, size, vals) to create a bank from a valid array of values
+     * @pre if specified, bank is a valid expansion of effect's config tree
+     */
+    int createBank(sfx::hex_t id);
+    /**
+     * @brief method to duplicate a bank of the effect
+     *  Usage :
+     *      copyBank(sid) to copy bank[sid] to a new one
+     *      copyBank(sid, tid) to copy bank[sid] in bank[tid]
+     * @pre sid != tid
+     */
+    int copyBank(sfx::hex_t sid, sfx::hex_t tid);
+    /**
+     * @brief Method used to remove a bank from the effect
+     *  if the bank removed is the last one, automaticaly regenerate the default bank
+     * @pre _currentBank bank is valid
+     * @post _currentBank bank is valid
+     */
+    int removeBank(sfx::hex_t id);
 };
 
 #endif /* MODULEBASE_H */

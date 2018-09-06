@@ -42,20 +42,20 @@
 // ModuleLoading Structures
 ////////////////////////////////////////////////////////////////////
 
-typedef std::map<std::string,std::shared_ptr<Module::Info>> LoadedModulesTable;
+typedef std::map<std::string,std::shared_ptr<Module>> LoadedModulesTable;
 
 /**
  * @brief Fonction utilisée pour charger un Module
  * @param path Chemin d'accès au module à charger
  * @return Pointeur vers le module chargé ou nullptr si le chargement a échoué
  */
-std::shared_ptr<Module::Info> loadModule(std::string path);
+std::shared_ptr<Module> loadModule(std::string path);
 
 /**
  * @brief Fonction à appeller pour décharger un Module
  * @param module module à décharger
  */
-void unloadModule(std::shared_ptr<Module::Info> module);
+void unloadModule(std::shared_ptr<Module> module);
 
 /**
  * @brief Fonction de wrapping pour charger une fonction depuis une librairie dynamique

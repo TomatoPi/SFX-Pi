@@ -24,84 +24,351 @@
 
 #include "ModuleBase.h"
 
-Module::Module(std::shared_ptr<Info> infos):
-    name(infos->infos.name),
-        datas(nullptr),
+#define NAME "ModuleBase"
+
+EffectUnit::EffectUnit(std::shared_ptr<Module> module):
+    name(module->infos.name),
+    datas(nullptr),
+    module(module),
+
+    audioIns(), audioOuts(), midiIns(), midiOuts(),
         
-        audioIns(), audioOuts(), midiIns(), midiOuts(),
-        
-        infos(infos)
+    links(),
+    slots(),
+
+    banks(),
+    banks_order(),
+    current_bank()
 {
+    // Creation des slots
+    for (auto& slot : module->slots)
+    {
+        slots[slot.first] = SlotStatus {
+                .slot = slot.second,
+                .value = 0,
+                .status = SlotStatus::ENABLED
+            };
+    }
+    
 #ifdef __ARCH_LINUX__
     // Construction du client Jack
     client = sfx::openJackClient(name);
-    jack_set_process_callback(client, infos->callback, this);
-    // Allocation des Ports
-    midiIns.push_back(Port{"Modulation"
-        , sfx::registerMidiInput(client, "Modulation")});
-    midiOuts.push_back(Port{"Mod_Trougth"
-        , sfx::registerMidiOutput(client, "Mod_Trougth")});
-#else
-    // Allocation des Ports
-    midiIns.push_back(Port{"Modulation"});
-    midiOuts.push_back(Port{"Mod_Trougth"});
+    jack_set_process_callback(client, module->callback, this);
 #endif
+    // Allocation des Ports
+    this->registerMidiInput("Modulation");
+    this->registerMidiOutput("Through");
     
     // Construction des datas du Module et allocation des ports specifiques
-    datas = infos->builder(this);
+    datas = module->builder(this);
+    
+    // Creation et chargement de la banque par défault
+    this->createBank(0);
+    current_bank = banks_order.begin();
+    this->updateCurrentBank();
     
 #ifdef __ARCH_LINUX__
     sfx::activateClient(client);
 #endif
 }
-Module::~Module()
+
+EffectUnit::~EffectUnit()
 {
 #ifdef __ARCH_LINUX__
     jack_client_close(client);
 #endif
-    infos->destructor(datas);
+    module->destructor(datas);
 }
 
 /**
  * Fonction utilisée pour connecter un slot à un cc midi
  * @param cc paire <channel,source> du cc à connecter
- * @param slot nom du slot à connecter
- * @return 0 on success, -1 is slot doesn't exist, 1 if link already exist
+ * @param slot nom interne du slot à connecter
+ * @return 0 on success, MISSING_SLOT if slot doesn't exist
  */
-int Module::linkSlot(sfx::hex_pair_t cc, std::string slot)
+int EffectUnit::linkSlot(sfx::hex_pair_t cc, std::string slot)
 {
     
-    if (infos->slots.find(slot) == infos->slots.end())
-        return -1;
+    if (module->slots.find(slot) == module->slots.end())
+        return MISSING_SLOT;
     
     if (links.find(cc) == links.end())
-        links[cc] = std::set<std::string>();
+        links[cc] = std::vector<std::string>();
     
-    if (links[cc].find(slot) != links[cc].end())
-        return 1;
+    //if (links[cc].find(slot) != links[cc].end())
+    //    return 1;
     
-    links[cc].insert(slot);
+    links[cc].push_back(slot);
     return 0;
 }
 /**
  * Fonction utilisée pour déconnecter un slot à d'un cc midi
  * @param cc paire <channel,source> du cc à connecter
- * @param slot nom du slot à connecter
- * @return 0 on success, -1 is slot doesn't exist, 1 if link doesn't exist
+ * @param slot nom interne du slot à connecter
+ * @return 0 on success, MISSING_SLOT if slot doesn't exist, 1 if link doesn't exist
  */
-int Module::unlinkSlot(sfx::hex_pair_t cc, std::string slot)
+int EffectUnit::unlinkSlot(sfx::hex_pair_t cc, std::string slot)
 {
-    if (infos->slots.find(slot) == infos->slots.end())
-        return -1;
+    if (module->slots.find(slot) == module->slots.end())
+        return MISSING_SLOT;
     
     if (links.find(cc) == links.end())
         return 1;
     
-    if (links[cc].find(slot) == links[cc].end())
-        return 1;
+    //if (links[cc].find(slot) == links[cc].end())
+    //    return 1;
     
-    links[cc].erase(slot);
+    bool missing = true;
+    
+    for (std::vector<std::string>::iterator itr = links[cc].begin();
+        itr != links[cc].end();
+        ++itr)
+    {
+        if (slot == *itr)
+        {
+            itr = links[cc].erase(itr);
+            missing = false;
+        }
+    }
+    
     if (links[cc].size() == 0) links.erase(cc);
     
+    return (int)missing;
+}
+
+/**
+ * Fonction utilisée pour activer un slot
+ * @param slot le nom interne du slot à activer
+ * @return 0 on success, MISSING_SLOT if slot doesn't exist
+ */
+int EffectUnit::enableSlot(std::string slot)
+{
+    if (slots.find(slot) == slots.end()) return MISSING_SLOT;
+    
+    slots[slot].status = SlotStatus::ENABLED;
+    return 0;
+}
+/**
+ * Fonction utilisée pour désactiver un slot
+ * @param slot le nom interne du slot à désactiver
+ * @return 0 on success, MISSING_SLOT if slot doesn't exist
+ */
+int EffectUnit::disableSlot(std::string slot)
+{
+    if (slots.find(slot) == slots.end()) return MISSING_SLOT;
+    
+    slots[slot].status = SlotStatus::DISABLED;
+    return 0;
+}
+
+/**
+ * Fonction utiliée pour changer la valeur d'un slot
+ *  Si le slot est désactivé la fonction est sans effet
+ * @param slot nom interne du slot à changer
+ * @param value valleur à assigner au slot (sur 7bit)
+ * @return 0 on success, MISSING_SLOT if slot doesn't exist, DISABLED_SLOT if slot is not active
+ */
+int EffectUnit::setSlotValue(std::string slot, sfx::hex_t value, bool force)
+{
+    if (slots.find(slot) == slots.end()) return MISSING_SLOT;
+    
+    //sfx::debug(NAME, "1 Called slot : \"%s\" : Status : %i\n", slot, slots[slot].status);
+    
+    if (!!(slots[slot])) // If slot is enabled
+    {
+        (*slots[slot].slot->callback)(value, this);
+        slots[slot].value = value;
+    }
+    else if (force) // Else if slot is disabled, save value anyway
+    {
+        slots[slot].value = value;
+    }
+    else return DISABLED_SLOT; // Else return an error
+        
+    return 0;
+}
+/**
+ * Fonction utiliée pour récuperer la valeur interne d'un slot
+ *  Si le slot est désactivé la fonction est sans effet.
+ *  laisser à nullptr les valeurs non souhaitées
+ * @param slot nom interne du slot ciblé
+ * @param x_result pointeur pour récuperer la valeur sur 7bit du slot
+ * @param f_result pointeur pour récuperer la valeur interne du slot
+ * @return 0 on success, MISSING_SLOT if slot doesn't exist, DISABLED_SLOT if slot is not active
+ */
+int EffectUnit::getSlotValue(std::string slot, sfx::hex_t* x_result, float* f_result)
+{
+    if (slots.find(slot) == slots.end()) return MISSING_SLOT;
+    
+    if (!!(slots[slot]))
+    {
+        float value = (*slots[slot].slot->callback)(255, this);
+        
+        if (x_result) *x_result = slots[slot].value;
+        if (f_result) *f_result = value;
+    }
+    else return DISABLED_SLOT;
+        
+    return 0;
+}
+
+/**
+ * @brief Change current bank
+ * @pre current_bank bank is valid
+ * @post current_bank bank is valid
+ **/
+int EffectUnit::setBank(sfx::hex_t id)
+{
+    if (banks.find(id) == banks.end()) return -1;
+    
+    // Update current_bank iterator
+    for(BankIdList::iterator itr = banks_order.begin();
+        itr != banks_order.end();
+        ++itr)
+        if (*itr == id)
+        {
+            current_bank = itr;
+            break;
+        }
+    
+    // Update all params
+    this->updateCurrentBank();
+    return 0;
+}
+/**
+ * @brief Change current bank
+ * @pre current_bank bank is valid
+ * @post current_bank bank is valid
+ **/
+void EffectUnit::nextBank()
+{
+    BankIdList::iterator nitr(current_bank);
+    ++nitr;
+    if (nitr == banks_order.end())
+        nitr = banks_order.begin();
+    
+    // Update all params
+    current_bank = nitr;
+    this->updateCurrentBank();
+}
+/**
+ * @brief Change current bank
+ * @pre current_bank bank is valid
+ * @post current_bank bank is valid
+ **/
+void EffectUnit::prevBank()
+{
+    BankIdList::iterator nitr(current_bank);
+    
+    if (nitr == banks_order.begin())
+        nitr = banks_order.end();
+    --nitr;
+    
+    // Update all params
+    current_bank = nitr;
+    this->updateCurrentBank();
+}
+
+/**
+ * Fonction interne utilisée pour mettre à jour l'effet en appelant tout les slots
+ *  actifs de la banque courante
+ * @pre current_bank bank is valid
+ */
+void EffectUnit::updateCurrentBank()
+{
+    for (auto& slot : banks[*current_bank])
+    {
+        this->setSlotValue(slot.first, slot.second, true);
+    }
+}
+
+/**
+ * @brief method to add a bank to the effect
+ *  Usage :
+ *      createBank() to create a bank filled with default values
+ *      createBank(id, size, vals) to create a bank from a valid array of values
+ * @pre if specified, bank is a valid expansion of effect's config tree
+ */
+int EffectUnit::createBank(sfx::hex_t id)
+{
+    // If bank doesn't exist create it
+    if (banks.find(id) == banks.end()) {
+
+        ParamArray array;
+        for (auto& slot : module->slots)
+            array[slot.first] = slot.second->default_value;
+        
+        banks[id] = array;
+        return 0;
+    }
+    // Else this is an error
+    else return EXISTING_BANK;
+}
+/**
+ * @brief method to duplicate a bank of the effect
+ *  Usage :
+ *      copyBank(sid) to copy bank[sid] to a new one
+ *      copyBank(sid, tid) to copy bank[sid] in bank[tid]
+ * @pre sid != tid
+ */
+int EffectUnit::copyBank(sfx::hex_t sid, sfx::hex_t tid)
+{
+    assert(sid != tid);
+    
+    if (banks.find(sid) != banks.end()) {
+
+        if (banks.find(tid) == banks.end()) this->createBank(tid);
+        
+        for (auto& slot : banks[tid])
+        {
+            slot.second = banks[sid][slot.first];
+        }
+
+        if (*current_bank == tid) this->updateCurrentBank();
+        
+        return 0;
+    }
+    else return MISSING_BANK;
+}
+/**
+ * @brief Method used to remove a bank from the effect
+ *  if the bank removed is the last one, automaticaly regenerate the default bank
+ * @pre _currentBank bank is valid
+ * @post _currentBank bank is valid
+ */
+int EffectUnit::removeBank(sfx::hex_t id)
+{
+    assert(current_bank != banks_order.end());
+    
+    if (banks.find(id) == banks.end()) return MISSING_BANK;
+    banks.erase(id);
+    
+    bool updateAll = false;
+    
+    if (*current_bank == id)
+    {
+        if (current_bank != banks_order.begin())
+            --current_bank;
+        else if (current_bank != --banks_order.end())
+            ++current_bank;
+        
+        updateAll = true;
+        
+        current_bank = banks_order.erase(current_bank);
+    }
+    else banks_order.remove_if([id](sfx::hex_t n)->bool{return n == id;});
+
+
+    // Always keep one bank inside the ParamSet
+    if (banks.size() == 0)
+    {
+        this->createBank(0);
+        current_bank = banks_order.begin();
+        updateAll = true;
+    }
+    
+    if (updateAll) this->updateCurrentBank();
+    
+    assert(current_bank != banks_order.end());
     return 0;
 }
