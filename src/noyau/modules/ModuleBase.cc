@@ -24,7 +24,27 @@
 
 #include "ModuleBase.h"
 
-#define NAME "ModuleBase"
+#define NAME "Module-API"
+
+void Module::logModuleLoadedInfos() const
+{
+    sfx::log(NAME, "Module Informations : Name:\"%s\" Version:\"%s\"\n", infos.name, infos.version);
+    sfx::sfxStream << "Slots : \n" <<
+            sfx::formatString("%-20s|%-20s|%-20s|%-20s\n"
+                , std::string("Clef"), std::string("Nom Interne")
+                , std::string("Nom d'Affichage"), std::string("Valeur par défault"))
+            << "--------------------+--------------------+--------------------+--------------------\n";
+                
+    for (auto& slot : slots)
+    {
+        sfx::sfxStream << sfx::formatString("%-20s|%-20s|%-20s|%3i\n"
+                , slot.first, slot.second->internal_name, slot.second->display_name, slot.second->default_value);
+    }
+    sfx::sfxStream << "--------------------+--------------------+--------------------+--------------------\n";
+}
+
+#undef NAME
+#define NAME "Effect-API"
 
 EffectUnit::EffectUnit(std::shared_ptr<Module> module):
     name(module->infos.name),
@@ -80,6 +100,37 @@ EffectUnit::~EffectUnit()
     module->destructor(datas);
 }
 
+#ifdef __ARCH_LINUX__
+/**
+ * Fonction à appeller dans la boucle de process pour traiter les CC midi et 
+ *  déclancher les slots eventuels
+ * @param event pointeur vers le buffer de l'evenement midi 
+ */
+void EffectUnit::veryfyAndComputeCCMessage(sfx::hex_t* event)
+{
+    sfx::hex_t ccc = sfx::Midi_read_CCChannel(event);
+    sfx::hex_t ccs = sfx::Midi_read_CCSource(event);
+    sfx::hex_t val = sfx::Midi_read_CCValue(event);
+    sfx::hex_pair_t cc = std::make_pair(ccc, ccs);
+
+    sfx::debug("Native-MIDI", "Process Midi Event : %i %i\n", ccc, ccs);
+
+    if (links.find(cc) != links.end())
+    {
+        for (auto& slot : links[cc])
+            if (slots.find(slot) != slots.end())
+            {
+                sfx::debug("Native-MIDI", "Call slot : \"%s\" with value : %i\n", module->slots[slot]->internal_name, val);
+                this->setSlotValue(slot, val);
+            }
+            else
+            {
+                sfx::wrn("Native-MIDI", "Unable to find slot : \"%s\" linked to CC : %i %i\n", slot, ccc, ccs);
+            }
+    }
+}
+#endif
+
 /**
  * Fonction utilisée pour connecter un slot à un cc midi
  * @param cc paire <channel,source> du cc à connecter
@@ -88,6 +139,7 @@ EffectUnit::~EffectUnit()
  */
 int EffectUnit::linkSlot(sfx::hex_pair_t cc, std::string slot)
 {
+    sfx::debug(name, "Try Link slot : \"%s\" to cc : %i:%i \n", slot, cc.first, cc.second);
     
     if (module->slots.find(slot) == module->slots.end())
         return MISSING_SLOT;
@@ -98,6 +150,7 @@ int EffectUnit::linkSlot(sfx::hex_pair_t cc, std::string slot)
     //if (links[cc].find(slot) != links[cc].end())
     //    return 1;
     
+    sfx::debug(name, "Success !\n");
     links[cc].push_back(slot);
     return 0;
 }
@@ -145,6 +198,7 @@ int EffectUnit::enableSlot(std::string slot)
 {
     if (slots.find(slot) == slots.end()) return MISSING_SLOT;
     
+    sfx::debug(name, "Enabled slot : \"%s\"\n", slot);
     slots[slot].status = SlotStatus::ENABLED;
     return 0;
 }
@@ -157,6 +211,7 @@ int EffectUnit::disableSlot(std::string slot)
 {
     if (slots.find(slot) == slots.end()) return MISSING_SLOT;
     
+    sfx::debug(name, "Disabled slot : \"%s\"\n", slot);
     slots[slot].status = SlotStatus::DISABLED;
     return 0;
 }
@@ -176,8 +231,9 @@ int EffectUnit::setSlotValue(std::string slot, sfx::hex_t value, bool force)
     
     if (!!(slots[slot])) // If slot is enabled
     {
-        (*slots[slot].slot->callback)(value, this);
+        float v = (*slots[slot].slot->callback)(value, this);
         slots[slot].value = value;
+        sfx::debug("Native-MIDI", "Called slot : \"%s\" with value : %i => %f\n", slot, value, v);
     }
     else if (force) // Else if slot is disabled, save value anyway
     {
@@ -212,6 +268,26 @@ int EffectUnit::getSlotValue(std::string slot, sfx::hex_t* x_result, float* f_re
     return 0;
 }
 
+void EffectUnit::logLinkedSlots() const
+{
+    sfx::log(name, "Linked Slots : \n");
+    sfx::sfxStream << sfx::formatString("%-10s|%-10s|%-20s", 
+            std::string("Channel"), std::string("Source"), std::string("Slot"))
+            << "----------+----------+--------------------\n";
+    for (auto& link : links)
+        for (auto& slot : link.second)
+        {
+            sfx::sfxStream << sfx::formatString("%-10i|%-10i|%-20s\n"
+                    , link.first.first, link.first.second
+                    , slot);
+        }
+    sfx::sfxStream << "----------+----------+--------------------\n";
+}
+  
+////////////////////////////////////////////////////////////////////
+// Gestion des Banques
+////////////////////////////////////////////////////////////////////
+   
 /**
  * @brief Change current bank
  * @pre current_bank bank is valid

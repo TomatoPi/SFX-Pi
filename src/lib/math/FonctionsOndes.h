@@ -51,7 +51,8 @@ namespace sfx
         WNPH = 5, /**< N-Phase */
         WWHI = 6, /**< White noise */
         WCST = 7, /**< Constant */
-        WHAR = 8 /**< Harmonics */
+        WHAR = 8, /**< Harmonics */
+        COUNT
     };
 
     /**
@@ -67,7 +68,7 @@ namespace sfx
      **/
     static inline sfx::sample_t w_sqr(sfx::sample_t in, float s, float p1, float p2)
     {
-        return (sfx::sample_t)((in - 0.5 < 0) ? s * (-1) : s);
+        return (sfx::sample_t)((in < 0.5) ? -s : s);
     }
 
     /**

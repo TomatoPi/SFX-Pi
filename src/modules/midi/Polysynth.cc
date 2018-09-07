@@ -30,6 +30,7 @@
 
 struct Note
 {
+
     float ramp, rbs;
     float vol;
     ADSR envelope;
@@ -38,30 +39,30 @@ struct Note
 struct PolysynthDatas
 {
 
-    PolysynthDatas(int sr):
-        phase(0), sign(1), volume(0.1f),
-        param1(3), param2(1.587401051f), phase_distortion(0.5), phase_fix(0),
-        
-        samplerate(sr),
-        
-        a(100), d(100), s(0.5), r(100),
+    PolysynthDatas(int sr) :
+    phase(0), sign(1), volume(0.1f),
+    param1(3), param2(1.587401051f), phase_distortion(0.5), phase_fix(0),
 
-        notes_map(),
+    samplerate(sr),
 
-        waveform(sfx::WHAR),
-        tfunc(sfx::castWaveform(sfx::WHAR))
+    a(100), d(100), s(0.5), r(100),
+
+    notes_map(),
+
+    waveform(sfx::WHAR),
+    tfunc(sfx::castWaveform(sfx::WHAR))
     {
-    }        
-    
+    }
+
     float phase, sign, volume;
     float param1, param2, phase_distortion, phase_fix;
-    
+
     int samplerate;
-    
+
     float a, d, s, r;
-    
+
     std::list<std::pair<sfx::hex_t, Note>> notes_map;
-    
+
     sfx::WaveForm waveform;
     sfx::transfert_f tfunc;
 };
@@ -93,9 +94,17 @@ void* function_create_jack_module(EffectUnit* effect)
      */
     effect->registerMidiInput("Input");
     effect->registerAudioOutput("Output");
-    
+
     sfx::Midi_calcMidiTable(jack_get_sample_rate(effect->client));
-    
+
+    effect->disableSlot("varislope_extrem");
+    effect->disableSlot("varislope_forme");
+    effect->disableSlot("nphase_temps");
+    effect->disableSlot("nphase_nombre");
+    effect->disableSlot("constant_value");
+    effect->disableSlot("harmonic_nombre");
+    effect->disableSlot("harmonic_facteur");
+
     return new PolysynthDatas(jack_get_sample_rate(effect->client));
 }
 #endif
@@ -116,7 +125,15 @@ void* function_create_non_jack_module(EffectUnit* effect)
      */
     effect->registerMidiInput("Input");
     effect->registerAudioOutput("Output");
-    
+
+    effect->disableSlot("varislope_extrem");
+    effect->disableSlot("varislope_forme");
+    effect->disableSlot("nphase_temps");
+    effect->disableSlot("nphase_nombre");
+    effect->disableSlot("constant_value");
+    effect->disableSlot("harmonic_nombre");
+    effect->disableSlot("harmonic_facteur");
+
     return new PolysynthDatas(48000);
 }
 
@@ -156,110 +173,198 @@ Module::SlotTable function_register_module_slots(void)
             return ((PolysynthDatas*)mod->datas)->PARAM; // Retourner la valeur du paramètre modulé
         });
      */
-    Module::register_slot(table, 0, "phase", "Phase", [](sfx::hex_t val, EffectUnit* effect)
+    Module::register_slot(table, 0, "phase", "Phase", [](sfx::hex_t val, EffectUnit * effect)->float {
+        if (val < 128)
         {
-            if (val < 128)
-            {
-                // Valeur variant lineairement
-                ((PolysynthDatas*)effect->datas)->phase = sfx::mapfm_lin(val, 0, 1); 
-            }
-            return ((PolysynthDatas*)effect->datas)->phase; // Retourner la valeur du paramètre modulé
-        });
-    Module::register_slot(table, 0, "signe", "Signe", [](sfx::hex_t val, EffectUnit* effect)
+            // Valeur variant lineairement
+            ((PolysynthDatas*) effect->datas)->phase = sfx::mapfm_lin(val, 0, 1);
+        }
+        return ((PolysynthDatas*) effect->datas)->phase; // Retourner la valeur du paramètre modulé
+    });
+    Module::register_slot(table, 127, "signe", "Signe", [](sfx::hex_t val, EffectUnit * effect)->float {
+        if (val < 128)
         {
-            if (val < 128)
-            {
-                // Valeur variant lineairement
-                ((PolysynthDatas*)effect->datas)->sign = sfx::mapfm_lin(val, -1, 1); 
-            }
-            return ((PolysynthDatas*)effect->datas)->sign; // Retourner la valeur du paramètre modulé
-        });
-    Module::register_slot(table, 0, "volume", "Volume", [](sfx::hex_t val, EffectUnit* effect)
+            // Valeur variant lineairement
+            ((PolysynthDatas*) effect->datas)->sign = sfx::mapfm_lin(val, -1, 1);
+        }
+        return ((PolysynthDatas*) effect->datas)->sign; // Retourner la valeur du paramètre modulé
+    });
+    Module::register_slot(table, 64, "volume", "Volume", [](sfx::hex_t val, EffectUnit * effect)->float {
+        if (val < 128)
         {
-            if (val < 128)
-            {
-                // Valeur de gain en db : renvois facteur gain
-                ((PolysynthDatas*)effect->datas)->volume = sfx::mapfm_db(val, -50, 10); 
-            }
-            return ((PolysynthDatas*)effect->datas)->volume; // Retourner la valeur du paramètre modulé
-        });
-        
-        
-    Module::register_slot(table, 0, "param1", "Param1", [](sfx::hex_t val, EffectUnit* effect)
+            // Valeur de gain en db : renvois facteur gain
+            ((PolysynthDatas*) effect->datas)->volume = sfx::mapfm_db(val, -50, 10);
+        }
+        return ((PolysynthDatas*) effect->datas)->volume; // Retourner la valeur du paramètre modulé
+    });
+
+    Module::register_slot(table, 64, "distortion_phase", "Distortion-Phase", [](sfx::hex_t val, EffectUnit * effect)->float {
+        if (val < 128)
         {
-            if (val < 128)
-            {
-                // Valeur variant lineairement
-                ((PolysynthDatas*)effect->datas)->param1 = sfx::mapfm_lin(val, 0, 10);
-            }
-            return ((PolysynthDatas*)effect->datas)->param1; // Retourner la valeur du paramètre modulé
-        });
-    Module::register_slot(table, 0, "param2", "Param2", [](sfx::hex_t val, EffectUnit* effect)
+            // Valeur variant lineairement
+            ((PolysynthDatas*) effect->datas)->phase_distortion = sfx::mapfm_lin(val, 0, 1);
+        }
+        return ((PolysynthDatas*) effect->datas)->phase_distortion; // Retourner la valeur du paramètre modulé
+    });
+    Module::register_slot(table, 0, "point_fixe_phase", "Point-Fixe-Phase", [](sfx::hex_t val, EffectUnit * effect)->float {
+        if (val < 128)
         {
-            if (val < 128)
-            {
-                // Valeur variant lineairement
-                ((PolysynthDatas*)effect->datas)->param1 = sfx::mapfm_lin(val, 0, 10);
-            }
-            return ((PolysynthDatas*)effect->datas)->param1; // Retourner la valeur du paramètre modulé
-        });
-        
-    Module::register_slot(table, 0, "distortion_phase", "Distortion-Phase", [](sfx::hex_t val, EffectUnit* effect)
+            // Valeur variant lineairement
+            ((PolysynthDatas*) effect->datas)->phase_fix = sfx::mapfm_lin(val, 0, 1);
+        }
+        return ((PolysynthDatas*) effect->datas)->phase_fix; // Retourner la valeur du paramètre modulé
+    });
+
+    Module::register_slot(table, 10, "a", "A", [](sfx::hex_t val, EffectUnit * effect)->float {
+        if (val < 128)
         {
-            if (val < 128)
-            {
-                // Valeur variant lineairement
-                ((PolysynthDatas*)effect->datas)->phase_distortion = sfx::mapfm_lin(val, 0, 1);
-            }
-            return ((PolysynthDatas*)effect->datas)->phase_distortion; // Retourner la valeur du paramètre modulé
-        });
-    Module::register_slot(table, 0, "point_fixe_phase", "Point-Fixe-Phase", [](sfx::hex_t val, EffectUnit* effect)
+            // Valeur variant lineairement
+            ((PolysynthDatas*) effect->datas)->a = sfx::mapfm_mstos(val, 1, 10000, ((PolysynthDatas*) effect->datas)->samplerate);
+        }
+        return ((PolysynthDatas*) effect->datas)->a; // Retourner la valeur du paramètre modulé
+    });
+    Module::register_slot(table, 10, "d", "D", [](sfx::hex_t val, EffectUnit * effect)->float {
+        if (val < 128)
         {
-            if (val < 128)
-            {
-                // Valeur variant lineairement
-                ((PolysynthDatas*)effect->datas)->phase_fix = sfx::mapfm_lin(val, 0, 10);
-            }
-            return ((PolysynthDatas*)effect->datas)->phase_fix; // Retourner la valeur du paramètre modulé
-        });
-        
-    Module::register_slot(table, 0, "a", "A", [](sfx::hex_t val, EffectUnit* effect)
+            // Valeur variant lineairement
+            ((PolysynthDatas*) effect->datas)->d = sfx::mapfm_mstos(val, 1, 10000, ((PolysynthDatas*) effect->datas)->samplerate);
+        }
+        return ((PolysynthDatas*) effect->datas)->d; // Retourner la valeur du paramètre modulé
+    });
+    Module::register_slot(table, 64, "s", "S", [](sfx::hex_t val, EffectUnit * effect)->float {
+        if (val < 128)
         {
-            if (val < 128)
-            {
-                // Valeur variant lineairement
-                ((PolysynthDatas*)effect->datas)->a = sfx::mapfm_mstos(val, 0, 1000, ((PolysynthDatas*)effect->datas)->samplerate); 
-            }
-            return ((PolysynthDatas*)effect->datas)->a; // Retourner la valeur du paramètre modulé
-        });
-    Module::register_slot(table, 0, "d", "D", [](sfx::hex_t val, EffectUnit* effect)
+            // Valeur variant lineairement
+            ((PolysynthDatas*) effect->datas)->s = sfx::mapfm_db(val, -50, 10);
+        }
+        return ((PolysynthDatas*) effect->datas)->s; // Retourner la valeur du paramètre modulé
+    });
+    Module::register_slot(table, 10, "r", "R", [](sfx::hex_t val, EffectUnit * effect)->float {
+        if (val < 128)
         {
-            if (val < 128)
-            {
-                // Valeur variant lineairement
-                ((PolysynthDatas*)effect->datas)->d = sfx::mapfm_mstos(val, 0, 1000, ((PolysynthDatas*)effect->datas)->samplerate); 
-            }
-            return ((PolysynthDatas*)effect->datas)->d; // Retourner la valeur du paramètre modulé
-        });
-    Module::register_slot(table, 0, "s", "S", [](sfx::hex_t val, EffectUnit* effect)
+            // Valeur de gain en db : renvois facteur gain
+            ((PolysynthDatas*) effect->datas)->r = sfx::mapfm_mstos(val, 1, 10000, ((PolysynthDatas*) effect->datas)->samplerate);
+        }
+        return ((PolysynthDatas*) effect->datas)->r; // Retourner la valeur du paramètre effectulé
+    });
+
+    Module::register_slot(table, 0, "0_forme_onde", "Forme d'onde", [](sfx::hex_t val, EffectUnit * effect)->float {
+        if (val < 128)
         {
-            if (val < 128)
+            // Calcul de la nouvelle fonction d'onde
+            sfx::WaveForm nw = static_cast<sfx::WaveForm> (
+                    sfx::mapfm_enum(val, static_cast<int> (sfx::WaveForm::COUNT)));
+
+            if (nw != ((PolysynthDatas*) effect->datas)->waveform)
             {
-                // Valeur variant lineairement
-                ((PolysynthDatas*)effect->datas)->s = sfx::mapfm_db(val, -50, 10); 
+
+                switch (((PolysynthDatas*) effect->datas)->waveform)
+                {
+                case sfx::WaveForm::WVAR:
+                    effect->disableSlot("varislope_extrem");
+                    effect->disableSlot("varislope_forme");
+                    break;
+                case sfx::WaveForm::WNPH:
+                    effect->disableSlot("nphase_temps");
+                    effect->disableSlot("nphase_nombre");
+                    break;
+                case sfx::WaveForm::WCST:
+                    effect->disableSlot("constant_value");
+                    break;
+                case sfx::WaveForm::WHAR:
+                    effect->disableSlot("harmonic_nombre");
+                    effect->disableSlot("harmonic_facteur");
+                    break;
+                default: break;
+                }
+
+                switch (nw)
+                {
+                case sfx::WaveForm::WVAR:
+                    effect->enableSlot("varislope_extrem");
+                    effect->enableSlot("varislope_forme");
+                    break;
+                case sfx::WaveForm::WNPH:
+                    effect->enableSlot("nphase_temps");
+                    effect->enableSlot("nphase_nombre");
+                    break;
+                case sfx::WaveForm::WCST:
+                    effect->enableSlot("constant_value");
+                    break;
+                case sfx::WaveForm::WHAR:
+                    effect->enableSlot("harmonic_nombre");
+                    effect->enableSlot("harmonic_facteur");
+                    break;
+                default: break;
+                }
             }
-            return ((PolysynthDatas*)effect->datas)->s; // Retourner la valeur du paramètre modulé
-        });
-    Module::register_slot(table, 0, "r", "R", [](sfx::hex_t val, EffectUnit* effect)
+
+            ((PolysynthDatas*) effect->datas)->waveform = nw;
+            ((PolysynthDatas*) effect->datas)->tfunc = sfx::castWaveform(nw);
+        }
+        return static_cast<int> (((PolysynthDatas*) effect->datas)->waveform); // Retourner la valeur du paramètre effectulé
+    });
+
+    Module::register_slot(table, 0, "varislope_extrem", "VAR Extremum", [](sfx::hex_t val, EffectUnit * effect)->float {
+        if (val < 128)
         {
-            if (val < 128)
-            {
-                // Valeur de gain en db : renvois facteur gain
-                ((PolysynthDatas*)effect->datas)->r = sfx::mapfm_mstos(val, 0, 1000, ((PolysynthDatas*)effect->datas)->samplerate); 
-            }
-            return ((PolysynthDatas*)effect->datas)->r; // Retourner la valeur du paramètre effectulé
-        });
-        
+            // Valeur de gain en db : renvois facteur gain
+            ((PolysynthDatas*) effect->datas)->param1 = sfx::mapfm_lin(val, 0, 1);
+        }
+        return ((PolysynthDatas*) effect->datas)->param1; // Retourner la valeur du paramètre effectulé
+    });
+    Module::register_slot(table, 0, "varislope_forme", "VAR Forme", [](sfx::hex_t val, EffectUnit * effect)->float {
+        if (val < 128)
+        {
+            // Valeur de gain en db : renvois facteur gain
+            ((PolysynthDatas*) effect->datas)->param2 = sfx::mapfm_lin(val, 0, 1);
+        }
+        return ((PolysynthDatas*) effect->datas)->param2; // Retourner la valeur du paramètre effectulé
+    });
+
+    Module::register_slot(table, 0, "nphase_temps", "NPH Temps", [](sfx::hex_t val, EffectUnit * effect)->float {
+        if (val < 128)
+        {
+            // Valeur de gain en db : renvois facteur gain
+            ((PolysynthDatas*) effect->datas)->param1 = sfx::mapfm_lin(val, 0, 100);
+        }
+        return ((PolysynthDatas*) effect->datas)->param1; // Retourner la valeur du paramètre effectulé
+    });
+    Module::register_slot(table, 0, "nphase_nombre", "NPH Nombre", [](sfx::hex_t val, EffectUnit * effect)->float {
+        if (val < 128)
+        {
+            // Valeur de gain en db : renvois facteur gain
+            ((PolysynthDatas*) effect->datas)->param2 = 1 + sfx::mapfm_enum(val, 5);
+        }
+        return ((PolysynthDatas*) effect->datas)->param2; // Retourner la valeur du paramètre effectulé
+    });
+
+    Module::register_slot(table, 0, "constant_value", "CST Valeur", [](sfx::hex_t val, EffectUnit * effect)->float {
+        if (val < 128)
+        {
+            // Valeur de gain en db : renvois facteur gain
+            ((PolysynthDatas*) effect->datas)->param1 = sfx::mapfm_lin(val, -1, 1);
+        }
+        return ((PolysynthDatas*) effect->datas)->param1; // Retourner la valeur du paramètre effectulé
+    });
+
+    Module::register_slot(table, 0, "harmonic_nombre", "HAR Nombre", [](sfx::hex_t val, EffectUnit * effect)->float {
+        if (val < 128)
+        {
+            // Valeur de gain en db : renvois facteur gain
+            ((PolysynthDatas*) effect->datas)->param1 = 1 + sfx::mapfm_enum(val, 3);
+        }
+        return ((PolysynthDatas*) effect->datas)->param1; // Retourner la valeur du paramètre effectulé
+    });
+    Module::register_slot(table, 0, "harmonic_facteur", "HAR Facteur", [](sfx::hex_t val, EffectUnit * effect)->float {
+        if (val < 128)
+        {
+            // Valeur de gain en db : renvois facteur gain
+            ((PolysynthDatas*) effect->datas)->param2 = sfx::mapfm_lin(val, -2, 2);
+        }
+        return ((PolysynthDatas*) effect->datas)->param2; // Retourner la valeur du paramètre effectulé
+    });
+
     return table;
 }
 
@@ -290,7 +395,7 @@ int function_process_callback(jack_nframes_t nframes, void* arg)
 
     void* midi_throught = jack_port_get_buffer(effect->midiOuts[0].port, nframes);
     jack_midi_clear_buffer(midi_throught);
-    
+
     float o = synth->phase_fix, d = synth->phase_distortion;
     synth->sign = (synth->sign < 0) ? -1 : 1;
 
@@ -300,17 +405,17 @@ int function_process_callback(jack_nframes_t nframes, void* arg)
         if (in_event.time == i && event_index < event_count)
         {
             sfx::Midi_reserve_MidiThroughMessage(midi_throught, in_event);
-            
+
             if (sfx::Midi_verify_ChanneledMessage(in_event.buffer, sfx::Midi_NoteOn))
             {
                 sfx::hex_t note = sfx::Midi_read_NoteValue(in_event.buffer);
-                
+
                 Note n = Note{
                     .ramp = synth->phase,
-                    .rbs  = sfx::Midi_MidiTable[note],
-                    .vol  = sfx::map(sfx::Midi_read_NoteVelocity(in_event.buffer), 0, 128, 0, 1)
+                    .rbs = sfx::Midi_MidiTable[note],
+                    .vol = sfx::map(sfx::Midi_read_NoteVelocity(in_event.buffer), 0, 128, 0, 1)
                 };
-                
+
                 n.envelope.setAttackRate(synth->a);
                 n.envelope.setDecayRate(synth->d);
                 n.envelope.setReleaseRate(synth->r);
@@ -318,13 +423,14 @@ int function_process_callback(jack_nframes_t nframes, void* arg)
                 n.envelope.gate(1);
 
                 synth->notes_map.push_back(std::make_pair(note, n));
-                
+
                 synth->notes_map.reverse();
                 synth->notes_map.unique(
-                    [](std::pair<sfx::hex_t, Note> a,
-                        std::pair<sfx::hex_t, Note> b)
-                    {return a.first == b.first;});
-                
+                        [](std::pair<sfx::hex_t, Note> a,
+                        std::pair<sfx::hex_t, Note> b) {
+                            return a.first == b.first;
+                        });
+
                 //*
                 sfx::debug(NAME, "Midi note on : %x : Note : %i : Velocity : %i : Rbs : %f\n",
                         in_event.buffer[0], in_event.buffer[1], in_event.buffer[2], n.ramp);
@@ -333,13 +439,13 @@ int function_process_callback(jack_nframes_t nframes, void* arg)
             else if (sfx::Midi_verify_ChanneledMessage(in_event.buffer, sfx::Midi_NoteOff))
             {
                 sfx::hex_t note = sfx::Midi_read_NoteValue(in_event.buffer);
-                
+
                 for (auto& note_struct : synth->notes_map)
-                    if(note_struct.first == note)
+                    if (note_struct.first == note)
                     {
                         note_struct.second.envelope.gate(0);
                     }
-                
+
                 //*
                 sfx::debug(NAME, "Midi note off : %x : Note : %i : Velocity : %i\n",
                         in_event.buffer[0], in_event.buffer[1], in_event.buffer[2]);
@@ -359,12 +465,12 @@ int function_process_callback(jack_nframes_t nframes, void* arg)
         /*
          * Code du callback ici
          */
-        
+
         out[i] = 0;
-        
-        for (std::list<std::pair<sfx::hex_t, Note>>::iterator note_itr = synth->notes_map.begin();
-            note_itr != synth->notes_map.end();
-            ++note_itr)
+
+        for (std::list<std::pair < sfx::hex_t, Note>>::iterator note_itr = synth->notes_map.begin();
+                note_itr != synth->notes_map.end();
+                ++note_itr)
         {
             if (note_itr->second.envelope.getState())
             {
@@ -372,15 +478,16 @@ int function_process_callback(jack_nframes_t nframes, void* arg)
                 note_itr->second.ramp = fmod(note_itr->second.ramp - o, 1.0f);
 
                 float pp = note_itr->second.ramp;
-                if ( d != 0.5f )
+                if (d != 0.5f)
                 {
-                    pp = (pp>d)? (pp+1.0f - 2.0f*d)/(2.0f*(1.0f-d)) : pp/(2.0f*d);
+                    pp = (pp > d) ? (pp + 1.0f - 2.0f * d) / (2.0f * (1.0f - d)) : pp / (2.0f * d);
                     pp += o;
                     pp = fmod(pp, 1.0f);
                 }
 
                 //note_itr->second.envelope.process();
-                out[i] += synth->volume * note_itr->second.envelope.process() * (*synth->tfunc)(pp, synth->sign, synth->param1, synth->param2);
+                out[i] += synth->volume * note_itr->second.envelope.process() 
+                        * (*synth->tfunc)(pp, synth->sign, synth->param1, synth->param2);
             }
             else
             {
@@ -388,10 +495,10 @@ int function_process_callback(jack_nframes_t nframes, void* arg)
                 //sfx::debug(NAME, "Erased note : %u left\n", synth->notes_map.size());
             }
         }
-        
+
         //sfx::debug(NAME, "%u left\n", synth->notes_map.size());
-        
-        if (out[i]>1.0f) out[i] = 1.0f;
+
+        if (out[i] > 1.0f) out[i] = 1.0f;
         else if (out[i]<-1.0f) out[i] = -1.0f;
     }
 

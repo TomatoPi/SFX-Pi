@@ -29,7 +29,12 @@
 
 struct DistortionDatas
 {
-    DistortionDatas(int samplerate):shape(0.37), softness(8.4), gain(748), volume(0.01f),
+    DistortionDatas(int samplerate):
+    
+        shape(0.37), softness(8.4),
+    
+        gain(748), volume(0.01f),
+        
         samplerate(samplerate),
         tone_in(nullptr), tone_out(nullptr),
         seuil(0.8), shoot(2), knee(0.01), pout(0)
@@ -54,7 +59,9 @@ struct DistortionDatas
         tone_out_params.gains[2] = 1;//1.63f;
     }
     
-    float shape, softness, gain, volume;
+    float shape, softness;
+    
+    float gain, volume;
     int samplerate;
     
     std::unique_ptr<GraphicEQ> tone_in, tone_out;
@@ -134,13 +141,34 @@ Module::SlotTable function_register_module_slots(void)
                 ((DistortionDatas*)effect->datas)->softness = sfx::mapfm_lin(val, 1, 60);
             return ((DistortionDatas*)effect->datas)->softness;
         });
+        
+        
+    Module::register_slot(table, 46, "seuil", "Seuil", [](sfx::hex_t val, EffectUnit* effect)->float
+        {
+            if (val < 128)
+                ((DistortionDatas*)effect->datas)->seuil = sfx::mapfm_lin(val, 0, 1);
+            return ((DistortionDatas*)effect->datas)->seuil;
+        });
+    Module::register_slot(table, 15, "shoot", "Shoot", [](sfx::hex_t val, EffectUnit* effect)->float
+        {
+            if (val < 128)
+                ((DistortionDatas*)effect->datas)->shoot = sfx::mapfm_lin(val, 0.01, 60);
+            return ((DistortionDatas*)effect->datas)->shoot;
+        });
+    Module::register_slot(table, 46, "knee", "Knee", [](sfx::hex_t val, EffectUnit* effect)->float
+        {
+            if (val < 128)
+                ((DistortionDatas*)effect->datas)->knee = sfx::mapfm_lin(val, 0.000001, 0.1);
+            return ((DistortionDatas*)effect->datas)->knee;
+        });
+        
     Module::register_slot(table, 81, "gain", "Gain", [](sfx::hex_t val, EffectUnit* effect)->float
         {
             if (val < 128)
                 ((DistortionDatas*)effect->datas)->gain = sfx::mapfm_db(val, -10, +50);
             return ((DistortionDatas*)effect->datas)->gain;
         });
-    Module::register_slot(table, 84, "volume", "Volume", [](sfx::hex_t val, EffectUnit* effect)->float
+    Module::register_slot(table, 42, "volume", "Volume", [](sfx::hex_t val, EffectUnit* effect)->float
         {
             if (val < 128)
                 ((DistortionDatas*)effect->datas)->volume = sfx::mapfm_db(val, -50, +10);
@@ -242,11 +270,20 @@ Module::SlotTable function_register_module_slots(void)
  * et 0- plus on se raproche de 1+
  * et qui vaut 1 quand on est au seuil
  */
-float gradiant(float valeur, float seuil, float shoot, float knee)
+float gradiant_v2(float valeur, float seuil, float shoot, float knee)
 {
     if (valeur > seuil)
     {
         return knee*(exp((shoot*(valeur-seuil))/(seuil-0.95))-exp(-shoot));
+    }
+    else return 1;
+}
+
+float gradiant_v1(float valeur, float seuil)
+{
+    if (valeur > seuil)
+    {
+        return (valeur-0.9)/(seuil - 0.9);
     }
     else return 1;
 }
@@ -258,7 +295,7 @@ float gradiant(float valeur, float seuil, float shoot, float knee)
  * on rajoute une condition disant que si le signal repasse sous le signal saturé, on arrete
  * de modifier le signal
  */
- float clip_gradiant(float in, float seuil, float gain
+ float clip_gradiant_v2(float in, float seuil, float gain
  , float shoot, float knee
  , float& prev_out)
  {
@@ -270,7 +307,7 @@ float gradiant(float valeur, float seuil, float shoot, float knee)
         if (in < seuil) out = in;
         else
         {
-            float alpha = gradiant(prev_out, seuil, shoot, knee);
+            float alpha = gradiant_v2(prev_out, seuil, shoot, knee);
             out += alpha;
             
             // On verifie si il faut rattraper la courbe normale
@@ -280,10 +317,10 @@ float gradiant(float valeur, float seuil, float shoot, float knee)
     }
     else 
     {
-        if (in < -seuil) out = in;
+        if (in > -seuil) out = in;
         else
         {
-            float alpha = gradiant(-prev_out, seuil, shoot, knee);
+            float alpha = gradiant_v2(-prev_out, seuil, shoot, knee);
             out -= alpha;
             
             // On verifie si il faut rattraper la courbe normale
@@ -292,6 +329,42 @@ float gradiant(float valeur, float seuil, float shoot, float knee)
         }
     }
     
+    prev_out = out;
+    
+    return out;
+ }
+ float clip_gradiant_v1(float valeur, float seuil, float gain, float& prev_in, float& prev_out)
+ {
+    float out = prev_out;
+    valeur *= gain;
+    float dt = valeur - prev_in; // on calcule la variation
+    
+    if (valeur > 0)
+    {
+        if (valeur < seuil) out = valeur;
+        else
+        {
+            float alpha = gradiant_v1(prev_out, seuil);
+            out += alpha*dt;
+            
+            // On verifie si il faut rattraper la courbe normale
+            if (out > valeur) out = valeur;
+        }
+    }
+    else 
+    {
+        if (valeur > -seuil) out = valeur;
+        else
+        {
+            float alpha = gradiant_v1(-prev_out, seuil);
+            out += alpha*dt;
+            
+            // On verifie si il faut rattraper la courbe normale
+            if (out < valeur) out = valeur;
+        }
+    }
+    
+    prev_in = valeur;
     prev_out = out;
     
     return out;
@@ -347,7 +420,7 @@ int function_process_callback(jack_nframes_t nframes, void* arg)
         
         //out[i] *= disto->gain;
         //out[i] = (1 - disto->shape)*tanh( out[i] ) + disto->shape*tanh( out[i] / disto->softness );
-        out[i] = clip_gradiant(out[i], disto->seuil, disto->gain, disto->shoot, disto->knee, disto->pout);
+        out[i] = tanh(clip_gradiant_v1(out[i], disto->seuil, disto->gain, disto->shoot, disto->knee));//, disto->pout);
         
         out[i] = disto->volume * disto->tone_out->compute(out[i], 3, disto->tone_out_params.gains);
     }

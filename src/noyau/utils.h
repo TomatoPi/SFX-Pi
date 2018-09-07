@@ -126,6 +126,14 @@ namespace sfx
     {
         return stoms(map(in, 0, 127, tmin, tmax), sr);
     }
+    
+    /**
+     * Remap given midi_cc value to {0, 1, ..., count-1}
+     */
+    static inline int mapfm_enum(sfx::hex_t in, int count)
+    {
+        return (in * count - 1) / 127;
+    }
 
     /**
      * Return random float between min and max

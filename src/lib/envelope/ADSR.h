@@ -83,7 +83,7 @@ inline float ADSR::process() {
                 output = 1.0;
                 state = env_decay;
                 
-                sfx::debug(NAME, "State => Decay\n");
+                //sfx::debug(NAME, "State => Decay\n");
             }
             break;
         case env_decay:
@@ -92,7 +92,7 @@ inline float ADSR::process() {
                 output = sustainLevel;
                 state = env_sustain;
                 
-                sfx::debug(NAME, "State => Sustain\n");
+                //sfx::debug(NAME, "State => Sustain\n");
             }
             break;
         case env_sustain:
@@ -103,7 +103,7 @@ inline float ADSR::process() {
                 output = 0.0;
                 state = env_idle;
                 
-                sfx::debug(NAME, "State => Idle\n");
+                //sfx::debug(NAME, "State => Idle\n");
             }
 	}
 	return output;
@@ -115,12 +115,12 @@ inline void ADSR::gate(int gate) {
         output = 0.0;
 		state = env_attack;
         
-        sfx::debug(NAME, "State => Attack\n");
+        //sfx::debug(NAME, "State => Attack\n");
     }
 	else if (state != env_idle)
     {
         state = env_release;
-        sfx::debug(NAME, "State => Release\n");
+        //sfx::debug(NAME, "State => Release\n");
     }
 }
 

@@ -122,6 +122,12 @@ struct Module
 #endif
 
     void* lib_handle;
+    
+////////////////////////////////////////////////////////////////////
+// Fonctions d'info
+////////////////////////////////////////////////////////////////////
+    
+    void logModuleLoadedInfos() const;
 };
 
 extern "C"
@@ -160,29 +166,7 @@ struct EffectUnit
      *  déclancher les slots eventuels
      * @param event pointeur vers le buffer de l'evenement midi 
      */
-    inline void veryfyAndComputeCCMessage(sfx::hex_t* event)
-    {
-        sfx::hex_t ccc = sfx::Midi_read_CCChannel(event);
-        sfx::hex_t ccs = sfx::Midi_read_CCSource(event);
-        sfx::hex_t val = sfx::Midi_read_CCValue(event);
-        sfx::hex_pair_t cc = std::make_pair(ccc, ccs);
-        
-        sfx::debug("Native-MIDI", "Process Midi Event : %i %i\n", ccc, ccs);
-        
-        if (links.find(cc) != links.end())
-        {
-            for (auto& slot : links[cc])
-                if (slots.find(slot) != slots.end())
-                {
-                    sfx::debug("Native-MIDI", "Call slot : \"%s\" with value : %i\n", module->slots[slot]->internal_name, val);
-                    this->setSlotValue(slot, val);
-                }
-                else
-                {
-                    sfx::wrn("Native-MIDI", "Unable to find slot : \"%s\" linked to CC : %i %i\n", slot, ccc, ccs);
-                }
-        }
-    }
+    void veryfyAndComputeCCMessage(sfx::hex_t* event);
 #else
     
     inline void registerAudioInput(std::string name)
@@ -310,6 +294,8 @@ struct EffectUnit
      * @return 0 on success, MISSING_SLOT if slot doesn't exist, DISABLED_SLOT if slot is not active
      */
     int getSlotValue(std::string slot, sfx::hex_t* x_result, float* f_result);
+    
+    void logLinkedSlots() const;
     
 ////////////////////////////////////////////////////////////////////
 // Gestion des Banques

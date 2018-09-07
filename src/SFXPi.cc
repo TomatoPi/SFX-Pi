@@ -80,12 +80,14 @@ int main(int argc, char** argv)
     {
         exit(1);
     }
+    DISTO_MODULE->logModuleLoadedInfos();
     
     std::shared_ptr<Module> SYNTH_MODULE = loadModule("modules/midi/Polysynth.so");
     if (!SYNTH_MODULE)
     {
         exit(1);
     }
+    SYNTH_MODULE->logModuleLoadedInfos();
     
     ///////////////////////////////////////////////////////////////
     
@@ -115,11 +117,21 @@ int main(int argc, char** argv)
     ///////////////////////////////////////////////////////////////
     
     std::unique_ptr<EffectUnit> DISTO(new EffectUnit(DISTO_MODULE));
+
+    DISTO->linkSlot(std::make_pair(0, 10), "seuil");
+    DISTO->linkSlot(std::make_pair(1, 10), "shoot");
+    DISTO->linkSlot(std::make_pair(2, 10), "knee");
+    DISTO->linkSlot(std::make_pair(3, 10), "gain");
     
-    DISTO->linkSlot(std::make_pair(12, 10), "in_lowcut");
-    DISTO->linkSlot(std::make_pair(13, 10), "in_highcut");
-    DISTO->linkSlot(std::make_pair(14, 10), "out_lowcut");
-    DISTO->linkSlot(std::make_pair(15, 10), "out_highcut");
+    DISTO->linkSlot(std::make_pair(4, 10), "volume");
+    
+    DISTO->linkSlot(std::make_pair(5, 10), "in_lowgain");
+    DISTO->linkSlot(std::make_pair(6, 10), "in_midgain");
+    DISTO->linkSlot(std::make_pair(7, 10), "in_highgain");
+    
+    DISTO->linkSlot(std::make_pair(5, 10), "out_lowgain");
+    DISTO->linkSlot(std::make_pair(6, 10), "out_midgain");
+    DISTO->linkSlot(std::make_pair(7, 10), "out_highgain");
     
     ///////////////////////////////////////////////////////////////
     
@@ -127,8 +139,24 @@ int main(int argc, char** argv)
     
     SYNTH->linkSlot(std::make_pair(8, 10), "a");
     SYNTH->linkSlot(std::make_pair(9, 10), "d");
-    SYNTH->linkSlot(std::make_pair(10, 10), "r");
-    SYNTH->linkSlot(std::make_pair(11, 10), "volume");
+    SYNTH->linkSlot(std::make_pair(10, 10), "s");
+    SYNTH->linkSlot(std::make_pair(11, 10), "r");
+    
+    SYNTH->linkSlot(std::make_pair(12, 10), "volume");
+    SYNTH->linkSlot(std::make_pair(13, 10), "0_forme_onde");
+    
+    SYNTH->linkSlot(std::make_pair(14, 10), "varislope_extrem");
+    SYNTH->linkSlot(std::make_pair(15, 10), "varislope_forme");
+    
+    SYNTH->linkSlot(std::make_pair(14, 10), "nphase_temps");
+    SYNTH->linkSlot(std::make_pair(15, 10), "nphase_nombre");
+    
+    SYNTH->linkSlot(std::make_pair(14, 10), "constant_value");
+    
+    SYNTH->linkSlot(std::make_pair(14, 10), "harmonic_nombre");
+    SYNTH->linkSlot(std::make_pair(15, 10), "harmonic_facteur");
+    
+    SYNTH->logLinkedSlots();
     
     ///////////////////////////////////////////////////////////////
     
