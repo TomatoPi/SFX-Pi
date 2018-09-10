@@ -29,7 +29,7 @@ endif
 Mod_DIR = modules/
 Mod_TAR = $(Mod_DIR)
 
-Mod_Tempo_DIR = ./
+Mod_Tempo_DIR = natifs/
 Mod_Tempo_SRC = $(Mod_DIR)$(Mod_Tempo_DIR)TapTempo.cc
 Mod_Tempo_LIB = $(Mod_TAR)$(Mod_Tempo_DIR)TapTempo.so
 
@@ -50,6 +50,7 @@ Mod_Modulation_SRC = $(Mod_DIR)$(Mod_Modulation_DIR)LFO.cc
 Mod_Modulation_LIB = $(Mod_TAR)$(Mod_Modulation_DIR)LFO.so
 
 Mod_All_TAR = $(Mod_TAR) \
+    $(Mod_TAR)$(Mod_Tempo_DIR)\
     $(Mod_TAR)$(Mod_Disto_DIR)\
     $(Mod_TAR)$(Mod_Midi_DIR) \
     $(Mod_TAR)$(Mod_Temps_DIR)\
@@ -114,8 +115,8 @@ Ker_Module_DIR = modules/
 Ker_Module_lib_SRC = $(addprefix $(Ker_DIR)$(Ker_Module_DIR), ModuleBase.cc)
 Ker_Module_lib_LIB = $(Ker_TAR)$(Ker_Module_DIR)ModuleBase.so
 
-Ker_Module_load_SRC = $(Ker_DIR)$(Ker_Module_DIR)ModuleLoader.cc
-Ker_Module_load_OBJ = $(ker_OBJ)$(Ker_Module_DIR)ModuleLoader.o
+Ker_Module_load_SRC = $(addprefix $(Ker_DIR)$(Ker_Module_DIR), ModuleLoader.cc ModulePreset.cc)
+Ker_Module_load_OBJ = $(patsubst %.cc, obj/%.o, $(Ker_Module_load_SRC))
 
 Ker_All_SRC = $(Ker_Module_lib_SRC) $(Ker_Module_load_SRC)
 ker_All_OBJ = $(Ker_Module_load_OBJ)
@@ -173,7 +174,6 @@ $(Ker_Module_lib_LIB) : $(Ker_Module_lib_SRC)
 	$(CXX) $(LIBFLAG) $(CXXFLAGS) -o $@ $^
 	
 $(Ker_Module_load_OBJ): $(Ker_Module_load_SRC)
-	$(CXX) -o $@ -c $< $(CXXFLAGS)
 
 ###### Modules ######
 
