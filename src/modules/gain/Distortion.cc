@@ -24,6 +24,7 @@
 #include "lib/filter/GraphicEQ.h"
 #include "lib/filter/GraphicEQ_macros.h"
 
+#define UNIQUE_NAME "simple_distortion"
 #define NAME "Distortion"
 #define VERSION "1.0"
 
@@ -74,7 +75,7 @@ struct DistortionDatas
 extern "C"
 Module::ShortInfo function_register_module_info(void)
 {
-    return Module::ShortInfo(NAME, VERSION);
+    return Module::ShortInfo(UNIQUE_NAME, NAME, VERSION);
 }
 
 #ifdef __ARCH_LINUX__
@@ -418,9 +419,9 @@ int function_process_callback(jack_nframes_t nframes, void* arg)
 
         out[i] = disto->tone_in->compute(in[i], 3, disto->tone_in_params.gains);
         
-        //out[i] *= disto->gain;
-        //out[i] = (1 - disto->shape)*tanh( out[i] ) + disto->shape*tanh( out[i] / disto->softness );
-        out[i] = tanh(clip_gradiant_v1(out[i], disto->seuil, disto->gain, disto->shoot, disto->knee));//, disto->pout);
+        out[i] *= disto->gain;
+        out[i] = (1 - disto->shape)*tanh( out[i] ) + disto->shape*tanh( out[i] / disto->softness );
+        //out[i] = tanh(clip_gradiant_v1(out[i], disto->seuil, disto->gain, disto->shoot, disto->knee));//, disto->pout);
         
         out[i] = disto->volume * disto->tone_out->compute(out[i], 3, disto->tone_out_params.gains);
     }

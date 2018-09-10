@@ -29,6 +29,9 @@
 #include <memory>
 #include <map>
 
+#include <iostream>
+#include <fstream>
+
 #include "noyau/log.h"
 
 #include "ModuleBase.h"
@@ -39,23 +42,44 @@
 #endif
 
 ////////////////////////////////////////////////////////////////////
-// ModuleLoading Structures
+// Module Handling structures
 ////////////////////////////////////////////////////////////////////
 
 typedef std::map<std::string,std::shared_ptr<Module>> LoadedModulesTable;
+
+LoadedModulesTable& getModuleTable();
+
+/**
+ * @brief Fonction à appeler au lancement du programme pour charger les modules du fichier
+ *  de configuration donné
+ * @param config_path chemin du fichier de configuration
+ * @return 0 on success
+ */
+int loadModuleTable(std::string config_path);
+
+void unloadModuleTable();
+
+/**
+ * Fonction pour afficher la liste des modules chargés
+ */
+void logLoadedModuleTable();
+
+////////////////////////////////////////////////////////////////////
+// ModuleLoading Structures
+////////////////////////////////////////////////////////////////////
 
 /**
  * @brief Fonction utilisée pour charger un Module
  * @param path Chemin d'accès au module à charger
  * @return Pointeur vers le module chargé ou nullptr si le chargement a échoué
  */
-std::shared_ptr<Module> loadModule(std::string path);
+int loadModule(std::string path);
 
 /**
  * @brief Fonction à appeller pour décharger un Module
  * @param module module à décharger
  */
-void unloadModule(std::shared_ptr<Module> module);
+void unloadModule(std::string unique_name);
 
 /**
  * @brief Fonction de wrapping pour charger une fonction depuis une librairie dynamique
@@ -64,5 +88,6 @@ void unloadModule(std::shared_ptr<Module> module);
  * @throw ios_base::failure
  */
 void* load_function(void* handle, std::string name);
+
 
 #endif /* MODULELOADER_H */

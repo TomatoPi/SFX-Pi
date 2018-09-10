@@ -25,6 +25,7 @@
 
 #include "lib/math/FonctionsOndes.h"
 
+#define UNIQUE_NAME "midi_polysynth"
 #define NAME "Polysynth"
 #define VERSION "1.0"
 
@@ -50,7 +51,9 @@ struct PolysynthDatas
     notes_map(),
 
     waveform(sfx::WHAR),
-    tfunc(sfx::castWaveform(sfx::WHAR))
+    tfunc(sfx::castWaveform(sfx::WHAR)),
+    
+    channel(0xff)
     {
     }
 
@@ -65,12 +68,14 @@ struct PolysynthDatas
 
     sfx::WaveForm waveform;
     sfx::transfert_f tfunc;
+    
+    sfx::hex_t channel;
 };
 
 extern "C"
 Module::ShortInfo function_register_module_info(void)
 {
-    return Module::ShortInfo(NAME, VERSION);
+    return Module::ShortInfo(UNIQUE_NAME, NAME, VERSION);
 }
 
 #ifdef __ARCH_LINUX__
@@ -364,6 +369,15 @@ Module::SlotTable function_register_module_slots(void)
         }
         return ((PolysynthDatas*) effect->datas)->param2; // Retourner la valeur du paramètre effectulé
     });
+    
+    Module::register_slot(table, 127, "input_channel", "Channel", [](sfx::hex_t val, EffectUnit * effect)->float {
+        if (val < 128)
+        {
+            // Valeur de gain en db : renvois facteur gain
+            ((PolysynthDatas*) effect->datas)->channel = sfx::mapfm_enum(val, 17);
+        }
+        return ((PolysynthDatas*) effect->datas)->channel; // Retourner la valeur du paramètre effectulé
+    });
 
     return table;
 }
@@ -406,7 +420,8 @@ int function_process_callback(jack_nframes_t nframes, void* arg)
         {
             sfx::Midi_reserve_MidiThroughMessage(midi_throught, in_event);
 
-            if (sfx::Midi_verify_ChanneledMessage(in_event.buffer, sfx::Midi_NoteOn))
+            if ((synth->channel > 15 || synth->channel == sfx::Midi_read_CCChannel(in_event.buffer)) 
+                    && sfx::Midi_verify_ChanneledMessage(in_event.buffer, sfx::Midi_NoteOn))
             {
                 sfx::hex_t note = sfx::Midi_read_NoteValue(in_event.buffer);
 
@@ -431,12 +446,13 @@ int function_process_callback(jack_nframes_t nframes, void* arg)
                             return a.first == b.first;
                         });
 
-                //*
+                /*
                 sfx::debug(NAME, "Midi note on : %x : Note : %i : Velocity : %i : Rbs : %f\n",
                         in_event.buffer[0], in_event.buffer[1], in_event.buffer[2], n.ramp);
                 //*/
             }
-            else if (sfx::Midi_verify_ChanneledMessage(in_event.buffer, sfx::Midi_NoteOff))
+            else if ((synth->channel > 15 || synth->channel == sfx::Midi_read_CCChannel(in_event.buffer)) 
+                    && sfx::Midi_verify_ChanneledMessage(in_event.buffer, sfx::Midi_NoteOff))
             {
                 sfx::hex_t note = sfx::Midi_read_NoteValue(in_event.buffer);
 
@@ -446,7 +462,7 @@ int function_process_callback(jack_nframes_t nframes, void* arg)
                         note_struct.second.envelope.gate(0);
                     }
 
-                //*
+                /*
                 sfx::debug(NAME, "Midi note off : %x : Note : %i : Velocity : %i\n",
                         in_event.buffer[0], in_event.buffer[1], in_event.buffer[2]);
                 //*/

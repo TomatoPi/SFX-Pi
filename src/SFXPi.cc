@@ -28,6 +28,7 @@
 #include "process/gpio/Footswitch.h"
 
 #include "noyau/modules/ModuleLoader.h"
+#include "noyau/modules/ModulePreset.h"
 
 /*
 #include "modules/TapTempo.h"
@@ -43,7 +44,7 @@
 
 int main(int argc, char** argv)
 {
-    sfx::sfxStream << '\n' << 
+    sfx::sfxStream << sfx::LogModifier(sfx::ModifierCode::RESET) << '\n' << 
     "====================================================================================================="
     << '\n' <<
     "=====================================================================================================\n"
@@ -75,19 +76,21 @@ int main(int argc, char** argv)
     
     std::unique_ptr<GPIOJackClient> GPIO(new GPIOJackClient({mcp23017::HEX_MCP_0, mcp23017::HEX_MCP_1}));
     
-    std::shared_ptr<Module> DISTO_MODULE = loadModule("modules/gain/Distortion.so");
-    if (!DISTO_MODULE)
+    if (loadModuleTable("config/module_table"))
     {
+        sfx::fatal(NAME, "Failed Load Module Table");
         exit(1);
     }
-    DISTO_MODULE->logModuleLoadedInfos();
     
-    std::shared_ptr<Module> SYNTH_MODULE = loadModule("modules/midi/Polysynth.so");
-    if (!SYNTH_MODULE)
-    {
-        exit(1);
-    }
-    SYNTH_MODULE->logModuleLoadedInfos();
+    logLoadedModuleTable();
+    
+    std::shared_ptr<Module> TEMPO_MODULE = getModuleTable()["natif_tap_tempo"];
+    std::shared_ptr<Module> DISTO_MODULE = getModuleTable()["simple_distortion"];
+    std::shared_ptr<Module> SYNTH_MODULE = getModuleTable()["midi_polysynth"];
+    
+    TEMPO_MODULE->logModuleCompleteInfos();
+    DISTO_MODULE->logModuleCompleteInfos();
+    SYNTH_MODULE->logModuleCompleteInfos();
     
     ///////////////////////////////////////////////////////////////
     
@@ -116,27 +119,45 @@ int main(int argc, char** argv)
     
     ///////////////////////////////////////////////////////////////
     
+    std::unique_ptr<EffectUnit> TEMPO(new EffectUnit(TEMPO_MODULE));
+    
+    TEMPO->linkSlot(std::make_pair(14, 10), "signature_num");
+    TEMPO->linkSlot(std::make_pair(15, 10), "signature_den");
+    
+    ///////////////////////////////////////////////////////////////
+    
     std::unique_ptr<EffectUnit> DISTO(new EffectUnit(DISTO_MODULE));
 
-    DISTO->linkSlot(std::make_pair(0, 10), "seuil");
-    DISTO->linkSlot(std::make_pair(1, 10), "shoot");
-    DISTO->linkSlot(std::make_pair(2, 10), "knee");
-    DISTO->linkSlot(std::make_pair(3, 10), "gain");
+    DISTO->linkSlot(std::make_pair(0, 10), "shape");
+    DISTO->linkSlot(std::make_pair(1, 10), "gain");
+    DISTO->linkSlot(std::make_pair(2, 10), "volume");
     
-    DISTO->linkSlot(std::make_pair(4, 10), "volume");
+    DISTO->linkSlot(std::make_pair(3, 10), "in_lowcut");
+    DISTO->linkSlot(std::make_pair(4, 10), "in_highcut");
     
     DISTO->linkSlot(std::make_pair(5, 10), "in_lowgain");
     DISTO->linkSlot(std::make_pair(6, 10), "in_midgain");
     DISTO->linkSlot(std::make_pair(7, 10), "in_highgain");
     
-    DISTO->linkSlot(std::make_pair(5, 10), "out_lowgain");
-    DISTO->linkSlot(std::make_pair(6, 10), "out_midgain");
-    DISTO->linkSlot(std::make_pair(7, 10), "out_highgain");
+    DISTO->linkSlot(std::make_pair(8, 10), "out_lowcut");
+    DISTO->linkSlot(std::make_pair(9, 10), "out_highcut");
+    
+    DISTO->linkSlot(std::make_pair(10, 10), "out_lowgain");
+    DISTO->linkSlot(std::make_pair(11, 10), "out_midgain");
+    DISTO->linkSlot(std::make_pair(12, 10), "out_highgain");
+    
+    DISTO->logLinkedSlots();
+    
+    if (save_PresetFile("presets/test",DISTO.get()))
+        sfx::err(NAME, "Failed Save Preset File\n");
+    
+    if (load_PresetFile("presets/test",DISTO.get()))
+        sfx::err(NAME, "Failed Load Preset File\n");
     
     ///////////////////////////////////////////////////////////////
     
     std::unique_ptr<EffectUnit> SYNTH(new EffectUnit(SYNTH_MODULE));
-    
+    /*
     SYNTH->linkSlot(std::make_pair(8, 10), "a");
     SYNTH->linkSlot(std::make_pair(9, 10), "d");
     SYNTH->linkSlot(std::make_pair(10, 10), "s");
@@ -157,6 +178,23 @@ int main(int argc, char** argv)
     SYNTH->linkSlot(std::make_pair(15, 10), "harmonic_facteur");
     
     SYNTH->logLinkedSlots();
+    */
+    
+    ///////////////////////////////////////////////////////////////
+    
+	if (jack_connect (TEMPO->client, jack_port_name (GPIO->logic_out), jack_port_name (TEMPO->midiIns[1].port))) 
+    {
+		sfx::err (NAME, "cannot connect output ports : \"%s\" \"%s\"\n", jack_port_name (GPIO->logic_out), jack_port_name (TEMPO->midiIns[0].port));
+	}
+	if (jack_connect (TEMPO->client, jack_port_name (TEMPO->midiOuts[1].port), jack_port_name (GPIO->logic_in))) 
+    {
+		sfx::err (NAME, "cannot connect output ports : \"%s\" \"%s\"\n", jack_port_name (GPIO->logic_out), jack_port_name (TEMPO->midiIns[0].port));
+	}
+    
+	if (jack_connect (TEMPO->client, jack_port_name (SYNTH->midiOuts[0].port), jack_port_name (TEMPO->midiIns[0].port))) 
+    {
+		sfx::err (NAME, "cannot connect input ports\n");
+	}
     
     ///////////////////////////////////////////////////////////////
     
@@ -201,7 +239,7 @@ int main(int argc, char** argv)
     
     while(1);
     
-    unloadModule(DISTO_MODULE);
+    unloadModuleTable();
     
     /*
     std::unique_ptr<ModuleTapTempo> TTP(new ModuleTapTempo());

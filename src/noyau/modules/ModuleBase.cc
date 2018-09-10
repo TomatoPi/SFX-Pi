@@ -26,11 +26,13 @@
 
 #define NAME "Module-API"
 
-void Module::logModuleLoadedInfos() const
+void Module::logModuleCompleteInfos() const
 {
-    sfx::log(NAME, "Module Informations : Name:\"%s\" Version:\"%s\"\n", infos.name, infos.version);
-    sfx::sfxStream << "Slots : \n" <<
-            sfx::formatString("%-20s|%-20s|%-20s|%-20s\n"
+    sfx::log(NAME, "Module Full Informations : \n");
+    sfx::sfxStream
+            << sfx::formatString("Unique_Name : \"%20s\" Name:\"%20s\" Version:\"%5s\"\n"
+                , infos.unique_name, infos.name, infos.version)
+            << sfx::formatString("%-20s|%-20s|%-20s|%-20s\n"
                 , std::string("Clef"), std::string("Nom Interne")
                 , std::string("Nom d'Affichage"), std::string("Valeur par défault"))
             << "--------------------+--------------------+--------------------+--------------------\n";
@@ -58,7 +60,8 @@ EffectUnit::EffectUnit(std::shared_ptr<Module> module):
 
     banks(),
     banks_order(),
-    current_bank()
+    current_bank(),
+    bank_id_manager(0)
 {
     // Creation des slots
     for (auto& slot : module->slots)
@@ -83,7 +86,7 @@ EffectUnit::EffectUnit(std::shared_ptr<Module> module):
     datas = module->builder(this);
     
     // Creation et chargement de la banque par défault
-    this->createBank(0);
+    this->createBank();
     current_bank = banks_order.begin();
     this->updateCurrentBank();
     
@@ -139,7 +142,7 @@ void EffectUnit::veryfyAndComputeCCMessage(sfx::hex_t* event)
  */
 int EffectUnit::linkSlot(sfx::hex_pair_t cc, std::string slot)
 {
-    sfx::debug(name, "Try Link slot : \"%s\" to cc : %i:%i \n", slot, cc.first, cc.second);
+    //sfx::debug(name, "Try Link slot : \"%s\" to cc : %i:%i \n", slot, cc.first, cc.second);
     
     if (module->slots.find(slot) == module->slots.end())
         return MISSING_SLOT;
@@ -150,7 +153,7 @@ int EffectUnit::linkSlot(sfx::hex_pair_t cc, std::string slot)
     //if (links[cc].find(slot) != links[cc].end())
     //    return 1;
     
-    sfx::debug(name, "Success !\n");
+    //sfx::debug(name, "Success !\n");
     links[cc].push_back(slot);
     return 0;
 }
@@ -271,7 +274,7 @@ int EffectUnit::getSlotValue(std::string slot, sfx::hex_t* x_result, float* f_re
 void EffectUnit::logLinkedSlots() const
 {
     sfx::log(name, "Linked Slots : \n");
-    sfx::sfxStream << sfx::formatString("%-10s|%-10s|%-20s", 
+    sfx::sfxStream << sfx::formatString("%-10s|%-10s|%-20s\n", 
             std::string("Channel"), std::string("Source"), std::string("Slot"))
             << "----------+----------+--------------------\n";
     for (auto& link : links)
@@ -365,6 +368,10 @@ void EffectUnit::updateCurrentBank()
  *      createBank(id, size, vals) to create a bank from a valid array of values
  * @pre if specified, bank is a valid expansion of effect's config tree
  */
+int EffectUnit::createBank()
+{
+    return this->createBank(bank_id_manager.reserveUID());
+}
 int EffectUnit::createBank(sfx::hex_t id)
 {
     // If bank doesn't exist create it
@@ -433,12 +440,13 @@ int EffectUnit::removeBank(sfx::hex_t id)
         current_bank = banks_order.erase(current_bank);
     }
     else banks_order.remove_if([id](sfx::hex_t n)->bool{return n == id;});
-
+    
+    bank_id_manager.releaseUID(id);
 
     // Always keep one bank inside the ParamSet
     if (banks.size() == 0)
     {
-        this->createBank(0);
+        this->createBank();
         current_bank = banks_order.begin();
         updateAll = true;
     }

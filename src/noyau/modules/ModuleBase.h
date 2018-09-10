@@ -33,6 +33,7 @@
 #include "noyau/types.h"
 #include "noyau/utils.h"
 #include "noyau/midi.h"
+#include "noyau/id.h"
 
 #ifdef __ARCH_LINUX__
 #include "process/module/jackWrapper.h"
@@ -102,10 +103,12 @@ struct Module
     
     struct ShortInfo
     {
-        ShortInfo(std::string n, std::string v):name(n),version(v)
+        ShortInfo(std::string i, std::string n, std::string v):
+        unique_name(i), name(n),version(v)
         {
         }
         
+        std::string unique_name;
         std::string name;
         std::string version;
     }infos;
@@ -127,7 +130,7 @@ struct Module
 // Fonctions d'info
 ////////////////////////////////////////////////////////////////////
     
-    void logModuleLoadedInfos() const;
+    void logModuleCompleteInfos() const;
 };
 
 extern "C"
@@ -313,6 +316,8 @@ struct EffectUnit
     
     BankIdList::iterator current_bank;
     
+    UIDManager<sfx::hex_t> bank_id_manager;
+    
     /**
      * @brief Change current bank
      * @pre current_bank bank is valid
@@ -346,6 +351,7 @@ struct EffectUnit
      *      createBank(id, size, vals) to create a bank from a valid array of values
      * @pre if specified, bank is a valid expansion of effect's config tree
      */
+    int createBank();
     int createBank(sfx::hex_t id);
     /**
      * @brief method to duplicate a bank of the effect
