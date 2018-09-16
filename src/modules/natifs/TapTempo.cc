@@ -178,9 +178,9 @@ Module::SlotTable function_register_module_slots(void)
             if (val < 128)
             {
                 // Valeur prenant un nombre discret de valeurs : renvois l'indice courant
-                ((MODULE_DATAS*) effect->datas)->signature_num = 1+sfx::mapfm_enum(val, 32);
+                ((MODULE_DATAS*) effect->getDatas())->signature_num = 1+sfx::mapfm_enum(val, 32);
             }
-            return ((MODULE_DATAS*)effect->datas)->signature_num; // Retourner la valeur du paramètre modulé
+            return ((MODULE_DATAS*)effect->getDatas())->signature_num; // Retourner la valeur du paramètre modulé
         });
     Module::register_slot(table, 49, "signature_den","Denominateur"
         , [](sfx::hex_t val, EffectUnit* effect) -> float
@@ -188,24 +188,24 @@ Module::SlotTable function_register_module_slots(void)
             if (val < 128)
             {
                 // Valeur prenant un nombre discret de valeurs : renvois l'indice courant
-                ((MODULE_DATAS*) effect->datas)->signature_den = 1 << sfx::mapfm_enum(val, 6);
+                ((MODULE_DATAS*) effect->getDatas())->signature_den = 1 << sfx::mapfm_enum(val, 6);
             }
-            return ((MODULE_DATAS*)effect->datas)->signature_den; // Retourner la valeur du paramètre modulé
+            return ((MODULE_DATAS*)effect->getDatas())->signature_den; // Retourner la valeur du paramètre modulé
         });
 
     return table;
 }
 
-//#ifdef __ARCH_LINUX__
+#ifdef __ARCH_LINUX__
 
 extern "C"
 int function_process_callback(jack_nframes_t nframes, void* arg)
 {
     EffectUnit* effect = (EffectUnit*) arg;
-    MODULE_DATAS* tap = (MODULE_DATAS*) effect->datas;
+    MODULE_DATAS* tap = (MODULE_DATAS*) effect->getDatas();
 
-    void* midi_port = jack_port_get_buffer(effect->midiIns[0].port, nframes);
-    void* midi_throught = jack_port_get_buffer(effect->midiOuts[0].port, nframes);
+    void* midi_port = jack_port_get_buffer(effect->getMidiInputs(0).port, nframes);
+    void* midi_throught = jack_port_get_buffer(effect->getMidiOutputs(0).port, nframes);
     jack_midi_clear_buffer(midi_throught);
     
     jack_midi_event_t in_event;
@@ -231,8 +231,8 @@ int function_process_callback(jack_nframes_t nframes, void* arg)
     }
     //*/
     
-    void* click_port = jack_port_get_buffer(effect->midiIns[1].port, nframes);
-    void* tempo_buffer = jack_port_get_buffer(effect->midiOuts[1].port, nframes);
+    void* click_port = jack_port_get_buffer(effect->getMidiInputs(1).port, nframes);
+    void* tempo_buffer = jack_port_get_buffer(effect->getMidiOutputs(1).port, nframes);
     jack_midi_clear_buffer(tempo_buffer);
     
     event_count = jack_midi_get_event_count(click_port);
@@ -260,9 +260,9 @@ int function_process_callback(jack_nframes_t nframes, void* arg)
         else sfx::wrn(NAME, "Unknown Event Type\n");
     }
 
-    jack_time_t block_start = jack_frames_to_time(effect->client
-            , jack_last_frame_time(effect->client));
-    jack_time_t block_end = block_start + jack_frames_to_time(effect->client, nframes);
+    jack_time_t block_start = jack_frames_to_time(effect->getClient()
+            , jack_last_frame_time(effect->getClient()));
+    jack_time_t block_end = block_start + jack_frames_to_time(effect->getClient(), nframes);
             
     if (clicked)
     {
@@ -325,4 +325,4 @@ int function_process_callback(jack_nframes_t nframes, void* arg)
 
     return 0;
 }
-//#endif
+#endif

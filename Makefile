@@ -112,17 +112,26 @@ Ker_TAR = lib/noyau/
 ker_OBJ = obj/noyau/
 
 Ker_Module_DIR = modules/
-Ker_Module_lib_SRC = $(addprefix $(Ker_DIR)$(Ker_Module_DIR), ModuleBase.cc)
+Ker_Module_lib_SRC = $(addprefix $(Ker_DIR)$(Ker_Module_DIR), Module_Module.cc Module_Serial.cc Module_EffectUnit.cc)
 Ker_Module_lib_LIB = $(Ker_TAR)$(Ker_Module_DIR)ModuleBase.so
 
-Ker_Module_load_SRC = $(addprefix $(Ker_DIR)$(Ker_Module_DIR), ModuleLoader.cc ModulePreset.cc)
+Ker_Module_load_SRC = $(addprefix $(Ker_DIR)$(Ker_Module_DIR), )
 Ker_Module_load_OBJ = $(patsubst %.cc, obj/%.o, $(Ker_Module_load_SRC))
 
+Ker_Cmd_DIR = $(Ker_DIR)cmd/
+Ker_Cmd_List_DIR = $(Ker_Cmd_DIR)list/
+Ker_Cmd_SRC = $(addprefix $(Ker_Cmd_DIR), CommandListener.cc CommandRegistry.cc) \
+    $(addprefix $(Ker_Cmd_List_DIR), Module_Cmd.cc)
+Ker_Cmd_OBJ = $(patsubst %.cc, obj/%.o, $(Ker_Cmd_SRC))
+
 Ker_All_SRC = $(Ker_Module_lib_SRC) $(Ker_Module_load_SRC)
-ker_All_OBJ = $(Ker_Module_load_OBJ)
+ker_All_OBJ = $(Ker_Module_load_OBJ) \
+    $(Ker_Cmd_OBJ)
 Ker_All_LIB = $(Ker_Module_lib_LIB)
 Ker_All_TAR = $(Ker_TAR)$(Ker_Module_DIR) \
-    $(ker_OBJ)$(Ker_Module_DIR)
+    $(ker_OBJ)$(Ker_Module_DIR) \
+    obj/$(Ker_Cmd_DIR) \
+    obj/$(Ker_Cmd_List_DIR)
 
 ### SFX-Pi ###
 
@@ -174,6 +183,8 @@ $(Ker_Module_lib_LIB) : $(Ker_Module_lib_SRC)
 	$(CXX) $(LIBFLAG) $(CXXFLAGS) -o $@ $^
 	
 $(Ker_Module_load_OBJ): $(Ker_Module_load_SRC)
+	
+$(Ker_Cmd_OBJ): $(Ker_Cmd_SRC)
 
 ###### Modules ######
 

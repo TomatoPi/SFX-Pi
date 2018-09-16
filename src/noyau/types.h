@@ -85,7 +85,7 @@ namespace sfx{
      **/
     typedef uint32_t usize_t;
     
-    const string VERSION = "4.0.0";
+    const string VERSION = "4.1.0";
     const string BUILD   = string(__DATE__) + "   " + string(__TIME__);
 }
 

@@ -21,10 +21,7 @@
  * 
  * Created on 8 septembre 2018, 01:46
  */
-
-#include <fstream>
-
-#include "ModulePreset.h"
+#include "ModuleBase.h"
 
 #define NAME "Module-Serial"
 
@@ -32,18 +29,17 @@
  *  string : nom unique
  *  string : version
  */
-void serialize_infos(std::ofstream& flux, const Module::ShortInfo* obj)
+void Module::serialize_infos(std::ofstream& flux, const ShortInfo& obj)
 {
-    sfx::serial::write<std::string> (flux, obj->unique_name);
-    sfx::serial::write<std::string> (flux, obj->version);
+    sfx::serial::write<std::string> (flux, obj.unique_name);
+    sfx::serial::write<std::string> (flux, obj.version);
 }
-int deserialize_infos(std::ifstream& flux, Module::ShortInfo* obj)
+Module::ShortInfo Module::deserialize_infos(std::ifstream& flux)
 {
     std::string name = sfx::serial::read<std::string> (flux);
     std::string version = sfx::serial::read<std::string> (flux);
     
-    *obj = Module::ShortInfo(name, "", version);
-    return 0;
+    return Module::ShortInfo(name, "", version);
 }
 
 ////////////////////////////////////////////////////////////////////
@@ -58,19 +54,19 @@ int deserialize_infos(std::ifstream& flux, Module::ShortInfo* obj)
  *      hex_t  : valeur
  *  }
  */
-void serialize_bank(std::ofstream& flux, const EffectUnit::ParamArray* obj)
+void EffectUnit::serialize_bank(std::ofstream& flux, const EffectUnit::ParamArray& obj)
 {
     sfx::serial::write<sfx::flag_t> (flux, sfx::serial::ControlBits);
     
-    sfx::serial::write<sfx::usize_t>(flux, obj->size());
-    for (auto& slot : *obj)
+    sfx::serial::write<sfx::usize_t>(flux, obj.size());
+    for (auto& slot : obj)
     {
         sfx::serial::write<std::string>(flux, slot.first);
         sfx::serial::write<sfx::hex_t> (flux, slot.second);
     }
     sfx::serial::write<sfx::flag_t> (flux, sfx::serial::ControlBits);
 }
-int deserialize_bank(std::ifstream& flux, EffectUnit::ParamArray* obj)
+EffectUnit::ParamArray EffectUnit::deserialize_bank(std::ifstream& flux)
 {
     try 
     {
@@ -89,14 +85,13 @@ int deserialize_bank(std::ifstream& flux, EffectUnit::ParamArray* obj)
         
         sfx::serial::controlValue(flux, sfx::serial::ControlBits, "Invalid_Bank_End");
         
-        *obj = parsed_bank;
+        return parsed_bank;
     }
     catch (std::ios_base::failure const& e)
     {
         sfx::err(NAME, "Error While Parsing File : Error#%i : %s\n", e.code(), e.what());
-        return 1;
+        throw;
     }
-    return 0;
 }
 /**
  *  usize_t : nombre de banques
@@ -105,19 +100,19 @@ int deserialize_bank(std::ifstream& flux, EffectUnit::ParamArray* obj)
  *      bank  : la banque
  *  }
  */
-void serialize_banktable(std::ofstream& flux, const EffectUnit::BankTable* obj)
+void EffectUnit::serialize_banktable(std::ofstream& flux, const EffectUnit::BankTable& obj)
 {
     sfx::serial::write<sfx::flag_t> (flux, sfx::serial::ControlBits);
     
-    sfx::serial::write<sfx::usize_t>(flux, obj->size());
-    for (auto& bank : *obj)
+    sfx::serial::write<sfx::usize_t>(flux, obj.size());
+    for (auto& bank : obj)
     {
         sfx::serial::write<sfx::hex_t>(flux, bank.first);
-        serialize_bank(flux, &bank.second);
+        serialize_bank(flux, bank.second);
     }
     sfx::serial::write<sfx::flag_t> (flux, sfx::serial::ControlBits);
 }
-int deserialize_banktable(std::ifstream& flux, EffectUnit::BankTable* obj)
+EffectUnit::BankTable EffectUnit::deserialize_banktable(std::ifstream& flux)
 {
     try 
     {
@@ -129,23 +124,20 @@ int deserialize_banktable(std::ifstream& flux, EffectUnit::BankTable* obj)
         for (size_t i = 0; i < size; ++i)
         {
             sfx::hex_t id = sfx::serial::read<sfx::hex_t> (flux);
-            EffectUnit::ParamArray parsed_bank;
-            if (deserialize_bank(flux, &parsed_bank))
-                throw std::ios_base::failure("Failed_Parse_Bank");
+            EffectUnit::ParamArray parsed_bank = deserialize_bank(flux);
             
             parsed_table[id] = parsed_bank;
         }
         
         sfx::serial::controlValue(flux, sfx::serial::ControlBits, "Invalid_Bank_Table_End");
         
-        *obj = parsed_table;
+        return parsed_table;
     }
     catch (std::ios_base::failure const& e)
     {
         sfx::err(NAME, "Error While Parsing File : Error#%i : %s\n", e.code(), e.what());
-        return 1;
+        throw;
     }
-    return 0;
 }
 /**
  *  usize_t : nombre de banques
@@ -153,18 +145,18 @@ int deserialize_banktable(std::ifstream& flux, EffectUnit::BankTable* obj)
  *      hex_t : id de la banque
  *  }
  */
-void serialize_bankidlist(std::ofstream& flux, const EffectUnit::BankIdList* obj)
+void EffectUnit::serialize_bankidlist(std::ofstream& flux, const EffectUnit::BankIdList& obj)
 {
     sfx::serial::write<sfx::flag_t> (flux, sfx::serial::ControlBits);
     
-    sfx::serial::write<sfx::usize_t>(flux, obj->size());
-    for (auto& id : *obj)
+    sfx::serial::write<sfx::usize_t>(flux, obj.size());
+    for (auto& id : obj)
     {
         sfx::serial::write<sfx::hex_t> (flux, id);
     }
     sfx::serial::write<sfx::flag_t> (flux, sfx::serial::ControlBits);
 }
-int deserialize_bankidlist(std::ifstream& flux, EffectUnit::BankIdList* obj)
+EffectUnit::BankIdList EffectUnit::deserialize_bankidlist(std::ifstream& flux)
 {
     try 
     {
@@ -182,14 +174,13 @@ int deserialize_bankidlist(std::ifstream& flux, EffectUnit::BankIdList* obj)
         
         sfx::serial::controlValue(flux, sfx::serial::ControlBits, "Invalid_Bank_ID_List_End");
         
-        *obj = parsed_list;
+        return parsed_list;
     }
     catch (std::ios_base::failure const& e)
     {
         sfx::err(NAME, "Error While Parsing File : Error#%i : %s\n", e.code(), e.what());
-        return 1;
+        throw;
     }
-    return 0;
 }
 
 /**
@@ -203,12 +194,12 @@ int deserialize_bankidlist(std::ifstream& flux, EffectUnit::BankIdList* obj)
  *      }
  *  }
  */
-void serialize_linktable(std::ofstream& flux, const EffectUnit::LinkTable* obj)
+void EffectUnit::serialize_linktable(std::ofstream& flux, const EffectUnit::LinkTable& obj)
 {
     sfx::serial::write<sfx::flag_t> (flux, sfx::serial::ControlBits);
     
-    sfx::serial::write<sfx::usize_t>(flux, obj->size());
-    for (auto& link : *obj)
+    sfx::serial::write<sfx::usize_t>(flux, obj.size());
+    for (auto& link : obj)
     {
         sfx::serial::write<sfx::hex_t> (flux, link.first.first);
         sfx::serial::write<sfx::hex_t> (flux, link.first.second);
@@ -221,7 +212,7 @@ void serialize_linktable(std::ofstream& flux, const EffectUnit::LinkTable* obj)
     }
     sfx::serial::write<sfx::flag_t> (flux, sfx::serial::ControlBits);
 }
-int deserialize_linktable(std::ifstream& flux, EffectUnit::LinkTable* obj)
+EffectUnit::LinkTable EffectUnit::deserialize_linktable(std::ifstream& flux)
 {
     try 
     {
@@ -248,14 +239,13 @@ int deserialize_linktable(std::ifstream& flux, EffectUnit::LinkTable* obj)
         
         sfx::serial::controlValue(flux, sfx::serial::ControlBits, "Invalid_Link_Table_End");
         
-        *obj = parsed_table;
+        return parsed_table;
     }
     catch (std::ios_base::failure const& e)
     {
         sfx::err(NAME, "Error While Parsing File : Error#%i : %s\n", e.code(), e.what());
-        return 1;
+        throw;
     }
-    return 0;
 }
     
 ////////////////////////////////////////////////////////////////////
@@ -271,11 +261,19 @@ int deserialize_linktable(std::ifstream& flux, EffectUnit::LinkTable* obj)
  *  string : Nom du fichier des banques
  *  string : Nom du fichier des links
  */
-int save_PresetFile(std::string file_path, const EffectUnit* obj)
+int EffectUnit::save_PresetFile(std::string file_path, std::weak_ptr<EffectUnit> obj,
+            std::string bank_file, std::string link_file)
 {
+    std::shared_ptr<EffectUnit> unit;
+    if (!(unit = obj.lock()))
+    {
+        sfx::err(NAME, "Effect Unit has been Deleted\n");
+        return 1;
+    }
+    
     std::ofstream flux;
     sfx::debug(NAME, "Save effect : \"%s\" : to file : \"%s\"\n",
-            obj->name, file_path);
+            unit->unique_name, file_path);
     
     try
     {
@@ -287,17 +285,25 @@ int save_PresetFile(std::string file_path, const EffectUnit* obj)
         
         // Write file header
         sfx::serial::write<sfx::flag_t> (flux, sfx::serial::EffectUnit_Preset_File);
-        serialize_infos(flux, &obj->module->infos);
+        if (auto module = unit->module.lock())
+            Module::serialize_infos(flux, module->getInformations());
+        else
+            throw std::runtime_error("Module_Expired");
         
         // Write effect name
-        sfx::serial::write<std::string>(flux, obj->name);
+        sfx::serial::write<std::string>(flux, unit->display_name);
+        
+        // Write bank file path
+        sfx::serial::write<std::string>(flux, bank_file);
+        // Write link file path
+        sfx::serial::write<std::string>(flux, link_file);
         
         // Write bank file
-        if (save_BankFile(file_path + std::string("_banks"), obj))
+        if (save_BankFile(bank_file, unit))
             throw std::ios_base::failure("Failed write bank file");
         
         // Write links file
-        if (save_LinkFile(file_path + std::string("_links"), obj))
+        if (save_LinkFile(link_file, unit))
             throw std::ios_base::failure("Failed write links file");
         
         // Close the file
@@ -310,7 +316,8 @@ int save_PresetFile(std::string file_path, const EffectUnit* obj)
     }
     return 0;
 }
-int load_PresetFile(std::string file_path, EffectUnit* obj)
+/*
+int EffectUnit::load_PresetFile(std::string file_path, EffectUnit* obj)
 {
     std::ifstream flux;
     sfx::debug(NAME, "Load effect from file : \"%s\"\n", file_path);
@@ -327,19 +334,19 @@ int load_PresetFile(std::string file_path, EffectUnit* obj)
         sfx::serial::controlValue(flux, sfx::serial::EffectUnit_Preset_File, "Invalid_File_Flag");
         
         Module::ShortInfo infos("", "", "");
-        deserialize_infos(flux, &infos);
+        Module::deserialize_infos(flux, &infos);
         
         // Verify module type
-        if (infos.unique_name != obj->module->infos.unique_name)
+        if (infos.unique_name != Module::getModuleTable()[obj->module_name]->infos.unique_name)
             throw std::ios_base::failure("Module_Type_Missmatch");
         // Verify module version
-        if (infos.version != obj->module->infos.version)
+        if (infos.version != Module::getModuleTable()[obj->module_name]->infos.version)
             sfx::wrn(NAME, "Module versions differs : Preset:%s LoadedModule:%s",
-                    infos.version, obj->module->infos.version);
+                    infos.version, Module::getModuleTable()[obj->module_name]->infos.version);
         
         // Read Effect Name
         std::string name = sfx::serial::read<std::string>(flux);
-        EffectUnit tmp_unit = EffectUnit(obj->module);
+        EffectUnit tmp_unit = EffectUnit(infos.unique_name, false, true);
         
         // Read bank file
         if (load_BankFile(file_path + std::string("_banks"), &tmp_unit))
@@ -350,6 +357,8 @@ int load_PresetFile(std::string file_path, EffectUnit* obj)
             throw std::ios_base::failure("Failed read links file");
         
         // If load is successfull, replace old effect with it new values
+        obj->unique_name  = name;
+        
         obj->banks        = tmp_unit.banks;
         obj->banks_order  = tmp_unit.banks_order;
         obj->current_bank = obj->banks_order.begin();
@@ -368,18 +377,25 @@ int load_PresetFile(std::string file_path, EffectUnit* obj)
     }
     return 0;
 }
-
+//*/
 /**
  * flag_t  : EffectUnit_Bank_File
  * Module Infos
  * BankTable
  * BankIdList
  */
-int save_BankFile(std::string file_path, const EffectUnit* obj)
+int EffectUnit::save_BankFile(std::string file_path, std::weak_ptr<EffectUnit> obj)
 {
+    std::shared_ptr<EffectUnit> unit;
+    if (!(unit = obj.lock()))
+    {
+        sfx::err(NAME, "Effect Unit has been Deleted\n");
+        return 1;
+    }
+    
     std::ofstream flux;
     sfx::debug(NAME, "Save banks : \"%s\" : to file : \"%s\"\n",
-            obj->name, file_path);
+            unit->unique_name, file_path);
     
     try
     {
@@ -391,11 +407,14 @@ int save_BankFile(std::string file_path, const EffectUnit* obj)
         
         // Write file header
         sfx::serial::write<sfx::flag_t> (flux, sfx::serial::EffectUnit_Bank_File);
-        serialize_infos(flux, &obj->module->infos);
+        if (auto module = unit->module.lock())
+            Module::serialize_infos(flux, module->getInformations());
+        else
+            throw std::runtime_error("Module_Expired");
         
         // Write all banks
-        serialize_banktable(flux, & obj->banks);
-        serialize_bankidlist(flux, & obj->banks_order);
+        serialize_banktable(flux, unit->banks);
+        serialize_bankidlist(flux, unit->banks_order);
         
         // Close the file
         flux.close();
@@ -407,8 +426,15 @@ int save_BankFile(std::string file_path, const EffectUnit* obj)
     }
     return 0;
 }
-int load_BankFile(std::string file_path, EffectUnit* obj)
+int EffectUnit::load_BankFile(std::string file_path, std::weak_ptr<EffectUnit> obj)
 {
+    std::shared_ptr<EffectUnit> unit;
+    if (!(unit = obj.lock()))
+    {
+        sfx::err(NAME, "Effect Unit has been Deleted\n");
+        return 1;
+    }
+    
     std::ifstream flux;
     sfx::debug(NAME, "Load banks from file : \"%s\"\n", file_path);
             
@@ -423,38 +449,40 @@ int load_BankFile(std::string file_path, EffectUnit* obj)
         // Read file header
         sfx::serial::controlValue(flux, sfx::serial::EffectUnit_Bank_File, "Invalid_File_Flag");
         
-        Module::ShortInfo infos("", "", "");
-        deserialize_infos(flux, &infos);
         
-        // Verify module type
-        if (infos.unique_name != obj->module->infos.unique_name)
-            throw std::ios_base::failure("Module_Type_Missmatch");
-        // Verify module version
-        if (infos.version != obj->module->infos.version)
-            sfx::wrn(NAME, "Module versions differs : Preset:%s LoadedModule:%s",
-                    infos.version, obj->module->infos.version);
+        // Verify Module Informations
+        if (auto module = unit->module.lock())
+        {
+            Module::ShortInfo infos = Module::deserialize_infos(flux);
+            
+            // Verify module type
+            if (infos.unique_name != module->getInformations().unique_name)
+                throw std::ios_base::failure("Module_Type_Missmatch");
+            // Verify module version
+            if (infos.version != module->getInformations().version)
+                sfx::wrn(NAME, "Module versions differs : Preset:%s LoadedModule:%s",
+                        infos.version, module->getInformations().version);
+        }
+        else throw std::runtime_error("Module_Expired");
         
         // Parse the Bank table
-        EffectUnit::BankTable parsed_table;
-        if (deserialize_banktable(flux, &parsed_table))
-            throw std::ios_base::failure("Failed read Bank Table");
+        EffectUnit::BankTable parsed_table = deserialize_banktable(flux);
         
         // Parse Bank Order List
-        EffectUnit::BankIdList parsed_orderlist;
-        if (deserialize_bankidlist(flux, &parsed_orderlist))
-            throw std::ios_base::failure("Failed read Bank Order");
+        EffectUnit::BankIdList parsed_orderlist = deserialize_bankidlist(flux);
         
         /*
          * On ecrème les banques des slots qui n'existeraient plus
          * Et on ajoute à chacune les slots qui manqueraient
          * de sorte à garrantir la compatibilité des presets
          */
+        UIDManager<sfx::hex_t> id_manager(0);
         for (auto& bank : parsed_table)
         {
             // Utilisé pour stoquer la liste des slots pas encore rencontrés
             std::set<std::string> missing_slots;
-            for (auto& slot : obj->module->slots)
-                missing_slots.emplace(slot.second->internal_name);
+            for (auto& slot : unit->slots)
+                missing_slots.emplace(slot.second.slot->internal_name);
             
             for(auto& slot : bank.second)
             {
@@ -468,17 +496,22 @@ int load_BankFile(std::string file_path, EffectUnit* obj)
             // On rajoute les slots manquants
             for (auto& slot : missing_slots)
             {
-                bank.second[slot] = obj->module->slots[slot]->default_value;
+                bank.second[slot] = unit->slots[slot].slot->default_value;
                 sfx::wrn(NAME, "Manualy added Slot : \"%s\"\n", slot);
             }
+            
+            // On verouille l'id de la banque
+            id_manager.reserveUID(bank.first);
         }
         
         // If load is successfull, replace old effect with it new values
-        obj->banks        = parsed_table;
-        obj->banks_order  = parsed_orderlist;
-        obj->current_bank = obj->banks_order.begin();
+        unit->banks        = parsed_table;
+        unit->banks_order  = parsed_orderlist;
+        unit->current_bank = unit->banks_order.begin();
         
-        obj->updateCurrentBank();
+        unit->bank_id_manager = id_manager;
+        
+        unit->updateCurrentBank();
         
         // Close the file
         flux.close();
@@ -496,11 +529,18 @@ int load_BankFile(std::string file_path, EffectUnit* obj)
  * Module Infos
  * LinksTable
  */
-int save_LinkFile(std::string file_path, const EffectUnit* obj)
+int EffectUnit::save_LinkFile(std::string file_path, std::weak_ptr<EffectUnit> obj)
 {
+    std::shared_ptr<EffectUnit> unit;
+    if (!(unit = obj.lock()))
+    {
+        sfx::err(NAME, "Effect Unit has been Deleted\n");
+        return 1;
+    }
+    
     std::ofstream flux;
     sfx::debug(NAME, "Save Links : \"%s\" : to file : \"%s\"\n",
-            obj->name, file_path);
+            unit->unique_name, file_path);
     
     try
     {
@@ -512,10 +552,13 @@ int save_LinkFile(std::string file_path, const EffectUnit* obj)
         
         // Write file header
         sfx::serial::write<sfx::flag_t> (flux, sfx::serial::EffectUnit_Link_File);
-        serialize_infos(flux, &obj->module->infos);
+        if (auto module = unit->module.lock())
+            Module::serialize_infos(flux, module->getInformations());
+        else
+            throw std::runtime_error("Module_Expired");
         
         // Write all links
-        serialize_linktable(flux, & obj->links);
+        serialize_linktable(flux, unit->links);
         
         // Close the file
         flux.close();
@@ -527,8 +570,15 @@ int save_LinkFile(std::string file_path, const EffectUnit* obj)
     }
     return 0;
 }
-int load_LinkFile(std::string file_path, EffectUnit* obj)
+int EffectUnit::load_LinkFile(std::string file_path, std::weak_ptr<EffectUnit> obj)
 {
+    std::shared_ptr<EffectUnit> unit;
+    if (!(unit = obj.lock()))
+    {
+        sfx::err(NAME, "Effect Unit has been Deleted\n");
+        return 1;
+    }
+    
     std::ifstream flux;
     sfx::debug(NAME, "Load links from file : \"%s\"\n", file_path);
             
@@ -543,21 +593,23 @@ int load_LinkFile(std::string file_path, EffectUnit* obj)
         // Read file header
         sfx::serial::controlValue(flux, sfx::serial::EffectUnit_Link_File, "Invalid_File_Flag");
         
-        Module::ShortInfo infos("", "", "");
-        deserialize_infos(flux, &infos);
-        
-        // Verify module type
-        if (infos.unique_name != obj->module->infos.unique_name)
-            throw std::ios_base::failure("Module_Type_Missmatch");
-        // Verify module version
-        if (infos.version != obj->module->infos.version)
-            sfx::wrn(NAME, "Module versions differs : Preset:%s LoadedModule:%s",
-                    infos.version, obj->module->infos.version);
+        // Verify Module Informations
+        if (auto module = unit->module.lock())
+        {
+            Module::ShortInfo infos = Module::deserialize_infos(flux);
+            
+            // Verify module type
+            if (infos.unique_name != module->getInformations().unique_name)
+                throw std::ios_base::failure("Module_Type_Missmatch");
+            // Verify module version
+            if (infos.version != module->getInformations().version)
+                sfx::wrn(NAME, "Module versions differs : Preset:%s LoadedModule:%s",
+                        infos.version, module->getInformations().version);
+        }
+        else throw std::runtime_error("Module_Expired");
         
         // Parse the link table
-        EffectUnit::LinkTable parsed_table;
-        if (deserialize_linktable(flux, &parsed_table))
-            throw std::ios_base::failure("Failed read Link Table");
+        EffectUnit::LinkTable parsed_table = deserialize_linktable(flux);
         
         /*
          * On ecrème les liens en retirant les slots invalides
@@ -567,7 +619,7 @@ int load_LinkFile(std::string file_path, EffectUnit* obj)
                     itr != link.second.end();
                     ++itr)
             {
-                if (obj->module->slots.find(*itr) == obj->module->slots.end())
+                if (unit->slots.find(*itr) == unit->slots.end())
                 {
                     itr = link.second.erase(itr);
                     sfx::wrn(NAME, "Remove link : %i => \"%s\" : Invalid Slot\n",
@@ -576,7 +628,7 @@ int load_LinkFile(std::string file_path, EffectUnit* obj)
             }
         
         // If load is successfull, replace old effect with it new values
-        obj->links = parsed_table;
+        unit->links = parsed_table;
         
         // Close the file
         flux.close();

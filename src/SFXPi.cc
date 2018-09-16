@@ -24,11 +24,16 @@
 #include <unistd.h>
 #include <chrono>
 
+#include "noyau/global.h"
 #include "noyau/log.h"
 #include "process/gpio/Footswitch.h"
 
-#include "noyau/modules/ModuleLoader.h"
-#include "noyau/modules/ModulePreset.h"
+#include "noyau/modules/ModuleBase.h"
+
+#include "noyau/cmd/CommandListener.h"
+#include "noyau/cmd/CommandRegistry.h"
+
+#include "noyau/cmd/list/Module_Cmd.h"
 
 /*
 #include "modules/TapTempo.h"
@@ -41,6 +46,8 @@
  */
 
 #define NAME "SFX-Pi"
+
+bool sfx::Global_NeedToExit = false;
 
 int main(int argc, char** argv)
 {
@@ -74,24 +81,50 @@ int main(int argc, char** argv)
     "====================================================================================================="
     << '\n' << '\n';
     
+    ///////////////////////////////////////////////////////////////
+    /// Register all Commands
+    ///////////////////////////////////////////////////////////////
+    
+    registerModulesCommands();
+    
+    ///////////////////////////////////////////////////////////////
+    
+    logCommandTable();
+    
+    std::unique_ptr<CommandListener> COMMAND_LISTENER(new CommandListener());
+    
+    ///////////////////////////////////////////////////////////////
+    // Build GPIO Handler
+    ///////////////////////////////////////////////////////////////
+    
     std::unique_ptr<GPIOJackClient> GPIO(new GPIOJackClient({mcp23017::HEX_MCP_0, mcp23017::HEX_MCP_1}));
     
-    if (loadModuleTable("config/module_table"))
+    ///////////////////////////////////////////////////////////////
+    // Load Module Table
+    ///////////////////////////////////////////////////////////////
+    
+    if (Module::loadModuleTable("config/module_table"))
     {
         sfx::fatal(NAME, "Failed Load Module Table");
         exit(1);
     }
     
-    logLoadedModuleTable();
+    Module::logLoadedModuleTable();
     
-    std::shared_ptr<Module> TEMPO_MODULE = getModuleTable()["natif_tap_tempo"];
-    std::shared_ptr<Module> DISTO_MODULE = getModuleTable()["simple_distortion"];
-    std::shared_ptr<Module> SYNTH_MODULE = getModuleTable()["midi_polysynth"];
+    ///////////////////////////////////////////////////////////////
     
-    TEMPO_MODULE->logModuleCompleteInfos();
-    DISTO_MODULE->logModuleCompleteInfos();
-    SYNTH_MODULE->logModuleCompleteInfos();
+//    std::shared_ptr<Module> TEMPO_MODULE = getModuleTable()["natif_tap_tempo"];
+//    std::shared_ptr<Module> DISTO_MODULE = getModuleTable()["simple_distortion"];
+//    std::shared_ptr<Module> SYNTH_MODULE = getModuleTable()["midi_polysynth"];
+//    
+//    TEMPO_MODULE->logModuleCompleteInfos();
+//    DISTO_MODULE->logModuleCompleteInfos();
+//    SYNTH_MODULE->logModuleCompleteInfos();
     
+    ///////////////////////////////////////////////////////////////
+    
+    ///////////////////////////////////////////////////////////////
+    // Get Physical IO
     ///////////////////////////////////////////////////////////////
     
 	const char **physic_in;
@@ -117,46 +150,55 @@ int main(int argc, char** argv)
         sfx::err(NAME, "No Physical MIDI Capture Ports");
     }
     
-    ///////////////////////////////////////////////////////////////
+    sfx::log(NAME, "Physical IOS :\n");
+    for (int i = 0; i < 2; ++i)
+        sfx::sfxStream << physic_in[i] << "\n";
+    for (int i = 0; i < 2; ++i)
+        sfx::sfxStream << physic_out[i] << "\n";
     
-    std::unique_ptr<EffectUnit> TEMPO(new EffectUnit(TEMPO_MODULE));
-    
-    TEMPO->linkSlot(std::make_pair(14, 10), "signature_num");
-    TEMPO->linkSlot(std::make_pair(15, 10), "signature_den");
-    
-    ///////////////////////////////////////////////////////////////
-    
-    std::unique_ptr<EffectUnit> DISTO(new EffectUnit(DISTO_MODULE));
-
-    DISTO->linkSlot(std::make_pair(0, 10), "shape");
-    DISTO->linkSlot(std::make_pair(1, 10), "gain");
-    DISTO->linkSlot(std::make_pair(2, 10), "volume");
-    
-    DISTO->linkSlot(std::make_pair(3, 10), "in_lowcut");
-    DISTO->linkSlot(std::make_pair(4, 10), "in_highcut");
-    
-    DISTO->linkSlot(std::make_pair(5, 10), "in_lowgain");
-    DISTO->linkSlot(std::make_pair(6, 10), "in_midgain");
-    DISTO->linkSlot(std::make_pair(7, 10), "in_highgain");
-    
-    DISTO->linkSlot(std::make_pair(8, 10), "out_lowcut");
-    DISTO->linkSlot(std::make_pair(9, 10), "out_highcut");
-    
-    DISTO->linkSlot(std::make_pair(10, 10), "out_lowgain");
-    DISTO->linkSlot(std::make_pair(11, 10), "out_midgain");
-    DISTO->linkSlot(std::make_pair(12, 10), "out_highgain");
-    
-    DISTO->logLinkedSlots();
-    
-    if (save_PresetFile("presets/test",DISTO.get()))
-        sfx::err(NAME, "Failed Save Preset File\n");
-    
-    if (load_PresetFile("presets/test",DISTO.get()))
-        sfx::err(NAME, "Failed Load Preset File\n");
+    sfx::sfxStream << midi_in[0] << "\n";
+            
     
     ///////////////////////////////////////////////////////////////
     
-    std::unique_ptr<EffectUnit> SYNTH(new EffectUnit(SYNTH_MODULE));
+//    std::unique_ptr<EffectUnit> TEMPO(new EffectUnit(TEMPO_MODULE));
+//    
+//    TEMPO->linkSlot(std::make_pair(14, 10), "signature_num");
+//    TEMPO->linkSlot(std::make_pair(15, 10), "signature_den");
+    
+    ///////////////////////////////////////////////////////////////
+    
+//    std::unique_ptr<EffectUnit> DISTO(new EffectUnit(DISTO_MODULE));
+//
+//    DISTO->linkSlot(std::make_pair(0, 10), "shape");
+//    DISTO->linkSlot(std::make_pair(1, 10), "gain");
+//    DISTO->linkSlot(std::make_pair(2, 10), "volume");
+//    
+//    DISTO->linkSlot(std::make_pair(3, 10), "in_lowcut");
+//    DISTO->linkSlot(std::make_pair(4, 10), "in_highcut");
+//    
+//    DISTO->linkSlot(std::make_pair(5, 10), "in_lowgain");
+//    DISTO->linkSlot(std::make_pair(6, 10), "in_midgain");
+//    DISTO->linkSlot(std::make_pair(7, 10), "in_highgain");
+//    
+//    DISTO->linkSlot(std::make_pair(8, 10), "out_lowcut");
+//    DISTO->linkSlot(std::make_pair(9, 10), "out_highcut");
+//    
+//    DISTO->linkSlot(std::make_pair(10, 10), "out_lowgain");
+//    DISTO->linkSlot(std::make_pair(11, 10), "out_midgain");
+//    DISTO->linkSlot(std::make_pair(12, 10), "out_highgain");
+//    
+//    DISTO->logLinkedSlots();
+//    
+//    if (save_PresetFile("presets/test",DISTO.get()))
+//        sfx::err(NAME, "Failed Save Preset File\n");
+//    
+//    if (load_PresetFile("presets/test",DISTO.get()))
+//        sfx::err(NAME, "Failed Load Preset File\n");
+    
+    ///////////////////////////////////////////////////////////////
+    
+//    std::unique_ptr<EffectUnit> SYNTH(new EffectUnit(SYNTH_MODULE));
     /*
     SYNTH->linkSlot(std::make_pair(8, 10), "a");
     SYNTH->linkSlot(std::make_pair(9, 10), "d");
@@ -182,64 +224,71 @@ int main(int argc, char** argv)
     
     ///////////////////////////////////////////////////////////////
     
-	if (jack_connect (TEMPO->client, jack_port_name (GPIO->logic_out), jack_port_name (TEMPO->midiIns[1].port))) 
-    {
-		sfx::err (NAME, "cannot connect output ports : \"%s\" \"%s\"\n", jack_port_name (GPIO->logic_out), jack_port_name (TEMPO->midiIns[0].port));
-	}
-	if (jack_connect (TEMPO->client, jack_port_name (TEMPO->midiOuts[1].port), jack_port_name (GPIO->logic_in))) 
-    {
-		sfx::err (NAME, "cannot connect output ports : \"%s\" \"%s\"\n", jack_port_name (GPIO->logic_out), jack_port_name (TEMPO->midiIns[0].port));
-	}
-    
-	if (jack_connect (TEMPO->client, jack_port_name (SYNTH->midiOuts[0].port), jack_port_name (TEMPO->midiIns[0].port))) 
-    {
-		sfx::err (NAME, "cannot connect input ports\n");
-	}
-    
-    ///////////////////////////////////////////////////////////////
-    
-	if (jack_connect (DISTO->client, physic_in[0], jack_port_name (DISTO->audioIns[0].port))) 
-    {
-		sfx::err (NAME, "cannot connect input ports\n");
-	}
-    
-	if (jack_connect (DISTO->client, jack_port_name (DISTO->audioOuts[0].port), physic_out[0])) 
-    {
-		sfx::err (NAME, "cannot connect output ports : \"%s\" \"%s\"\n", jack_port_name (DISTO->audioOuts[0].port), physic_out[0]);
-	}
-	if (jack_connect (DISTO->client, jack_port_name (DISTO->audioOuts[0].port), physic_out[1])) 
-    {
-		sfx::err (NAME, "cannot connect output ports : \"%s\" \"%s\"\n", jack_port_name (DISTO->audioOuts[0].port), physic_out[1]);
-	}
-    
-	if (jack_connect (DISTO->client, midi_in[0], jack_port_name (DISTO->midiIns[0].port))) 
-    {
-		sfx::err (NAME, "cannot connect input ports\n");
-	}
+//	if (jack_connect (TEMPO->client, jack_port_name (GPIO->logic_out), jack_port_name (TEMPO->midiIns[1].port))) 
+//    {
+//		sfx::err (NAME, "cannot connect output ports : \"%s\" \"%s\"\n", jack_port_name (GPIO->logic_out), jack_port_name (TEMPO->midiIns[0].port));
+//	}
+//	if (jack_connect (TEMPO->client, jack_port_name (TEMPO->midiOuts[1].port), jack_port_name (GPIO->logic_in))) 
+//    {
+//		sfx::err (NAME, "cannot connect output ports : \"%s\" \"%s\"\n", jack_port_name (GPIO->logic_out), jack_port_name (TEMPO->midiIns[0].port));
+//	}
+//    
+//	if (jack_connect (TEMPO->client, jack_port_name (SYNTH->midiOuts[0].port), jack_port_name (TEMPO->midiIns[0].port))) 
+//    {
+//		sfx::err (NAME, "cannot connect input ports\n");
+//	}
     
     ///////////////////////////////////////////////////////////////
     
-	if (jack_connect (SYNTH->client, jack_port_name (SYNTH->audioOuts[0].port), physic_out[0])) 
-    {
-		sfx::err (NAME, "cannot connect output ports : \"%s\" \"%s\"\n", jack_port_name (SYNTH->audioOuts[0].port), physic_out[0]);
-	}
-	if (jack_connect (SYNTH->client, jack_port_name (SYNTH->audioOuts[0].port), physic_out[1])) 
-    {
-		sfx::err (NAME, "cannot connect output ports : \"%s\" \"%s\"\n", jack_port_name (SYNTH->audioOuts[0].port), physic_out[1]);
-	}
+//	if (jack_connect (DISTO->client, physic_in[0], jack_port_name (DISTO->audioIns[0].port))) 
+//    {
+//		sfx::err (NAME, "cannot connect input ports\n");
+//	}
+//    
+//	if (jack_connect (DISTO->client, jack_port_name (DISTO->audioOuts[0].port), physic_out[0])) 
+//    {
+//		sfx::err (NAME, "cannot connect output ports : \"%s\" \"%s\"\n", jack_port_name (DISTO->audioOuts[0].port), physic_out[0]);
+//	}
+//	if (jack_connect (DISTO->client, jack_port_name (DISTO->audioOuts[0].port), physic_out[1])) 
+//    {
+//		sfx::err (NAME, "cannot connect output ports : \"%s\" \"%s\"\n", jack_port_name (DISTO->audioOuts[0].port), physic_out[1]);
+//	}
+//    
+//	if (jack_connect (DISTO->client, midi_in[0], jack_port_name (DISTO->midiIns[0].port))) 
+//    {
+//		sfx::err (NAME, "cannot connect input ports\n");
+//	}
     
-	if (jack_connect (SYNTH->client, jack_port_name (DISTO->midiOuts[0].port), jack_port_name (SYNTH->midiIns[0].port))) 
-    {
-		sfx::err (NAME, "cannot connect input ports\n");
-	}
+    ///////////////////////////////////////////////////////////////
+    
+//	if (jack_connect (SYNTH->client, jack_port_name (SYNTH->audioOuts[0].port), physic_out[0])) 
+//    {
+//		sfx::err (NAME, "cannot connect output ports : \"%s\" \"%s\"\n", jack_port_name (SYNTH->audioOuts[0].port), physic_out[0]);
+//	}
+//	if (jack_connect (SYNTH->client, jack_port_name (SYNTH->audioOuts[0].port), physic_out[1])) 
+//    {
+//		sfx::err (NAME, "cannot connect output ports : \"%s\" \"%s\"\n", jack_port_name (SYNTH->audioOuts[0].port), physic_out[1]);
+//	}
+//    
+//	if (jack_connect (SYNTH->client, jack_port_name (DISTO->midiOuts[0].port), jack_port_name (SYNTH->midiIns[0].port))) 
+//    {
+//		sfx::err (NAME, "cannot connect input ports\n");
+//	}
     
 	free (physic_in);
 	free (physic_out);
     free (midi_in);
     
-    while(1);
+    while(!sfx::Global_NeedToExit)
+    {
+        std::string terminal_input = COMMAND_LISTENER->getBuffer();
+        performCommandHandling(terminal_input);
+        COMMAND_LISTENER->clearBuffer();
+        
+        usleep(10000);
+    }
     
-    unloadModuleTable();
+    Module::unloadModuleTable();
     
     /*
     std::unique_ptr<ModuleTapTempo> TTP(new ModuleTapTempo());
