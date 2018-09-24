@@ -21,7 +21,6 @@
  *
  * Created on 3 septembre 2018, 07:17
  */
-
 #ifndef FONCTIONS_H
 #define FONCTIONS_H
 
@@ -131,10 +130,11 @@ namespace sfx
      **/
     static inline sfx::sample_t w_har(sfx::sample_t in, float s, float N, float alpha)
     {
-        sfx::sample_t out = 0;
+        sfx::sample_t out = 0, a = 1;
         for(size_t k = 0; k < N; ++k)
         {
-            out += sin(M_PI * 2.0 * in * powf(alpha, k));
+            out += sin(M_PI * 2.0 * in * a);
+            a *= alpha;
         }
         return out / N;
     }

@@ -1,6 +1,10 @@
 #ifndef DEF_MCP23017_H
 #define DEF_MCP23017_H
 
+#ifndef __SFX_PI__
+#error This File is Specific To Processing Environement
+#endif
+
 #include <string>
 #include <stdio.h>
 #include <fcntl.h>
@@ -10,11 +14,9 @@
 #include <iostream>
 #include <exception>
 
-#ifdef __ARCH_LINUX__
 #include <linux/i2c.h>
 #include <linux/i2c-dev.h>
 #include <sys/ioctl.h>
-#endif
 
 #include "noyau/types.h"
 #include "noyau/log.h"

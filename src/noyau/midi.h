@@ -29,7 +29,10 @@
 #include <assert.h>
 
 #include "types.h"
+
+#ifdef __SFX_PI__
 #include <jack/midiport.h>
+#endif
 
 namespace sfx
 {
@@ -37,9 +40,10 @@ namespace sfx
 // Midi Notes Tables
 ////////////////////////////////////////////////////////////////////
 
+#ifdef __SFX_PI__
     static sample_t Midi_MidiTable[128];
     
-    static void Midi_calcMidiTable(unsigned int srate)
+    inline void Midi_calcMidiTable(unsigned int srate)
     {
         for ( uint8_t i = 0; i < 128; i++ ){
 
@@ -48,6 +52,7 @@ namespace sfx
             Midi_MidiTable[i] /= srate;
         }
     }
+#endif
     
 ////////////////////////////////////////////////////////////////////
 // Status Bits
@@ -74,6 +79,7 @@ namespace sfx
     
     const hex_t Midi_AnalogChange       = 11;
     
+#ifdef __SFX_PI__
 ////////////////////////////////////////////////////////////////////
 // General Midi Functions
 ////////////////////////////////////////////////////////////////////
@@ -82,7 +88,6 @@ namespace sfx
     {
         jack_midi_event_write(port_buff, event.time, event.buffer, event.size);
     }
-    
 ////////////////////////////////////////////////////////////////////
 // Specific Midi Message Parsing Functions
 ////////////////////////////////////////////////////////////////////
@@ -191,6 +196,7 @@ namespace sfx
     {
         return event[3];
     }
+#endif /* ifdef __SFX_PI__ */
 }
 
 #endif /* MIDI_H */

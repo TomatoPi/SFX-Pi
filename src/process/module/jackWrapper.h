@@ -25,6 +25,10 @@
 #ifndef JACKWRAPPER_H
 #define JACKWRAPPER_H
 
+#ifndef __SFX_PI__
+#error This File is Specific To Processing Environement
+#endif
+
 #include <exception>
 
 #include <jack/jack.h>

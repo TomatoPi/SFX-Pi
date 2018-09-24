@@ -12,15 +12,24 @@ ifdef RELEASE
     CXXFLAGS += -O3 -DNDEBUG
 endif
 
-ifdef ARCH
-    CXXFLAGS += -D__ARCH_LINUX__ -D__UNIX__
+SFX-Pi : SFXPI := 0
+SFX-Pe : SFXPE := 0
+	
+ifdef SFXPI
+    CXXFLAGS += -D__SFX_PI__
     LDFLAGS +=  -lwiringPi
-else ifdef LUBUNTU
-    CXXFLAGS += -D__LUBUNTU__ -D__UNIX__
+else ifdef SFXPE
+    CXXFLAGS += -D__SFX_PE__
+else
+    $(error Use make SFX-Pi or SFX-Pe to compile process environement or the editor\nUse make Modules SFXPI=0 or SFXPE=0 to compile modules for Process or Editor Environement)
+endif
+
+ifdef UNIX
+    CXXFLAGS += -D__UNIX__
 else ifdef WINDOWS
     CXXFLAGS += -Iincludes/
 else
-    $(error Use make ARCH LUBUNTU or WINDOWS to compile for a specific plateform)
+    $(error Use make UNIX=0 or WINDOWS=0 to compile for a specific plateform)
 endif
 
 ########################################################################
@@ -49,18 +58,30 @@ Mod_Modulation_DIR = modulation/
 Mod_Modulation_SRC = $(Mod_DIR)$(Mod_Modulation_DIR)LFO.cc
 Mod_Modulation_LIB = $(Mod_TAR)$(Mod_Modulation_DIR)LFO.so
 
+Mod_Filter_DIR = filtre/
+Mod_Filter_3Tone_SRC = $(Mod_DIR)$(Mod_Filter_DIR)Tonestack_3.cc
+Mod_Filter_3Tone_LIB = $(Mod_TAR)$(Mod_Filter_DIR)Tonestack_3.so
+
+Mod_System_DIR = system/
+Mod_System_SFX_SRC = $(Mod_DIR)$(Mod_System_DIR)SFX_System.cc
+Mod_System_SFX_LIB = $(Mod_TAR)$(Mod_System_DIR)SFX_System.so
+
 Mod_All_TAR = $(Mod_TAR) \
     $(Mod_TAR)$(Mod_Tempo_DIR)\
     $(Mod_TAR)$(Mod_Disto_DIR)\
     $(Mod_TAR)$(Mod_Midi_DIR) \
     $(Mod_TAR)$(Mod_Temps_DIR)\
-    $(Mod_TAR)$(Mod_Modulation_DIR)
+    $(Mod_TAR)$(Mod_Modulation_DIR) \
+    $(Mod_TAR)$(Mod_Filter_DIR) \
+    $(Mod_TAR)$(Mod_System_DIR)
 
 Mod_All_LIB = $(Mod_Tempo_LIB)\
     $(Mod_Disto_LIB)\
     $(Mod_Midi_LIB)\
     $(Mod_Temps_LIB)\
-    $(Mod_Modulation_LIB)
+    $(Mod_Modulation_LIB) \
+    $(Mod_Filter_3Tone_LIB) \
+    $(Mod_System_SFX_LIB)
 
 ### Librairies ###
 
@@ -81,8 +102,8 @@ Lib_Filter_GEQ_LIB = $(Lib_TAR)$(Lib_Filter_DIR)GraphicEQ.so
 Lib_Filter_MPF_SRC = $(Lib_DIR)$(Lib_Filter_DIR)MonoPoleFilter.cc
 Lib_Filter_MPF_LIB = $(Lib_TAR)$(Lib_Filter_DIR)MonoPoleFilter.so
 
-Lib_Filter_MEQ_SRC = $(Lib_DIR)$(Lib_Filter_DIR)MultibandEQ.cc
-Lib_Filter_MEQ_LIB = $(Lib_TAR)$(Lib_Filter_DIR)MultibandEQ.so
+##Lib_Filter_MEQ_SRC = $(Lib_DIR)$(Lib_Filter_DIR)MultibandEQ.cc
+##Lib_Filter_MEQ_LIB = $(Lib_TAR)$(Lib_Filter_DIR)MultibandEQ.so
 
 Lib_Filter_PEQ_SRC = $(Lib_DIR)$(Lib_Filter_DIR)ParametricEQ.cc
 Lib_Filter_PEQ_LIB = $(Lib_TAR)$(Lib_Filter_DIR)ParametricEQ.so
@@ -157,14 +178,14 @@ Pe_OBJ = $(ker_All_OBJ)
 Pe_LIB = $(Ker_All_LIB)
 
 ########################################################################
-##   	                         RULES		                      ##
+##   	                         RULES		                          ##
 ########################################################################
 Modules : Pi_dirs $(Mod_All_LIB) $(Lib_All_LIB)
 	
 SFX-Pi: obj/SFXPi.o $(Pi_OBJ) $(Pi_LIB)
 	$(CXX) -o $@ $^ $(LDFLAGS) $(Pi_LDFLAGS)
 
-SFX-PE: obj/SFXPe.o $(Pe_OBJ) $(Pe_LIB)
+SFX-Pe: obj/SFXPe.o $(Pe_OBJ) $(Pe_LIB)
 	$(CXX) -o $@ $^ $(LDFLAGS) $(Pe_LDFLAGS)
 	
 obj/SFXPi.o: Pi_dirs SFXPi.cc $(Pi_SRC)
@@ -191,8 +212,8 @@ $(Ker_Cmd_OBJ): $(Ker_Cmd_SRC)
 $(Mod_Tempo_LIB) : $(Mod_Tempo_SRC)
 	$(CXX) $(LIBFLAG) $(CXXFLAGS) -o $@ $^
 	
-$(Mod_Disto_LIB) : $(Mod_Disto_SRC) $(Lib_Filter_GEQ_SRC) src/noyau/modules/ModuleBase.h src/noyau/utils.h
-	$(CXX) $(LIBFLAG) $(CXXFLAGS) -o $@ $^ $(Lib_Filter_GEQ_LIB)
+$(Mod_Disto_LIB) : $(Mod_Disto_SRC) src/noyau/modules/ModuleBase.h src/noyau/utils.h
+	$(CXX) $(LIBFLAG) $(CXXFLAGS) -o $@ $^
 	
 $(Mod_Midi_LIB) : $(Mod_Midi_SRC) $(Lib_Env_ADSR_SRC) src/noyau/modules/ModuleBase.h src/noyau/utils.h
 	$(CXX) $(LIBFLAG) $(CXXFLAGS) -o $@ $^ $(Lib_Env_ADSR_LIB)
@@ -201,6 +222,12 @@ $(Mod_Temps_LIB) : $(Mod_Temps_SRC) $(Lib_Buffer_SRC)
 	$(CXX) $(LIBFLAG) $(CXXFLAGS) -o $@ $^ $(Lib_Buffer_LIB)
 	
 $(Mod_Modulation_LIB) : $(Mod_Modulation_SRC)
+	$(CXX) $(LIBFLAG) $(CXXFLAGS) -o $@ $^
+	
+$(Mod_Filter_3Tone_LIB) : $(Mod_Filter_3Tone_SRC) $(Lib_Filter_GEQ_SRC) src/noyau/modules/ModuleBase.h src/noyau/utils.h
+	$(CXX) $(LIBFLAG) $(CXXFLAGS) -o $@ $^ $(Lib_Filter_GEQ_LIB)
+	
+$(Mod_System_SFX_LIB) : $(Mod_System_SFX_SRC)  src/noyau/modules/ModuleBase.h src/noyau/utils.h
 	$(CXX) $(LIBFLAG) $(CXXFLAGS) -o $@ $^
 	
 ###### Librairies ######

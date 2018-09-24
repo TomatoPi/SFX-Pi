@@ -30,6 +30,7 @@
 #include <vector>
 #include <memory>
 #include <functional>
+#include <cstdlib>
 
 #include <iostream>
 #include <fstream>
@@ -51,7 +52,7 @@
 ////////////////////////////////////////////////////////////////////
 // Environement avec processing (SFX-Pi)
 ////////////////////////////////////////////////////////////////////
-#ifdef __ARCH_LINUX__
+#ifdef __SFX_PI__
 #include "process/module/jackWrapper.h"
 #endif
 
@@ -74,15 +75,25 @@ public:
      */
     struct ShortInfo
     {
+        enum Type
+        {
+            MODULE,
+            SYSTEM
+        };
 
         ShortInfo(std::string i, std::string n, std::string v) :
-        unique_name(i), name(n), version(v)
+        ShortInfo(i, n, v, MODULE)
+        {
+        }
+        ShortInfo(std::string i, std::string n, std::string v, Type t) :
+        unique_name(i), name(n), version(v), type(t)
         {
         }
 
         std::string unique_name;
         std::string name;
         std::string version;
+        Type type;
     };
 
     typedef ShortInfo(*register_module_info_f)(void);
@@ -120,12 +131,20 @@ public:
          * @return la valeur nouvelle valeur du slot;
          */
         typedef float (*slot_f)(sfx::hex_t, EffectUnit*);
+        
+        enum Type
+        {
+            VALUE,      /**< Slot that modify a bank's value */
+            TRIGGER,    /**< Slot without significant value */
+            POST_INIT   /**< Slot that will be called once after client Activation */
+        };
 
-        Slot(std::string uname, slot_f f, std::string dname, sfx::hex_t d) :
+        Slot(std::string uname, slot_f f, std::string dname, sfx::hex_t d, Type t) :
         internal_name(uname),
         callback(f),
         display_name(dname),
-        default_value(d)
+        default_value(d),
+        type(t)
         {
 
         }
@@ -135,6 +154,8 @@ public:
 
         std::string display_name;
         sfx::hex_t default_value;
+        
+        Type type;
     };
     /**
      * Table stoquant les Slots par nom
@@ -170,13 +191,38 @@ public:
                 internal_name,
                 callback,
                 display_name,
-                def_val
+                def_val,
+                Slot::VALUE
+                );
+    }
+    /**
+     * Fonction utilisée pour enregistrer un slot
+     * @param table la table où ajouter le slot
+     * @param internal_name nom interne du slot
+     * @param display_name nom d'affichage du slot
+     * @param callback fonction appekée pour modifier la valeur controlée par le slot
+     */
+    static inline void register_slot(SlotTable& table, Slot::Type type, sfx::hex_t def_val
+            , std::string internal_name, std::string display_name, Slot::slot_f callback)
+    {
+        table[internal_name] = std::make_shared<Slot>(
+                internal_name,
+                callback,
+                display_name,
+                def_val,
+                type
                 );
     }
 
 private:
 
     SlotTable slots; /**< Table of Module's slots */
+
+    /**
+     * Fonction appelée au chargement du Module pour enregistrer les slots
+     *  natifs
+     */
+    void register_common_slots();
 
     ////////////////////////////////////////////////////////////////////
     // Fonctions de creation et destruction des datas des EffectUnits
@@ -217,7 +263,7 @@ private:
     // Fonctions specifiques aux Modules sous SFX-Pi
     ////////////////////////////////////////////////////////////////////
 
-#ifdef __ARCH_LINUX__
+#ifdef __SFX_PI__
 
 public:
 
@@ -248,6 +294,11 @@ public:
 
     int addRelatedUnit(std::string unit_unique_name);
     void removeRelatedUnit(std::string unit_unique_name);
+    
+    inline size_t relatedUnitsCount() const
+    {
+        return relatedUnits.size();
+    }
 
 private:
 
@@ -265,7 +316,7 @@ public:
 
             const create_module_data_f& builder,
             const destroy_module_data_f& destructor,
-#ifdef __ARCH_LINUX__
+#ifdef __SFX_PI__
             const JackProcessCallback& callback,
 #endif
             void* lib_handle);
@@ -315,6 +366,8 @@ public:
     static int unloadModule(std::string unique_name);
 
 private:
+    
+    static int forceUnloadModule(std::string unique_name);
 
     static LoadedModulesTable ModuleTable;
 
@@ -351,7 +404,7 @@ class EffectUnit
     ////////////////////////////////////////////////////////////////////
     // Informations sur l'Unité de Traitement
     ////////////////////////////////////////////////////////////////////
-
+    
 public:
 
     /**
@@ -376,7 +429,7 @@ public:
     {
         return datas;
     }
-    
+
     void logCompleteInfos();
 
 private:
@@ -391,7 +444,7 @@ private:
     // Attribut des ProcessUnit (EffectUnit sous SFX-Pi)
     ////////////////////////////////////////////////////////////////////
 
-#ifdef __ARCH_LINUX__
+#ifdef __SFX_PI__
 
 public:
 
@@ -423,7 +476,7 @@ public:
     struct Port
     {
         std::string name;
-#ifdef __ARCH_LINUX__
+#ifdef __SFX_PI__
         jack_port_t* port;
 #endif
     };
@@ -435,25 +488,41 @@ public:
 
 public:
 
-#ifdef __ARCH_LINUX__
+#ifdef __SFX_PI__
 
     inline void registerAudioInput(std::string name)
     {
+        if (portsReg.find(name) != portsReg.end())
+            throw std::runtime_error("Port_Name_Duplication");
+        
+        this->portsReg.insert(name);
         this->audioIns.push_back(Port{name, sfx::registerAudioInput(client, name)});
     }
 
     inline void registerAudioOutput(std::string name)
     {
+        if (portsReg.find(name) != portsReg.end())
+            throw std::runtime_error("Port_Name_Duplication");
+                    
+        this->portsReg.insert(name);
         this->audioOuts.push_back(Port{name, sfx::registerAudioOutput(client, name)});
     }
 
     inline void registerMidiInput(std::string name)
     {
+        if (portsReg.find(name) != portsReg.end())
+            throw std::runtime_error("Port_Name_Duplication");
+                    
+        this->portsReg.insert(name);
         this->midiIns.push_back(Port{name, sfx::registerMidiInput(client, name)});
     }
 
     inline void registerMidiOutput(std::string name)
     {
+        if (portsReg.find(name) != portsReg.end())
+            throw std::runtime_error("Port_Name_Duplication");
+                    
+        this->portsReg.insert(name);
         this->midiOuts.push_back(Port{name, sfx::registerMidiOutput(client, name)});
     }
 
@@ -461,21 +530,37 @@ public:
 
     inline void registerAudioInput(std::string name)
     {
+        if (portsReg.find(name) != portsReg.end())
+            throw std::runtime_error("Port_Name_Duplication");
+                    
+        this->portsReg.insert(name);
         this->audioIns.push_back(Port{name});
     }
 
     inline void registerAudioOutput(std::string name)
     {
+        if (portsReg.find(name) != portsReg.end())
+            throw std::runtime_error("Port_Name_Duplication");
+                    
+        this->portsReg.insert(name);
         this->audioOuts.push_back(Port{name});
     }
 
     inline void registerMidiInput(std::string name)
     {
+        if (portsReg.find(name) != portsReg.end())
+            throw std::runtime_error("Port_Name_Duplication");
+                    
+        this->portsReg.insert(name);
         this->midiIns.push_back(Port{name});
     }
 
     inline void registerMidiOutput(std::string name)
     {
+        if (portsReg.find(name) != portsReg.end())
+            throw std::runtime_error("Port_Name_Duplication");
+                    
+        this->portsReg.insert(name);
         this->midiOuts.push_back(Port{name});
     }
 
@@ -550,6 +635,10 @@ public:
      * @return 0 on success, MISSING_SLOT if slot doesn't exist, 1 if link doesn't exist
      */
     int unlinkSlot(sfx::hex_pair_t cc, std::string slot);
+    /**
+     * Fonction utilisée pour déconnecter tout les slots des CC midis
+     */
+    void clearLinks();
 
     /**
      * Fonction utilisée pour activer un slot
@@ -585,7 +674,7 @@ public:
 
     void logLinkedSlots() const;
 
-#ifdef __ARCH_LINUX__
+#ifdef __SFX_PI__
     /**
      * Fonction à appeller dans la boucle de process pour traiter les CC midi et 
      *  déclancher les slots eventuels
@@ -598,6 +687,7 @@ private:
 
     LinkTable links; /**< Table des liens Slot <-> CC */
     SlotStatusTable slots; /**< Table des etats des differents slots du module */
+    //std::string current_links_file;
 
     ////////////////////////////////////////////////////////////////////
     // Gestion des Banques
@@ -614,40 +704,34 @@ public:
 
 public:
 
+        
     /**
-     * @brief Change current bank
-     * @pre current_bank bank is valid
-     * @post current_bank bank is valid
+     * @brief Methode permettant de changer la banque courrante de l'Unit
+     * @param id id de la banque à activer
+     * @return 0 on success, -1 si la banque n'existe pas
      **/
     int setBank(sfx::hex_t id);
     /**
-     * @brief Change current bank
-     * @pre current_bank bank is valid
-     * @post current_bank bank is valid
+     * @brief Methode permettant de passer à la banque suivant de l'Unit
+     *  selon l'ordre dans la liste @see banks_order
      **/
     void nextBank();
     /**
-     * @brief Change current bank
-     * @pre current_bank bank is valid
-     * @post current_bank bank is valid
+     * @brief Methode permettant de passer à la banque précédente de l'Unit
+     *  selon l'odre dans la liste @see banks_order
      **/
     void prevBank();
 
     /**
-     * Fonction interne utilisée pour mettre à jour l'effet en appelant tout les slots
-     *  actifs de la banque courante
-     * @pre current_bank bank is valid
-     */
-    void updateCurrentBank();
-
-    /**
-     * @brief method to add a bank to the effect
-     *  Usage :
-     *      createBank() to create a bank filled with default values
-     *      createBank(id, size, vals) to create a bank from a valid array of values
-     * @pre if specified, bank is a valid expansion of effect's config tree
+     * @brief Methode permettant de creer et ajouter une banque à l'Unit
+     *  attribut un ID automatiquement
      */
     int createBank();
+    /**
+     * @brief Methode permettant de creer et ajouter une banque à l'Unit
+     * @param id ID de la banque à creer
+     * @return 0 on success, EXISTING_BANK si la banque existe déjà
+     **/
     int createBank(sfx::hex_t id);
     /**
      * @brief method to duplicate a bank of the effect
@@ -656,6 +740,7 @@ public:
      *      copyBank(sid, tid) to copy bank[sid] in bank[tid]
      * @pre sid != tid
      */
+    int copyBank(sfx::hex_t sid);
     int copyBank(sfx::hex_t sid, sfx::hex_t tid);
     /**
      * @brief Method used to remove a bank from the effect
@@ -665,7 +750,19 @@ public:
      */
     int removeBank(sfx::hex_t id);
 
+    inline sfx::hex_t getCurrentBank() const
+    {
+        return *current_bank;
+    }
+
 private:
+
+    /**
+     * Fonction interne utilisée pour mettre à jour l'effet en appelant tout les slots
+     *  actifs de la banque courante
+     * @pre current_bank bank is valid
+     */
+    void updateCurrentBank();
 
     BankTable banks;
     BankIdList banks_order;
@@ -673,6 +770,7 @@ private:
     BankIdList::iterator current_bank;
 
     UIDManager<sfx::hex_t> bank_id_manager;
+    //std::string current_banks_file;
 
     ////////////////////////////////////////////////////////////////////
     // Constructeur / Destructeur
@@ -682,6 +780,14 @@ public:
 
     EffectUnit(std::weak_ptr<Module> module_weak);
     ~EffectUnit();
+    
+private :
+    
+    /**
+     * Methode appelée après la creation de l'effet
+     *  Appelle tout les slots de type POST_INIT du module
+     */
+    void postInit();
 
     ////////////////////////////////////////////////////////////////////
     // EffectUnit Handling
@@ -694,24 +800,27 @@ public:
 public:
 
     static const EffectUnitsTable& getEffectUnitsTable();
-    
+    static std::weak_ptr<EffectUnit> getEffectUnit(const std::string& unique_name);
+
     static void logEffectUnitsTable();
-    static void logEffectUnit(std::string unit_name);
+    //static void logEffectUnit(std::string unit_name);
 
     /**
      * Fonction pour creer une Unité de Traitement à partir d'un module
      *  l'unité générée sera celle avec les paramètres par défault
      * @param module_name nom interne du module à utiliser
+     * @param unique_name pointeur vers une chaine de caractère où sera stoqué le nom unique de l'effet crée
      * @return 0 on success
      */
-    static int buildEffectUnitFromModule(const std::string& module_name);
+    static int buildEffectUnitFromModule(const std::string& module_name, std::string* unique_name = nullptr);
     /**
      * Fonction pour creer une Unité à partir d'un fichier Preset Sauvegardé
      *  précédement
      * @param file_path Chemin du fichier à interpreter
+     * @param unique_name pointeur vers une chaine de caractère où sera stoqué le nom unique de l'effet crée
      * @return 0 on success
      */
-    static int buildEffectUnitFromPresetFile(const std::string& file_path);
+    static int buildEffectUnitFromPresetFile(const std::string& file_path, std::string* unique_name = nullptr);
     /**
      * Fonction pour detruire une unité
      * @param unit_name nom interne de l'unité à detruire
@@ -719,62 +828,18 @@ public:
      */
     static int destroyEffectUnit(std::string unit_name);
     /**
+     * Fonction pour detruire une unité
+     * @param unit_name nom interne de l'unité à detruire
+     * @return 0 on success
+     */
+    static int forceDestroyEffectUnit(std::string unit_name);
+    /**
      * Fonction pour sauvegarder une unité
      * @param unit_name nom interne de l'unité à sauvegarder
      * @return 0 on success
      */
     static int saveEffectUnit(std::string unit_name, std::string file,
             std::string bank_file = "", std::string link_file = "");
-    
-    ////////////////////////////////////////////////////////////////////
-    
-    /**
-     * Fonction pour sauvegarder les banques d'une unité dans un fichier
-     * @param unit_name nom interne de l'unité
-     * @param file fichier cible
-     * @return 0 on success
-     */
-    static int saveEffectUnitBanks(std::string unit_name, std::string file);
-    /**
-     * Fonction pour Charger les banques d'une unité depuis un fichier
-     * @param unit_name nom interne de l'unité
-     * @param file fichier cible
-     * @return 0 on success
-     */
-    static int saveEffectUnitLinks(std::string unit_name, std::string file);
-    /**
-     * Fonction pour sauvegarder les links Midi d'une unité dans un fichier
-     * @param unit_name nom interne de l'unité
-     * @param file fichier cible
-     * @return 0 on success
-     */
-    static int loadEffectUnitBanks(std::string unit_name, std::string file);
-    /**
-     * Fonction pour Charger les links Midi d'une unité depuis un fichier
-     * @param unit_name nom interne de l'unité
-     * @param file fichier cible
-     * @return 0 on success
-     */
-    static int loadEffectUnitLinks(std::string unit_name, std::string file);
-    
-    ////////////////////////////////////////////////////////////////////
-    
-    /**
-     * Wrapper for the Unit's linkSlot method
-     * @param unit_name internal name of targeted unit
-     * @param cc midi cc source
-     * @param slot targeted slot
-     * @return 0 on success
-     */
-    static int linkEffectUnitSlot(std::string unit_name, sfx::hex_t ccc, sfx::hex_t ccs, std::string slot);
-    /**
-     * Wrapper for the Unit's unlinkSlot method
-     * @param unit_name internal name of targeted unit
-     * @param cc midi cc source
-     * @param slot targeted slot
-     * @return 0 on success
-     */
-    static int unlinkEffectUnitSlot(std::string unit_name, sfx::hex_t ccc, sfx::hex_t ccs, std::string slot);
 
 private:
 
@@ -857,6 +922,8 @@ private:
     // Preset Files
     ////////////////////////////////////////////////////////////////////
 
+public:
+
     /**
      *  flag_t : EffectUnit_Preset_File
      *  Module Infos
@@ -884,6 +951,46 @@ private:
      */
     static int save_LinkFile(std::string file_path, std::weak_ptr<EffectUnit> obj);
     static int load_LinkFile(std::string file_path, std::weak_ptr<EffectUnit> obj);
+
+    ////////////////////////////////////////////////////////////////////
+    // Graph Serial
+    ////////////////////////////////////////////////////////////////////
+
+public:
+
+    /**
+     * flag_t : Environement_Preset_File
+     * usize_t : Units Count
+     * {
+     *      id1_t : uid
+     *      string Units files path
+     * }
+     * usize_t : Connection Count
+     * {
+     *      Connections (<<source_uid,source_port>,<target_uid,target_port>>)
+     * }
+     */
+    static int save_EnvironementFile(std::string file_path);
+    static int load_EnvironementFile(std::string file_path);
+
+private:
+
+    typedef std::pair<std::pair<sfx::id1_t, std::string>, std::pair<sfx::id1_t, std::string>> SerialConnection;
+    typedef std::map<sfx::id1_t, std::string> SerialToNameTable;
+    typedef std::map<std::string, sfx::id1_t> NameToSerialTable;
+
+    static NameToSerialTable effectUnitTable_to_serial();
+    static SerialConnection connection_to_serial(NameToSerialTable table, const Connection& obj);
+    static Connection connection_from_serial(SerialToNameTable table, const SerialConnection& obj);
+
+    /**
+     * id1_t : Source uid
+     * string : Source Port Name
+     * id1_t : Target uid
+     * string : Target Port Name
+     */
+    static void serialiaze_Connection(std::ofstream& flux, const SerialConnection& obj);
+    static SerialConnection deserialize_Connection(std::ifstream& flux);
 };
 
 #endif /* MODULEBASE_H */

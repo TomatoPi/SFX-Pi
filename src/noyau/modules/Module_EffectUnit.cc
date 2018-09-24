@@ -21,10 +21,6 @@
  * 
  * Created on 30 août 2018, 20:22
  */
-
-#include <condition_variable>
-#include <utility>
-
 #include "ModuleBase.h"
 
 #define NAME "Effect-API"
@@ -49,14 +45,65 @@ void EffectUnit::logCompleteInfos()
     {
         sfx::sfxStream
                 << sfx::formatString("%20s | %20s || %20s | %20s\n",
-                ((i < audioIns .size())?audioIns [i].name : std::string("")),
-                ((i < audioOuts.size())?audioOuts [i].name : std::string("")),
-                ((i < midiIns .size())?midiIns [i].name : std::string("")),
-                ((i < midiOuts .size())?midiOuts [i].name : std::string("")));
+                ((i < audioIns .size()) ? audioIns [i].name : std::string("")),
+                ((i < audioOuts.size()) ? audioOuts [i].name : std::string("")),
+                ((i < midiIns .size()) ? midiIns [i].name : std::string("")),
+                ((i < midiOuts .size()) ? midiOuts [i].name : std::string("")));
     }
     sfx::sfxStream
             << "---------------------+----------------------++----------------------+---------------------\n";
-    sfx::todo(unique_name, "Log Banks Informations\n");
+
+    // Prints Unit's Ports Reg
+    sfx::sfxStream
+            << "---------------------\n";
+    for (auto& port : portsReg)
+        sfx::sfxStream << port << "\n";
+    sfx::sfxStream
+            << "---------------------\n";
+
+    std::string h1 = sfx::formatString("%-20s", std::string("Bank ID"));
+    std::string h2 = "--------------------";
+    std::string h3 = sfx::formatString("%-20s", std::string("Slot Name"));
+    std::string h4 = "====================";
+
+    for (BankTable::iterator itr = banks.begin();
+            itr != banks.end();
+            ++itr)
+    {
+        h1 += sfx::formatString(" ||   %3i       ", itr->first);
+        h2 += "-++-----+---------";
+        h3 += " ||Midi |  Valeur ";
+        h4 += "=||=====|=========";
+    }
+    sfx::sfxStream << h2 << "\n" << h1 << "\n" << h2 << "\n" << h3 << "\n" << h4 << "\n";
+    for (auto& slot : module.lock()->getSlotTable())
+    {
+        sfx::sfxStream << sfx::formatString("%-20s", slot.first);
+
+        for (BankTable::iterator itr = banks.begin();
+                itr != banks.end();
+                ++itr)
+        {
+            if (itr->first == *current_bank)
+            {
+                sfx::hex_t x_val;
+                float f_val;
+                this->getSlotValue(slot.first, &x_val, &f_val);
+
+                sfx::sfxStream
+                        << sfx::formatString(" || %3i | %1.2e", x_val, f_val);
+            }
+            else
+            {
+                sfx::sfxStream
+                        << sfx::formatString(" || %3i |  xxx ", itr->second[slot.first]);
+            }
+        }
+
+        sfx::sfxStream << "\n";
+    }
+    sfx::sfxStream << h2 << "\n";
+
     this->logLinkedSlots();
 }
 
@@ -128,6 +175,16 @@ int EffectUnit::unlinkSlot(sfx::hex_pair_t cc, std::string slot)
 }
 
 /**
+ * Fonction utilisée pour déconnecter tout les slots des CC midis
+ */
+void EffectUnit::clearLinks()
+{
+    sfx::debug(unique_name, "Clear Links Table : %u => ", links.size());
+    links.clear();
+    sfx::sfxStream << links.size() << "\n";
+}
+
+/**
  * Fonction utilisée pour activer un slot
  * @param slot le nom interne du slot à activer
  * @return 0 on success, MISSING_SLOT if slot doesn't exist
@@ -164,6 +221,7 @@ int EffectUnit::disableSlot(std::string slot)
  */
 int EffectUnit::setSlotValue(std::string slot, sfx::hex_t value, bool force)
 {
+    sfx::debug(NAME, "setSlotValue %s %x %i\n", slot, value, force);
     if (slots.find(slot) == slots.end()) return MISSING_SLOT;
 
     //sfx::debug(NAME, "1 Called slot : \"%s\" : Status : %i\n", slot, slots[slot].status);
@@ -172,11 +230,13 @@ int EffectUnit::setSlotValue(std::string slot, sfx::hex_t value, bool force)
     {
         float v = (*slots[slot].slot->callback)(value, this);
         slots[slot].value = value;
-        sfx::debug("Native-MIDI", "Called slot : \"%s\" with value : %i => %f\n", slot, value, v);
+        banks[*current_bank][slot] = value;
+        sfx::debug(NAME, "Called slot : \"%s\" with value : %i => %f\n", slot, value, v);
     }
     else if (force) // Else if slot is disabled, save value anyway
     {
         slots[slot].value = value;
+        banks[*current_bank][slot] = value;
     }
     else return DISABLED_SLOT; // Else return an error
 
@@ -226,8 +286,7 @@ void EffectUnit::logLinkedSlots() const
     sfx::sfxStream << "----------+----------+--------------------\n";
 }
 
-#ifdef __ARCH_LINUX__
-
+#ifdef __SFX_PI__
 /**
  * Fonction à appeller dans la boucle de process pour traiter les CC midi et 
  *  déclancher les slots eventuels
@@ -263,12 +322,13 @@ void EffectUnit::veryfyAndComputeCCMessage(sfx::hex_t* event)
 ////////////////////////////////////////////////////////////////////
 
 /**
- * @brief Change current bank
- * @pre current_bank bank is valid
- * @post current_bank bank is valid
+ * @brief Methode permettant de changer la banque courrante de l'Unit
+ * @param id id de la banque à activer
+ * @return 0 on success, -1 si la banque n'existe pas
  **/
 int EffectUnit::setBank(sfx::hex_t id)
 {
+    sfx::debug(NAME, "setBank\n");
     if (banks.find(id) == banks.end()) return -1;
 
     // Update current_bank iterator
@@ -287,12 +347,12 @@ int EffectUnit::setBank(sfx::hex_t id)
 }
 
 /**
- * @brief Change current bank
- * @pre current_bank bank is valid
- * @post current_bank bank is valid
+ * @brief Methode permettant de passer à la banque suivant de l'Unit
+ *  selon l'ordre dans la liste @see banks_order
  **/
 void EffectUnit::nextBank()
 {
+    sfx::debug(NAME, "nextBank\n");
     BankIdList::iterator nitr(current_bank);
     ++nitr;
     if (nitr == banks_order.end())
@@ -304,12 +364,12 @@ void EffectUnit::nextBank()
 }
 
 /**
- * @brief Change current bank
- * @pre current_bank bank is valid
- * @post current_bank bank is valid
+ * @brief Methode permettant de passer à la banque précédente de l'Unit
+ *  selon l'odre dans la liste @see banks_order
  **/
 void EffectUnit::prevBank()
 {
+    sfx::debug(NAME, "prevBank\n");
     BankIdList::iterator nitr(current_bank);
 
     if (nitr == banks_order.begin())
@@ -328,24 +388,29 @@ void EffectUnit::prevBank()
  */
 void EffectUnit::updateCurrentBank()
 {
+    sfx::debug(NAME, "updateCurrentBank\n");
     for (auto& slot : banks[*current_bank])
     {
-        this->setSlotValue(slot.first, slot.second, true);
+        sfx::debug(NAME, "updateCurrentBank : %s\n", slot.first);
+
+        if (slots[slot.first].slot->type == Module::Slot::VALUE)
+            this->setSlotValue(slot.first, slot.second, true);
     }
 }
 
 /**
- * @brief method to add a bank to the effect
- *  Usage :
- *      createBank() to create a bank filled with default values
- *      createBank(id, size, vals) to create a bank from a valid array of values
- * @pre if specified, bank is a valid expansion of effect's config tree
+ * @brief Methode permettant de creer et ajouter une banque à l'Unit
+ *  attribut un ID automatiquement
  */
 int EffectUnit::createBank()
 {
     return this->createBank(bank_id_manager.reserveUID());
 }
-
+/**
+ * @brief Methode permettant de creer et ajouter une banque à l'Unit
+ * @param id ID de la banque à creer
+ * @return 0 on success, EXISTING_BANK si la banque existe déjà
+ **/
 int EffectUnit::createBank(sfx::hex_t id)
 {
     // If bank doesn't exist create it
@@ -357,6 +422,7 @@ int EffectUnit::createBank(sfx::hex_t id)
             array[slot.first] = slot.second.slot->default_value;
 
         banks[id] = array;
+        banks_order.emplace_back(id);
         return 0;
     }
         // Else this is an error
@@ -370,6 +436,11 @@ int EffectUnit::createBank(sfx::hex_t id)
  *      copyBank(sid, tid) to copy bank[sid] in bank[tid]
  * @pre sid != tid
  */
+int EffectUnit::copyBank(sfx::hex_t sid)
+{
+    return this->copyBank(sid, bank_id_manager.reserveUID());
+}
+
 int EffectUnit::copyBank(sfx::hex_t sid, sfx::hex_t tid)
 {
     assert(sid != tid);
@@ -399,6 +470,7 @@ int EffectUnit::copyBank(sfx::hex_t sid, sfx::hex_t tid)
  */
 int EffectUnit::removeBank(sfx::hex_t id)
 {
+    sfx::debug(NAME, "removeBank\n");
     assert(current_bank != banks_order.end());
 
     if (banks.find(id) == banks.end()) return MISSING_BANK;
@@ -477,12 +549,13 @@ bank_id_manager(0)
         };
     }
 
-#ifdef __ARCH_LINUX__
+#ifdef __SFX_PI__
     // Construction du client Jack
     client = sfx::openJackClient(module_ptr->getInformations().unique_name);
     jack_set_process_callback(client, module_ptr->getProcessCallback(), this);
 
     unique_name = jack_get_client_name(client);
+    module_ptr->addRelatedUnit(unique_name);
 #else
     int i = 0;
     do
@@ -507,7 +580,8 @@ bank_id_manager(0)
 
 EffectUnit::~EffectUnit()
 {
-#ifdef __ARCH_LINUX__
+    sfx::debug(NAME, "Destroy Effect Unit : %s \n", unique_name);
+#ifdef __SFX_PI__
     jack_client_close(client);
 #endif
     if (auto module_ptr = module.lock())
@@ -521,6 +595,22 @@ EffectUnit::~EffectUnit()
     }
 }
 
+/**
+ * Methode appelée après la creation de l'effet
+ *  Appelle tout les slots de type POST_INIT du module
+ */
+void EffectUnit::postInit()
+{
+    for (auto& slot : slots)
+    {
+        if (slot.second.slot->type == Module::Slot::POST_INIT)
+        {
+            this->setSlotValue(slot.first, 0);
+            this->disableSlot(slot.first);
+        }
+    }
+}
+
 ////////////////////////////////////////////////////////////////////
 // EffectUnit Handling
 ////////////////////////////////////////////////////////////////////
@@ -531,24 +621,35 @@ const EffectUnit::EffectUnitsTable& EffectUnit::getEffectUnitsTable()
     return EffectUnit::UnitsTable;
 }
 
+std::weak_ptr<EffectUnit> EffectUnit::getEffectUnit(const std::string& unit_name)
+{
+    // First find the EffectUnit
+    if (UnitsTable.find(unit_name) == UnitsTable.end())
+    {
+        sfx::wrn(NAME, "Effect Unit : \"%s\" Doesn't Exist\n", unit_name);
+        return std::weak_ptr<EffectUnit>();
+    }
+    return UnitsTable[unit_name];
+}
+
 void EffectUnit::logEffectUnitsTable()
 {
     sfx::log(NAME, "Loaded Units Table : \n");
     sfx::sfxStream
-            << "--------------------+--------------------+--------------------\n"
-            << sfx::formatString("%-20s|%-20s|%-20s\n"
+            << "------------------------------+--------------------+--------------------\n"
+            << sfx::formatString("%-30s|%-20s|%-20s\n"
             , std::string("Nom Interne"), std::string("Nom d'affichage"), std::string("Module"))
-            << "====================|====================|====================\n";
+            << "==============================|====================|====================\n";
 
     for (auto& unit : UnitsTable)
     {
-        sfx::sfxStream << sfx::formatString("%-20s|%-20s|%-20s\n"
+        sfx::sfxStream << sfx::formatString("%-30s|%-20s|%-20s\n"
                 , unit.first, unit.second->display_name
                 , unit.second->module.lock()->getInformations().unique_name);
     }
-    sfx::sfxStream << "--------------------+--------------------+--------------------\n";
+    sfx::sfxStream << "------------------------------+--------------------+--------------------\n";
 }
-
+/*
 void EffectUnit::logEffectUnit(std::string unit_name)
 {
     // First find the EffectUnit
@@ -558,14 +659,16 @@ void EffectUnit::logEffectUnit(std::string unit_name)
     }
     else UnitsTable[unit_name]->logCompleteInfos();
 }
+//*/
 
 /**
  * Fonction pour creer une Unité de Traitement à partir d'un module
  *  l'unité générée sera celle avec les paramètres par défault
  * @param module_name nom interne du module à utiliser
+ * @param unique_name pointeur vers une chaine de caractère où sera stoqué le nom unique de l'effet crée
  * @return 0 on success
  */
-int EffectUnit::buildEffectUnitFromModule(const std::string& module_name)
+int EffectUnit::buildEffectUnitFromModule(const std::string& module_name, std::string* unique_name)
 {
     sfx::debug(NAME, "Build effect From Module : \"%s\" ... ", module_name);
 
@@ -575,6 +678,19 @@ int EffectUnit::buildEffectUnitFromModule(const std::string& module_name)
         if (Module::getModuleTable().find(module_name) == Module::getModuleTable().end())
             throw std::runtime_error("Module_Doesnt_Exist");
 
+        // Verify that module allows to build a new unit
+        if (auto module_ptr = Module::getModule(module_name).lock())
+        {
+            if (module_ptr->getInformations().type == Module::ShortInfo::SYSTEM)
+            {
+                size_t c = module_ptr->relatedUnitsCount();
+                sfx::debug(NAME, "System_unit Childs : %u\n", c);
+                if (c != 0)
+                    throw std::runtime_error("System_Unit_Already_Built");
+            }
+        }
+        else throw std::runtime_error("Module_Expired");
+
         // Then create an Effect Unit from the Module
         std::shared_ptr<EffectUnit> unit = std::make_shared<EffectUnit>(Module::getModule(module_name));
 
@@ -583,16 +699,22 @@ int EffectUnit::buildEffectUnitFromModule(const std::string& module_name)
         unit->current_bank = unit->banks_order.begin();
         unit->updateCurrentBank();
 
+        //unit->current_links_file = sfx::formatString("%s_links_%i", unit->unique_name, std::rand());
+        //unit->current_banks_file = sfx::formatString("%s_banks_%i", unit->unique_name, std::rand());
+
         // Finaly activate the Effect Unit
-#ifdef __ARCH_LINUX__
+#ifdef __SFX_PI__
         unit->activateJackClient();
 #endif
+        // Run the POST_INIT Routine
+        unit->postInit();
 
         // Then add It to the Units Table
         if (UnitsTable.find(unit->unique_name) != UnitsTable.end())
             throw std::runtime_error("Unique_Name_Duplication");
 
         UnitsTable[unit->unique_name] = unit;
+        if (unique_name) *unique_name = unit->unique_name;
 
         sfx::sfxStream << "Done\n";
     }
@@ -608,9 +730,10 @@ int EffectUnit::buildEffectUnitFromModule(const std::string& module_name)
  * Fonction pour creer une Unité à partir d'un fichier Preset Sauvegardé
  *  précédement
  * @param file_path Chemin du fichier à interpreter
+ * @param unique_name pointeur vers une chaine de caractère où sera stoqué le nom unique de l'effet crée
  * @return 0 on success
  */
-int EffectUnit::buildEffectUnitFromPresetFile(const std::string& file_path)
+int EffectUnit::buildEffectUnitFromPresetFile(const std::string& file_path, std::string* unique_name)
 {
     std::ifstream flux;
     sfx::debug(NAME, "Load effect from file : \"%s\" ... \n", file_path);
@@ -618,79 +741,91 @@ int EffectUnit::buildEffectUnitFromPresetFile(const std::string& file_path)
     try
     {
         // Open the file
-        sfx::debug(NAME, "Open File ... \n");
         flux.open(file_path.c_str(),
                 std::ifstream::in | std::ifstream::binary);
         if (!flux.is_open())
             throw std::ios_base::failure("Failed open file");
+            
+        /////////////////////////////////////////////////////
+        // Verification de l'integrité du Fichier
+        /////////////////////////////////////////////////////
 
         // Read file header
-        sfx::debug(NAME, "Read Header ... \n");
         sfx::serial::controlValue(flux, sfx::serial::EffectUnit_Preset_File, "Invalid_File_Flag");
 
         Module::ShortInfo infos = Module::deserialize_infos(flux);
 
         // Verify if corresponding module has been loaded
-        sfx::debug(NAME, "Verify Module ... \n");
         if (Module::getModuleTable().find(infos.unique_name) == Module::getModuleTable().end())
             throw std::ios_base::failure("Module_Type_Invalid");
 
-        sfx::debug(NAME, "Get Module ... \n");
         std::shared_ptr<Module> module_ptr;
         if (!(module_ptr = Module::getModule(infos.unique_name).lock()))
             throw std::runtime_error("Module_Expired");
 
         // Verify module version
-        sfx::debug(NAME, "Verify Version ... \n");
         if (infos.version != module_ptr->getInformations().version)
             sfx::wrn(NAME, "Module versions differs : Preset:%s LoadedModule:%s",
                 infos.version, module_ptr->getInformations().version);
 
+        ;
+
+        // Verify that module allows to build a new unit
+        if (module_ptr->getInformations().type == Module::ShortInfo::SYSTEM
+                && module_ptr->relatedUnitsCount() != 0)
+        {
+            sfx::wrn(NAME, "System Unit Already Built\n");
+            if (unique_name) *unique_name = module_ptr->getInformations().unique_name;
+            return 0;
+        }
+        
+        /////////////////////////////////////////////////////
+        // Construction de l'Unit
+        /////////////////////////////////////////////////////
+
         // Then create an Effect Unit from the Module
-        sfx::debug(NAME, "Create Unit ... \n");
         std::shared_ptr<EffectUnit> unit = std::make_shared<EffectUnit>(module_ptr);
 
         // Read Effect Name
-        sfx::debug(NAME, "Read Name ... \n");
         std::string name = sfx::serial::read<std::string>(flux);
         unit->display_name = name;
 
         // Read banks location
-        sfx::debug(NAME, "Read Banks Location ... \n");
         std::string banks_file = sfx::serial::read<std::string>(flux);
+        
         // Read links location
-        sfx::debug(NAME, "Read Links Location ... \n");
         std::string links_file = sfx::serial::read<std::string>(flux);
 
         // Read bank file
-        sfx::debug(NAME, "Read Banks File ... \n");
         if (load_BankFile(banks_file, unit))
             throw std::ios_base::failure("Failed read bank file");
 
         // Read links file
-        sfx::debug(NAME, "Read Links File ... \n");
         if (load_LinkFile(links_file, unit))
             throw std::ios_base::failure("Failed read links file");
 
         // Close the file
-        sfx::debug(NAME, "Close File ... \n");
         flux.close();
 
         // Finaly activate the Effect Unit
-#ifdef __ARCH_LINUX__
-        sfx::debug(NAME, "OActivate Client ... \n");
+#ifdef __SFX_PI__
         unit->activateJackClient();
 #endif
 
+        /////////////////////////////////////////////////////
+        // POST INIT
+        /////////////////////////////////////////////////////
+        
+        // Run the POST_INIT Routine
+        unit->postInit();
+
         // Then add It to the Units Table
-        sfx::debug(NAME, "Verify name Unicity ... \n");
         if (UnitsTable.find(unit->unique_name) != UnitsTable.end())
             throw std::runtime_error("Unique_Name_Duplication");
 
-        sfx::debug(NAME, "Add Unit ... \n");
         UnitsTable[unit->unique_name] = unit;
+        if (unique_name) *unique_name = unit->unique_name;
 
-        sfx::debug(NAME, "Done ... \n");
     }
     catch (std::ios_base::failure const& e)
     {
@@ -719,6 +854,59 @@ int EffectUnit::destroyEffectUnit(std::string unit_name)
         return 1;
     }
 
+    // Verify that unit is not a System Unit
+    if (auto module_ptr = UnitsTable[unit_name]->module.lock())
+    {
+        if (module_ptr->getInformations().type == Module::ShortInfo::SYSTEM)
+        {
+            sfx::wrn(NAME, "Destroy System Unit is Not Allowed\n");
+            return 1;
+        }
+    }
+    else
+    {
+        sfx::wrn(NAME, "Module Expired\n");
+        return 1;
+    }
+
+    for (ConnectionList::iterator citr = ConnectionGraph.begin();
+            citr != ConnectionGraph.end();
+            ++citr)
+    {
+        if (citr->first.first == unit_name || citr->second.first == unit_name)
+        {
+            citr = ConnectionGraph.erase(citr);
+        }
+    }
+
+    UnitsTable.erase(unit_name);
+    return 0;
+}
+
+/**
+ * Fonction pour detruire une unité
+ * @param unit_name nom interne de l'unité à detruire
+ * @return 0 on success
+ */
+int EffectUnit::forceDestroyEffectUnit(std::string unit_name)
+{
+    // First find the EffectUnit
+    if (UnitsTable.find(unit_name) == UnitsTable.end())
+    {
+        sfx::wrn(NAME, "Effect Unit : \"%s\" Doesn't Exist\n", unit_name);
+        return 1;
+    }
+
+    for (ConnectionList::iterator citr = ConnectionGraph.begin();
+            citr != ConnectionGraph.end();
+            ++citr)
+    {
+        if (citr->first.first == unit_name || citr->second.first == unit_name)
+        {
+            citr = ConnectionGraph.erase(citr);
+        }
+    }
+
     UnitsTable.erase(unit_name);
     return 0;
 }
@@ -738,126 +926,11 @@ int EffectUnit::saveEffectUnit(std::string unit_name, std::string file,
         return 1;
     }
 
-    if (bank_file == "") bank_file = file + std::string("_banks");
-    if (link_file == "") link_file = file + std::string("_links");
+    if (bank_file == "") bank_file = sfx::formatString("%s_banks", file);//UnitsTable[unit_name]->current_banks_file;
+    if (link_file == "") link_file = sfx::formatString("%s_links", file);//UnitsTable[unit_name]->current_links_file;
 
     return save_PresetFile(file, UnitsTable[unit_name], bank_file, link_file);
 }
-
-////////////////////////////////////////////////////////////////////
-
-/**
- * Fonction pour sauvegarder les banques d'une unité dans un fichier
- * @param unit_name nom interne de l'unité
- * @param file fichier cible
- * @return 0 on success
- */
-int EffectUnit::saveEffectUnitBanks(std::string unit_name, std::string file)
-{
-    // First find the EffectUnit
-    if (UnitsTable.find(unit_name) == UnitsTable.end())
-    {
-        sfx::wrn(NAME, "Effect Unit : \"%s\" Doesn't Exist\n", unit_name);
-        return 1;
-    }
-
-    return save_BankFile(file, UnitsTable[unit_name]);
-}
-
-/**
- * Fonction pour Charger les banques d'une unité depuis un fichier
- * @param unit_name nom interne de l'unité
- * @param file fichier cible
- * @return 0 on success
- */
-int EffectUnit::saveEffectUnitLinks(std::string unit_name, std::string file)
-{
-    // First find the EffectUnit
-    if (UnitsTable.find(unit_name) == UnitsTable.end())
-    {
-        sfx::wrn(NAME, "Effect Unit : \"%s\" Doesn't Exist\n", unit_name);
-        return 1;
-    }
-
-    return save_LinkFile(file, UnitsTable[unit_name]);
-}
-
-/**
- * Fonction pour sauvegarder les links Midi d'une unité dans un fichier
- * @param unit_name nom interne de l'unité
- * @param file fichier cible
- * @return 0 on success
- */
-int EffectUnit::loadEffectUnitBanks(std::string unit_name, std::string file)
-{
-    // First find the EffectUnit
-    if (UnitsTable.find(unit_name) == UnitsTable.end())
-    {
-        sfx::wrn(NAME, "Effect Unit : \"%s\" Doesn't Exist\n", unit_name);
-        return 1;
-    }
-
-    return load_BankFile(file, UnitsTable[unit_name]);
-}
-
-/**
- * Fonction pour Charger les links Midi d'une unité depuis un fichier
- * @param unit_name nom interne de l'unité
- * @param file fichier cible
- * @return 0 on success
- */
-int EffectUnit::loadEffectUnitLinks(std::string unit_name, std::string file)
-{
-    // First find the EffectUnit
-    if (UnitsTable.find(unit_name) == UnitsTable.end())
-    {
-        sfx::wrn(NAME, "Effect Unit : \"%s\" Doesn't Exist\n", unit_name);
-        return 1;
-    }
-
-    return load_LinkFile(file, UnitsTable[unit_name]);
-}
-
-////////////////////////////////////////////////////////////////////
-
-/**
- * Wrapper for the Unit's linkSlot method
- * @param unit_name internal name of targeted unit
- * @param cc midi cc source
- * @param slot targeted slot
- * @return 0 on success
- */
-int EffectUnit::linkEffectUnitSlot(std::string unit_name, sfx::hex_t ccc, sfx::hex_t ccs, std::string slot)
-{
-    // First find the EffectUnit
-    if (UnitsTable.find(unit_name) == UnitsTable.end())
-    {
-        sfx::wrn(NAME, "Effect Unit : \"%s\" Doesn't Exist\n", unit_name);
-        return 1;
-    }
-
-    return UnitsTable[unit_name]->linkSlot(std::make_pair(ccc, ccs), slot);
-}
-
-/**
- * Wrapper for the Unit's unlinkSlot method
- * @param unit_name internal name of targeted unit
- * @param cc midi cc source
- * @param slot targeted slot
- * @return 0 on success
- */
-int EffectUnit::unlinkEffectUnitSlot(std::string unit_name, sfx::hex_t ccc, sfx::hex_t ccs, std::string slot)
-{
-    // First find the EffectUnit
-    if (UnitsTable.find(unit_name) == UnitsTable.end())
-    {
-        sfx::wrn(NAME, "Effect Unit : \"%s\" Doesn't Exist\n", unit_name);
-        return 1;
-    }
-
-    return UnitsTable[unit_name]->unlinkSlot(std::make_pair(ccc, ccs), slot);
-}
-
 
 ////////////////////////////////////////////////////////////////////
 // Connection Managment
@@ -874,21 +947,21 @@ void EffectUnit::logConnectionGraph()
 {
     sfx::log(NAME, "Loaded Units Table : \n");
     sfx::sfxStream
-            << "-----------------------------------------++-----------------------------------------\n"
-            << "                  Source                 ||                  Target                 \n"
-            << "--------------------+--------------------++--------------------+--------------------\n"
-            << sfx::formatString("%-20s|%-20s||%-20s|%-20s\n"
+            << "---------------------------------------------------++---------------------------------------------------\n"
+            << "                       Source                      ||                       Target                      \n"
+            << "------------------------------+--------------------++------------------------------+--------------------\n"
+            << sfx::formatString("%-30s|%-20s||%-30s|%-20s\n"
             , std::string("Unit"), std::string("Port"), std::string("Unit"), std::string("Port"))
-            << "====================|====================||====================|====================\n";
+            << "==============================|====================||==============================|====================\n";
 
     for (auto& connection : ConnectionGraph)
     {
-        sfx::sfxStream << sfx::formatString("%-20s|%-20s||%-20s|%-20s\n",
+        sfx::sfxStream << sfx::formatString("%-30s|%-20s||%-30s|%-20s\n",
                 connection.first.first, connection.first.second,
                 connection.second.first, connection.second.second);
     }
     sfx::sfxStream
-            << "--------------------+--------------------++--------------------+--------------------\n";
+            << "------------------------------+--------------------++------------------------------+--------------------\n";
 }
 
 ////////////////////////////////////////////////////////////////////
@@ -931,7 +1004,7 @@ int EffectUnit::connect(std::string s_unit, std::string s_port, std::string t_un
     }
 
     // Make the connection
-#ifdef __ARCH_LINUX__
+#ifdef __SFX_PI__
     if (int res = jack_connect(UnitsTable[s_unit]->client, source.c_str(), target.c_str()))
     {
         sfx::wrn(NAME, "Unable to Make Connection : Err#%i", res);
@@ -965,14 +1038,14 @@ int EffectUnit::connect(std::string unit_name, std::string source, std::string t
     }
 
     // Make the connection
-#ifdef __ARCH_LINUX__
+#ifdef __SFX_PI__
     if (int res = jack_connect(UnitsTable[unit_name]->client, source.c_str(), target.c_str()))
     {
         sfx::wrn(NAME, "Unable to Make Connection : Err#%i", res);
         return 1;
     }
 #else
-    sfx::wrn(NAME, "NoJackRun : Cannot verify that connection is valid\n");
+    sfx::wrn(NAME, "NoJackRun : Cannot verify if connection is valid\n");
 #endif
 
     ConnectionGraph.emplace(std::make_pair(unit_name, source), std::make_pair(unit_name, target));
@@ -1019,7 +1092,7 @@ int EffectUnit::disconnect(std::string s_unit, std::string s_port, std::string t
     }
 
     // Make the connection
-#ifdef __ARCH_LINUX__
+#ifdef __SFX_PI__
     if (int res = jack_disconnect(UnitsTable[s_unit]->client, source.c_str(), target.c_str()))
     {
         sfx::wrn(NAME, "Unable to Remove Connection : Err#%i", res);
@@ -1051,7 +1124,7 @@ int EffectUnit::disconnect(std::string unit_name, std::string source, std::strin
     }
 
     // Make the connection
-#ifdef __ARCH_LINUX__
+#ifdef __SFX_PI__
     if (int res = jack_disconnect(UnitsTable[unit_name]->client, source.c_str(), target.c_str()))
     {
         sfx::wrn(NAME, "Unable to Remove Connection : Err#%i", res);
@@ -1063,6 +1136,206 @@ int EffectUnit::disconnect(std::string unit_name, std::string source, std::strin
     return 0;
 }
 
+////////////////////////////////////////////////////////////////////
+// Graph Serial
+////////////////////////////////////////////////////////////////////
+
+/**
+ * flag_t : Environement_Preset_File
+ * usize_t : Units Count
+ * {
+ *      id1_t : uid
+ *      string Units files path
+ * }
+ * usize_t : Connection Count
+ * {
+ *      Connections (<<source_uid,source_port>,<target_uid,target_port>>)
+ * }
+ */
+int EffectUnit::save_EnvironementFile(std::string file_path)
+{
+    std::ofstream flux;
+    sfx::debug(NAME, "Save Environement to file : \"%s\"\n", file_path);
+
+    try
+    {
+        // Open the file
+        flux.open(file_path.c_str(),
+                std::ofstream::out | std::ofstream::binary | std::ofstream::trunc);
+        if (!flux.is_open())
+            throw std::ios_base::failure("Failed open file");
+
+        // Write file header
+        sfx::serial::write<sfx::flag_t> (flux, sfx::serial::Environement_Preset_File);
+
+        // Generate Serial Units names Table
+        NameToSerialTable idtable = effectUnitTable_to_serial();
+
+        // Write Units count
+        sfx::serial::write<sfx::usize_t> (flux, UnitsTable.size());
+
+        // Write all Units
+        for (auto& unit : UnitsTable)
+        {
+            sfx::serial::write<sfx::id1_t> (flux, idtable[unit.first]);
+            std::string unit_file = sfx::formatString("%s_unit_%i", file_path, idtable[unit.first]);
+            sfx::serial::write<std::string>(flux, unit_file);
+            saveEffectUnit(unit.first, unit_file);
+        }
+
+        // Write Connections count
+        sfx::serial::write<sfx::usize_t> (flux, ConnectionGraph.size());
+
+        // Write all Connections
+        for (auto& connection : ConnectionGraph)
+        {
+            serialiaze_Connection(flux, connection_to_serial(idtable, connection));
+        }
+
+        // Close the file
+        flux.close();
+    }
+    catch (std::ios_base::failure const& e)
+    {
+        sfx::err(NAME, "Error While Writing File : Error#%i : %s\n", e.code(), e.what());
+        return 1;
+    }
+    return 0;
+}
+
+int EffectUnit::load_EnvironementFile(std::string file_path)
+{
+    std::ifstream flux;
+    sfx::debug(NAME, "Load banks from file : \"%s\"\n", file_path);
+
+    try
+    {
+        // Open the file
+        flux.open(file_path.c_str(),
+                std::ifstream::in | std::ifstream::binary);
+        if (!flux.is_open())
+            throw std::ios_base::failure("Failed open file");
+
+        // Read file header
+        sfx::serial::controlValue(flux, sfx::serial::Environement_Preset_File, "Invalid_File_Flag");
+
+        // Read units and build table
+        SerialToNameTable name_table;
+        sfx::usize_t unit_count = sfx::serial::read<sfx::usize_t> (flux);
+
+        // Read each Effects
+        for (sfx::usize_t i = 0; i < unit_count; ++i)
+        {
+            std::string created_unit_name("");
+            sfx::id1_t unit_id = sfx::serial::read<sfx::id1_t> (flux);
+            std::string unit_file = sfx::serial::read<std::string>(flux);
+
+            if (buildEffectUnitFromPresetFile(unit_file, &created_unit_name))
+                throw std::runtime_error("Failed_Load_Effect");
+
+            name_table[unit_id] = created_unit_name;
+        }
+
+        sfx::debug(NAME, "Serial to Unit Table\n");
+        sfx::sfxStream << ("-----|--------------------------------\n");
+        for (auto& unit : name_table)
+            sfx::sfxStream << sfx::formatString(" %03i | %-30s \n", unit.first, unit.second);
+        sfx::sfxStream << ("-----|--------------------------------\n");
+
+        sfx::debug(NAME, "Load Connection Graph\n");
+        // Read Each Connections
+        sfx::usize_t graph_size = sfx::serial::read<sfx::usize_t> (flux);
+
+        // Read each Effects
+        for (sfx::usize_t i = 0; i < graph_size; ++i)
+        {
+            SerialConnection parsed_c = deserialize_Connection(flux);
+            // Convert connection
+            Connection c = connection_from_serial(name_table, parsed_c);
+
+            if (connect(c.first.first, c.first.second, c.second.first, c.second.second))
+                sfx::wrn(NAME, "Failed add Connection : %s %s => %s %s\n",
+                    c.first.first, c.first.second, c.second.first, c.second.second);
+        }
+
+        // Close the file
+        flux.close();
+        sfx::debug(NAME, "Environement Loading Successfull !!\n");
+    }
+    catch (std::ios_base::failure const& e)
+    {
+        sfx::err(NAME, "Error While Parsing File : Error#%i : %s\n", e.code(), e.what());
+        return 1;
+    }
+    catch (std::runtime_error const& e)
+    {
+        sfx::err(NAME, "Error Broken File : %s\n", e.what());
+        return 1;
+    }
+    return 0;
+}
+
+/**
+ * id1_t : Source uid
+ * string : Source Port Name
+ * id1_t : Target uid
+ * string : Target Port Name
+ */
+void EffectUnit::serialiaze_Connection(std::ofstream& flux, const EffectUnit::SerialConnection& obj)
+{
+    sfx::serial::write<sfx::id1_t> (flux, obj.first.first);
+    sfx::serial::write<std::string> (flux, obj.first.second);
+
+    sfx::serial::write<sfx::id1_t> (flux, obj.second.first);
+    sfx::serial::write<std::string> (flux, obj.second.second);
+}
+
+EffectUnit::SerialConnection EffectUnit::deserialize_Connection(std::ifstream& flux)
+{
+    sfx::id1_t sid = sfx::serial::read<sfx::id1_t> (flux);
+    std::string sp = sfx::serial::read<std::string> (flux);
+
+    sfx::id1_t tid = sfx::serial::read<sfx::id1_t> (flux);
+    std::string tp = sfx::serial::read<std::string> (flux);
+
+    return std::make_pair(std::make_pair(sid, sp),
+            std::make_pair(tid, tp));
+}
+
+EffectUnit::NameToSerialTable EffectUnit::effectUnitTable_to_serial()
+{
+    NameToSerialTable table;
+    UIDManager<sfx::id1_t> uidgen(0);
+    for (auto& unit : UnitsTable)
+    {
+        table[unit.first] = uidgen.reserveUID();
+    }
+    return table;
+}
+
+EffectUnit::SerialConnection EffectUnit::connection_to_serial(NameToSerialTable table, const Connection& obj)
+{
+    assert(table.find(obj.first.first) != table.end());
+    assert(table.find(obj.second.first) != table.end());
+
+    sfx::id1_t sid = table[obj.first.first], tid = table[obj.second.first];
+
+    return std::make_pair(std::make_pair(sid, obj.first.second),
+            std::make_pair(tid, obj.second.second));
+}
+
+EffectUnit::Connection EffectUnit::connection_from_serial(SerialToNameTable table, const SerialConnection& obj)
+{
+    if (table.find(obj.first.first) == table.end())
+        throw std::runtime_error(sfx::formatString("Source_UID#%i_Not_Found", obj.first.first));
+    if (table.find(obj.second.first) == table.end())
+        throw std::runtime_error(sfx::formatString("Target_UID#%i_Not_Found", obj.second.first));
+
+    std::string sname = table[obj.first.first], tname = table[obj.second.first];
+
+    return std::make_pair(std::make_pair(sname, obj.first.second),
+            std::make_pair(tname, obj.second.second));
+}
 
 ////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////

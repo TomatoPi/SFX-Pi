@@ -25,6 +25,10 @@
 #ifndef FOOTSWITCH_H
 #define FOOTSWITCH_H
 
+#ifndef __SFX_PI__
+#error This File is Specific To Processing Environement
+#endif
+
 #include <map>
 #include <vector>
 #include <memory>
@@ -32,9 +36,6 @@
 #include <exception>
 
 #include <array>
-
-#include <jack/jack.h>
-#include <jack/midiport.h>
 #include <queue>
 
 #include "noyau/midi.h"
@@ -42,10 +43,11 @@
 
 #include "mcp23017.h"
 
-#ifdef __ARCH_LINUX__
-    #include <wiringPi.h>
-    #include <mcp3004.h>
-#endif
+#include <jack/jack.h>
+#include <jack/midiport.h>
+
+#include <wiringPi.h>
+#include <mcp3004.h>
 
 #define SFX_POT_COUNT 6
 
@@ -138,6 +140,8 @@ typedef std::queue<AnalogUpdateRequest> AnalogUpdateQueue;
  * @param values    Liste des Valeurs des entrées analogiques
  * @param hysteresis    Seuil de bruit pour detecter un changement de valeur
  * @return la liste des valeurs qui ont changées
+ * 
+ * @warning Non utilisé car les entrées analogiques sont trop bruitées
  */
 AnalogUpdateQueue UpdateExpression(AnalogTable& table, AnalogStatus& values
     , const int& spi_base, const int& hysteresis);

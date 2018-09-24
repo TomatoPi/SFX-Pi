@@ -24,6 +24,10 @@
 
 #include "Footswitch.h"
 
+#ifndef __SFX_PI__
+#error This File is Specific To Processing Environement
+#endif
+
 ////////////////////////////////////////////////////////////////////
 // Configuration du GPIO
 ////////////////////////////////////////////////////////////////////
@@ -328,6 +332,8 @@ LogicUpdateQueue UpdateMCP(MCP23017Array& regs, RegStateMap& status
  * @param values    Liste des Valeurs des entrées analogiques
  * @param hysteresis    Seuil de bruit pour detecter un changement de valeur
  * @return la liste des valeurs qui ont changées
+ * 
+ * @warning Non utilisé car les entrées analogiques sont trop bruitées
  */
 AnalogUpdateQueue UpdateExpression(AnalogTable& table, AnalogStatus& values
     , const int& spi_base, const int& hysteresis)
@@ -365,10 +371,12 @@ AnalogUpdateQueue UpdateExpression(AnalogTable& table, AnalogStatus& values
  * @param adresses adresses of mcp23017 registers
  */
 GPIOJackClient::GPIOJackClient(std::initializer_list<sfx::hex_t> adresses):
+#ifdef __ARCH_LINUX__
 client(nullptr),
 logic_in(nullptr),
 logic_out(nullptr),
 analog_out(nullptr),
+#endif
         
 regs(registerMCP(adresses)),
 ftable(buildFootTable()),

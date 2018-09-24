@@ -316,68 +316,6 @@ int EffectUnit::save_PresetFile(std::string file_path, std::weak_ptr<EffectUnit>
     }
     return 0;
 }
-/*
-int EffectUnit::load_PresetFile(std::string file_path, EffectUnit* obj)
-{
-    std::ifstream flux;
-    sfx::debug(NAME, "Load effect from file : \"%s\"\n", file_path);
-            
-    try
-    {
-        // Open the file
-        flux.open(file_path.c_str(),
-                std::ifstream::in | std::ifstream::binary);
-        if (!flux.is_open())
-            throw std::ios_base::failure("Failed open file");
-        
-        // Read file header
-        sfx::serial::controlValue(flux, sfx::serial::EffectUnit_Preset_File, "Invalid_File_Flag");
-        
-        Module::ShortInfo infos("", "", "");
-        Module::deserialize_infos(flux, &infos);
-        
-        // Verify module type
-        if (infos.unique_name != Module::getModuleTable()[obj->module_name]->infos.unique_name)
-            throw std::ios_base::failure("Module_Type_Missmatch");
-        // Verify module version
-        if (infos.version != Module::getModuleTable()[obj->module_name]->infos.version)
-            sfx::wrn(NAME, "Module versions differs : Preset:%s LoadedModule:%s",
-                    infos.version, Module::getModuleTable()[obj->module_name]->infos.version);
-        
-        // Read Effect Name
-        std::string name = sfx::serial::read<std::string>(flux);
-        EffectUnit tmp_unit = EffectUnit(infos.unique_name, false, true);
-        
-        // Read bank file
-        if (load_BankFile(file_path + std::string("_banks"), &tmp_unit))
-            throw std::ios_base::failure("Failed read bank file");
-        
-        // Write links file
-        if (load_LinkFile(file_path + std::string("_links"), &tmp_unit))
-            throw std::ios_base::failure("Failed read links file");
-        
-        // If load is successfull, replace old effect with it new values
-        obj->unique_name  = name;
-        
-        obj->banks        = tmp_unit.banks;
-        obj->banks_order  = tmp_unit.banks_order;
-        obj->current_bank = obj->banks_order.begin();
-        
-        obj->links = tmp_unit.links;
-        
-        obj->updateCurrentBank();
-        
-        // Close the file
-        flux.close();
-    }
-    catch (std::ios_base::failure const& e)
-    {
-        sfx::err(NAME, "Error While Parsing File : Error#%i : %s\n", e.code(), e.what());
-        return 1;
-    }
-    return 0;
-}
-//*/
 /**
  * flag_t  : EffectUnit_Bank_File
  * Module Infos

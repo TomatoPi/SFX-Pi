@@ -29,7 +29,9 @@
 #include <string>
 #include <limits>
 
+#ifdef __SFX_PI__
 #include <jack/jack.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -73,7 +75,11 @@ namespace sfx{
     /**
      * Diminutif pour les samples de JACK
      **/
+#ifdef __SFX_PI__
     typedef jack_default_audio_sample_t sample_t;
+#else
+    typedef float sample_t;
+#endif
 
     /**
      * Flag utilisé pour baliser les fichiers binaires
@@ -85,7 +91,7 @@ namespace sfx{
      **/
     typedef uint32_t usize_t;
     
-    const string VERSION = "4.1.0";
+    const string VERSION = "4.1.1";
     const string BUILD   = string(__DATE__) + "   " + string(__TIME__);
 }
 

@@ -123,7 +123,7 @@ void registerModulesCommands()
             2,
             [](std::vector<std::string> args)->void
             {
-                if (EffectUnit::saveEffectUnitBanks(args[0], args[1]))
+                if (EffectUnit::save_BankFile(args[1], EffectUnit::getEffectUnit(args[0])))
                     sfx::wrn(NAME, "Use \"loaded-units\" to view list of loaded effect units ...\n");
             });
     registerStrictArgCommand("save-links",
@@ -132,7 +132,7 @@ void registerModulesCommands()
             2,
             [](std::vector<std::string> args)->void
             {
-                if (EffectUnit::saveEffectUnitLinks(args[0], args[1]))
+                if (EffectUnit::save_LinkFile(args[1], EffectUnit::getEffectUnit(args[0])))
                     sfx::wrn(NAME, "Use \"loaded-units\" to view list of loaded effect units ...\n");
             });
             
@@ -142,7 +142,7 @@ void registerModulesCommands()
             2,
             [](std::vector<std::string> args)->void
             {
-                if (EffectUnit::loadEffectUnitBanks(args[0], args[1]))
+                if (EffectUnit::load_BankFile(args[1], EffectUnit::getEffectUnit(args[0])))
                     sfx::wrn(NAME, "Use \"loaded-units\" to view list of loaded effect units ...\n");
             });
     registerStrictArgCommand("load-links",
@@ -151,7 +151,7 @@ void registerModulesCommands()
             2,
             [](std::vector<std::string> args)->void
             {
-                if (EffectUnit::loadEffectUnitLinks(args[0], args[1]))
+                if (EffectUnit::load_LinkFile(args[1], EffectUnit::getEffectUnit(args[0])))
                     sfx::wrn(NAME, "Use \"loaded-units\" to view list of loaded effect units ...\n");
             });
             
@@ -163,7 +163,13 @@ void registerModulesCommands()
             4,
             [](std::vector<std::string> args)->void
             {
-                if (EffectUnit::linkEffectUnitSlot(args[0], std::stoi(args[2]), std::stoi(args[3]), args[1]))
+                if (auto unit = EffectUnit::getEffectUnit(args[0]).lock())
+                {
+                    if (unit->linkSlot(std::make_pair<sfx::hex_t, sfx::hex_t>(std::stoi(args[2]), std::stoi(args[3])),
+                            args[1]))
+                        sfx::wrn(NAME, "Use \"info-module\" to view slot table of this unit\n");
+                }
+                else
                     sfx::wrn(NAME, "Use \"loaded-units\" to view list of loaded effect units ...\n");
             });
     registerStrictArgCommand("unlink-slot",
@@ -172,7 +178,26 @@ void registerModulesCommands()
             4,
             [](std::vector<std::string> args)->void
             {
-                if (EffectUnit::unlinkEffectUnitSlot(args[0], std::stoi(args[2]), std::stoi(args[3]), args[1]))
+                if (auto unit = EffectUnit::getEffectUnit(args[0]).lock())
+                {
+                    if (unit->unlinkSlot(std::make_pair<sfx::hex_t, sfx::hex_t>(std::stoi(args[2]), std::stoi(args[3])),
+                            args[1]))
+                        sfx::wrn(NAME, "Use \"info-module\" to view slot table of this unit\n");
+                }
+                else
+                    sfx::wrn(NAME, "Use \"loaded-units\" to view list of loaded effect units ...\n");
+            });
+    registerStrictArgCommand("clear-slots",
+            "UnLink all unit's slots",
+            "clear-slots [internal_name] : Remove all links from CC to Slots",
+            1,
+            [](std::vector<std::string> args)->void
+            {
+                if (auto unit = EffectUnit::getEffectUnit(args[0]).lock())
+                {
+                    unit->clearLinks();
+                }
+                else
                     sfx::wrn(NAME, "Use \"loaded-units\" to view list of loaded effect units ...\n");
             });
             
@@ -192,7 +217,10 @@ void registerModulesCommands()
             1,
             [](std::vector<std::string> args)->void
             {
-                EffectUnit::logEffectUnit(args[0]);
+                if (auto unit = EffectUnit::getEffectUnit(args[0]).lock())
+                    unit->logCompleteInfos();
+                else
+                    sfx::wrn(NAME, "Use \"loaded-units\" to view list of loaded effect units ...\n");
             });
             
     ////////////////////////////////////////////////////////////////////
@@ -240,5 +268,111 @@ void registerModulesCommands()
             [](std::vector<std::string> args)->void
             {
                 EffectUnit::logConnectionGraph();
+            });
+            
+    ////////////////////////////////////////////////////////////////////
+    // Banks Managment Commands
+    ////////////////////////////////////////////////////////////////////
+            
+    registerStrictArgCommand("set-bank",
+            "Change Unit's current Bank",
+            "set-bank [unit_name] [bank_id] : Change unit's Current Bank",
+            2,
+            [](std::vector<std::string> args)->void
+            {
+                if (auto unit = EffectUnit::getEffectUnit(args[0]).lock())
+                {
+                    if (unit->setBank(std::stoi(args[1])))
+                        sfx::wrn(NAME, "Use \"info-module\" to view banks table of this unit\n");
+                }
+                else
+                    sfx::wrn(NAME, "Use \"loaded-units\" to view list of loaded effect units ...\n");
+            });
+    registerStrictArgCommand("next-bank",
+            "Cycle to Unit's Next Bank",
+            "next-bank [unit_name] : Cycle to Unit's Next Bank, and rewind to first bank if end is reached",
+            1,
+            [](std::vector<std::string> args)->void
+            {
+                if (auto unit = EffectUnit::getEffectUnit(args[0]).lock())
+                    unit->nextBank();
+                else
+                    sfx::wrn(NAME, "Use \"loaded-units\" to view list of loaded effect units ...\n");
+            });
+    registerStrictArgCommand("prev-bank",
+            "Cycle to Unit's Previous Bank",
+            "prev-bank [unit_name] : Cycle to Unit's Previous Bank, and rewind to last bank if begining is reached",
+            1,
+            [](std::vector<std::string> args)->void
+            {
+                if (auto unit = EffectUnit::getEffectUnit(args[0]).lock())
+                    unit->prevBank();
+                else
+                    sfx::wrn(NAME, "Use \"loaded-units\" to view list of loaded effect units ...\n");
+            });
+            
+    ////////////////////////////////////////////////////////////////////
+            
+    registerStrictArgCommand("build-bank",
+            "Add a bank to an Unit",
+            "build-bank [unit_name] : Build a bank from Module's default values and add it to the unit",
+            1,
+            [](std::vector<std::string> args)->void
+            {
+                if (auto unit = EffectUnit::getEffectUnit(args[0]).lock())
+                    unit->createBank();
+                else
+                    sfx::wrn(NAME, "Use \"loaded-units\" to view list of loaded effect units ...\n");
+            });
+    registerStrictArgCommand("copy-bank",
+            "Dupplicate an Unit's Bank",
+            "copy-bank [unit_name] [source_id] : Build a bank from and other one and add it to the unit",
+            2,
+            [](std::vector<std::string> args)->void
+            {
+                if (auto unit = EffectUnit::getEffectUnit(args[0]).lock())
+                {
+                    if (unit->copyBank(std::stoi(args[1])))
+                        sfx::wrn(NAME, "Use \"info-module\" to view banks table of this unit\n");
+                }
+                else
+                    sfx::wrn(NAME, "Use \"loaded-units\" to view list of loaded effect units ...\n");
+            });
+    registerStrictArgCommand("delete-bank",
+            "Delete an Unit's Bank",
+            "delete-bank [unit_name] [source_id] : Remove a bank from the unit",
+            2,
+            [](std::vector<std::string> args)->void
+            {
+                if (auto unit = EffectUnit::getEffectUnit(args[0]).lock())
+                {
+                    if (unit->removeBank(std::stoi(args[1])))
+                        sfx::wrn(NAME, "Use \"info-module\" to view banks table of this unit\n");
+                }
+                else
+                    sfx::wrn(NAME, "Use \"loaded-units\" to view list of loaded effect units ...\n");
+            });
+            
+    ////////////////////////////////////////////////////////////////////
+    // Environement Managment Commands
+    ////////////////////////////////////////////////////////////////////
+            
+    registerStrictArgCommand("save-env",
+            "Save all Units and Connection Graph",
+            "save-env [file_path] : Save all units and Connections to given files",
+            1,
+            [](std::vector<std::string> args)->void
+            {
+                if (EffectUnit::save_EnvironementFile(args[0]))
+                    sfx::wrn(NAME, "Failed save Environement\n");
+            });
+    registerStrictArgCommand("load-env",
+            "Load all Units and Connection Graph",
+            "load-env [file_path] : Load all units and Connections from given files",
+            1,
+            [](std::vector<std::string> args)->void
+            {
+                if (EffectUnit::load_EnvironementFile(args[0]))
+                    sfx::wrn(NAME, "Failed load Environement\n");
             });
 }

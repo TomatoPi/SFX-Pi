@@ -78,8 +78,7 @@ Module::ShortInfo function_register_module_info(void)
     return Module::ShortInfo(UNIQUE_NAME, NAME, VERSION);
 }
 
-#ifdef __ARCH_LINUX__
-
+#ifdef __SFX_PI__
 extern "C"
 void* function_create_jack_module(EffectUnit* effect)
 {
@@ -112,8 +111,7 @@ void* function_create_jack_module(EffectUnit* effect)
 
     return new PolysynthDatas(jack_get_sample_rate(effect->getClient()));
 }
-#endif
-
+#else
 extern "C"
 void* function_create_non_jack_module(EffectUnit* effect)
 {
@@ -141,6 +139,7 @@ void* function_create_non_jack_module(EffectUnit* effect)
 
     return new PolysynthDatas(48000);
 }
+#endif
 
 extern "C"
 void function_destroy_module(void* datas)
@@ -382,8 +381,7 @@ Module::SlotTable function_register_module_slots(void)
     return table;
 }
 
-#ifdef __ARCH_LINUX__
-
+#ifdef __SFX_PI__
 extern "C"
 int function_process_callback(jack_nframes_t nframes, void* arg)
 {

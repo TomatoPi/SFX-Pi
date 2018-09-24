@@ -27,6 +27,7 @@
 struct MODULE_DATAS
 {
 
+#ifdef __SFX_PI__
     MODULE_DATAS():
     clock(0), next_clock(0),
     delta_tempo(0), delta_on(0),
@@ -50,6 +51,22 @@ struct MODULE_DATAS
     int signature_count;
     
     std::deque<jack_time_t> last_time;
+#else
+    MODULE_DATAS():
+    source(69), tempo(0),
+
+    signature_num(4), signature_den(4),
+    signature_count(0)
+    {
+
+    }
+    
+    sfx::hex_t source;
+    int tempo;
+    
+    int signature_num, signature_den;
+    int signature_count;
+#endif
     
     enum {
         ON,
@@ -65,8 +82,10 @@ struct MODULE_DATAS
 
             signature_count = 0;
 
+#ifdef __SFX_PI__
             delta_tempo = (60000000 * 4) / (signature_den * tempo);
             delta_on = delta_tempo * 0.125;
+#endif
 
             sfx::log(NAME, "Tempo : %i  Signature : %i/%i\n", tempo, signature_num, signature_den);
         }
@@ -83,7 +102,7 @@ Module::ShortInfo function_register_module_info(void)
     return Module::ShortInfo(UNIQUE_NAME, NAME, VERSION);
 }
 
-#ifdef __ARCH_LINUX__
+#ifdef __SFX_PI__
 
 extern "C"
 void* function_create_jack_module(EffectUnit* effect)
@@ -106,8 +125,7 @@ void* function_create_jack_module(EffectUnit* effect)
     effect->registerMidiOutput("TempoOut");
     return new MODULE_DATAS();
 }
-#endif
-
+#else
 extern "C"
 void* function_create_non_jack_module(EffectUnit* effect)
 {
@@ -127,6 +145,7 @@ void* function_create_non_jack_module(EffectUnit* effect)
     
     return new MODULE_DATAS();
 }
+#endif
 
 extern "C"
 void function_destroy_module(void* datas)
@@ -196,8 +215,7 @@ Module::SlotTable function_register_module_slots(void)
     return table;
 }
 
-#ifdef __ARCH_LINUX__
-
+#ifdef __SFX_PI__
 extern "C"
 int function_process_callback(jack_nframes_t nframes, void* arg)
 {

@@ -32,6 +32,8 @@ namespace serial
     const sfx::flag_t EffectUnit_Link_File = 0x02;
     const sfx::flag_t EffectUnit_Preset_File = 0x03;
     
+    const sfx::flag_t Environement_Preset_File = 0x04;
+    
     /**
      * @brief Function to write datas to a binary stream
      **/

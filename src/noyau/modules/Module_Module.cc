@@ -34,6 +34,32 @@
 // Gestion des slots
 ////////////////////////////////////////////////////////////////////
 
+/**
+ * Fonction appelée au chargement du Module pour enregistrer les slots
+ *  natifs
+ */
+void Module::register_common_slots()
+{
+    register_slot(slots, Slot::TRIGGER, 0, "sfx_next_bank", "Next-Bank",
+            [](sfx::hex_t val, EffectUnit* effect)->float
+            {
+                if (val < 128) effect->nextBank();
+                return effect->getCurrentBank();
+            });
+    register_slot(slots, Slot::TRIGGER, 0, "sfx_prev_bank", "Prev-Bank",
+            [](sfx::hex_t val, EffectUnit* effect)->float
+            {
+                if (val < 128) effect->prevBank();
+                return effect->getCurrentBank();
+            });
+    register_slot(slots, Slot::TRIGGER, 0, "sfx_set_bank", "Set-Bank",
+            [](sfx::hex_t val, EffectUnit* effect)->float
+            {
+                if (val < 128) effect->setBank(val);
+                return effect->getCurrentBank();
+            });
+}
+    
 ////////////////////////////////////////////////////////////////////
 // Fonctions de creation et destruction des datas des EffectUnits
 ////////////////////////////////////////////////////////////////////
@@ -73,7 +99,7 @@ Module::Module(const ShortInfo& infos,
 
         const create_module_data_f& builder,
         const destroy_module_data_f& destructor,
-#ifdef __ARCH_LINUX__
+#ifdef __SFX_PI__
         const JackProcessCallback& callback,
 #endif
         void* lib_handle) :
@@ -81,12 +107,13 @@ infos(infos),
 slots(slots),
 builder(builder),
 destructor(destructor),
-#ifdef __ARCH_LINUX__
+#ifdef __SFX_PI__
 callback(callback),
 #endif
 lib_handle(lib_handle),
 relatedUnits()
 {
+    this->register_common_slots();
 }
 
 Module::~Module()
@@ -101,8 +128,9 @@ void Module::logModuleCompleteInfos() const
 {
     sfx::log(NAME, "Module Full Informations : \n");
     sfx::sfxStream
-            << sfx::formatString(" Unique_Name : \"%s\"\n Name:\"%s\"\n Version:\"%s\"\n"
-            , infos.unique_name, infos.name, infos.version)
+            << sfx::formatString(" Unique_Name : \"%s\"\n Name:\"%s\"\n Version:\"%s\"\n %s\n"
+            , infos.unique_name, infos.name, infos.version
+            , std::string((infos.type==ShortInfo::MODULE)?"Regular Module":"System Module"))
             << "--------------------+--------------------+--------------------+--------------------\n"
             << sfx::formatString("%-20s|%-20s|%-20s|%-20s\n"
             , std::string("Clef"), std::string("Nom Interne")
@@ -174,7 +202,7 @@ void Module::unloadModuleTable()
     while (ModuleTable.size() != 0)
     {
         logLoadedModuleTable();
-        unloadModule(ModuleTable.begin()->first);
+        forceUnloadModule(ModuleTable.begin()->first);
     }
 }
 
@@ -185,18 +213,20 @@ void Module::logLoadedModuleTable()
 {
     sfx::log(NAME, "Loaded Modules :\n");
     sfx::sfxStream 
-            << "-------------------------------++--------------------------------+--------------------------------+--------\n"
-            << sfx::formatString("%-30s || %-30s | %-30s | %-7s\n",
-            std::string("Clef"), std::string("Nom Unique"), std::string("Nom d'Affichage"), std::string("Version"))
-            << "===============================||================================|================================|========\n";
+            << "-----------+--------------------------------++--------------------------------+--------------------------------+---------\n"
+            << sfx::formatString("%-10s | %-30s || %-30s | %-30s | %-7s\n",
+            std::string("Type"), std::string("Clef"),
+            std::string("Nom Unique"), std::string("Nom d'Affichage"), std::string("Version"))
+            << "===========|================================||================================|================================|=========\n";
     for (auto& module : ModuleTable)
     {
         const Module::ShortInfo& infos = module.second->infos;
-        sfx::sfxStream << sfx::formatString("%-30s || %-30s | %-30s | %-7s\n",
-                module.first, infos.unique_name, infos.name, infos.version);
+        sfx::sfxStream << sfx::formatString("%-10s | %-30s || %-30s | %-30s | %-7s\n",
+                std::string((infos.type==ShortInfo::MODULE)?"Module":"System"), module.first,
+                infos.unique_name, infos.name, infos.version);
     }
     sfx::sfxStream
-            << "-------------------------------++--------------------------------+--------------------------------+--------\n";
+            << "-----------+--------------------------------++--------------------------------+--------------------------------+---------\n";
 }
 
 /**
@@ -224,7 +254,7 @@ int Module::loadModule(std::string path)
         ShortInfo infos = (*infos_load_fptr)();
 
         // Chargement de la fonction Builder
-#ifdef __ARCH_LINUX__
+#ifdef __SFX_PI__
         create_module_data_f builder = (create_module_data_f) load_function(handle, "function_create_jack_module");
 #else
         create_module_data_f builder = (create_module_data_f) load_function(handle, "function_create_non_jack_module");
@@ -237,7 +267,7 @@ int Module::loadModule(std::string path)
         register_slot_table_f slots_load_fptr = (register_slot_table_f) load_function(handle, "function_register_module_slots");
         SlotTable slots = (*slots_load_fptr)();
 
-#ifdef __ARCH_LINUX__
+#ifdef __SFX_PI__
         JackProcessCallback callback = (JackProcessCallback) load_function(handle, "function_process_callback");
 #endif
 
@@ -252,7 +282,7 @@ int Module::loadModule(std::string path)
                 slots,
                 builder,
                 destructor,
-#ifdef __ARCH_LINUX__
+#ifdef __SFX_PI__
                 callback,
 #endif
                 handle
@@ -289,11 +319,42 @@ int Module::unloadModule(std::string unique_name)
         sfx::err(NAME, "Module : \"%s\" is not loaded ...\n", unique_name);
         return 1;
     }
+    
+    if (ModuleTable[unique_name]->infos.type == ShortInfo::SYSTEM)
+    {
+        sfx::err(NAME, "Unloading System Module \"%s\" is Forbiden ...\n", unique_name);
+        return 1;
+    }
 
     // Remove all effects from this module
     for (auto& unit : ModuleTable[unique_name]->relatedUnits)
     {
         EffectUnit::destroyEffectUnit(unit);
+    }
+
+    // Unload the library
+#if defined(__UNIX__)
+
+    dlclose(ModuleTable[unique_name]->lib_handle);
+
+#elif defined(__WINDOWS__)
+#endif
+
+    ModuleTable.erase(unique_name);
+    return 0;
+}
+int Module::forceUnloadModule(std::string unique_name)
+{
+    if (ModuleTable.find(unique_name) == ModuleTable.end())
+    {
+        sfx::err(NAME, "Module : \"%s\" is not loaded ...\n", unique_name);
+        return 1;
+    }
+
+    // Remove all effects from this module
+    for (auto& unit : ModuleTable[unique_name]->relatedUnits)
+    {
+        EffectUnit::forceDestroyEffectUnit(unit);
     }
 
     // Unload the library

@@ -1,5 +1,9 @@
 #include "mcp23017.h"
 
+#ifndef __SFX_PI__
+#error This File is Specific To Processing Environement
+#endif
+
 #define NAME (sfx::formatString("MCP:0x%02x", this->deviceAddress))
 
 /*****************************************************************
@@ -85,7 +89,6 @@ int mcp23017::writeReg(sfx::hex_t reg_addr, sfx::hex_t data) const{
 
     int retVal = -1;
     
-#ifdef __ARCH_LINUX__
     sfx::hex_t buff[2];
     struct i2c_rdwr_ioctl_data packets;
     struct i2c_msg messages[1];
@@ -104,7 +107,6 @@ int mcp23017::writeReg(sfx::hex_t reg_addr, sfx::hex_t data) const{
     retVal = ioctl(this->i2cDescriptor, I2C_RDWR, &packets);
     if(retVal < 0)
         sfx::err(NAME, "Write to I2C Device failed\n");
-#endif
     
     return retVal;
 }
@@ -133,7 +135,6 @@ int mcp23017::readReg(sfx::hex_t reg_addr, sfx::hex_t &data) const{
 
     int retVal = -1;
     
-#ifdef __ARCH_LINUX__
     sfx::hex_t *inbuff, outbuff;
     struct i2c_rdwr_ioctl_data packets;
     struct i2c_msg messages[2];
@@ -156,7 +157,6 @@ int mcp23017::readReg(sfx::hex_t reg_addr, sfx::hex_t &data) const{
     retVal = ioctl(this->i2cDescriptor, I2C_RDWR, &packets);
     if(retVal < 0)
         sfx::err(NAME, "Read from I2C Device failed\n");
-#endif
 
     return retVal;
 }

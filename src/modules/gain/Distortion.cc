@@ -21,53 +21,47 @@
 #include "noyau/utils.h"
 #include "noyau/modules/ModuleBase.h"
 
-#include "lib/filter/GraphicEQ.h"
-#include "lib/filter/GraphicEQ_macros.h"
+//#include "lib/filter/GraphicEQ.h"
+//#include "lib/filter/GraphicEQ_macros.h"
 
 #define UNIQUE_NAME "simple_distortion"
 #define NAME "Distortion"
-#define VERSION "1.0"
+#define VERSION "1.1"
 
 struct DistortionDatas
 {
-    DistortionDatas(int samplerate):
+    DistortionDatas():
     
         shape(0.37), softness(8.4),
     
         gain(748), volume(0.01f),
-        
-        samplerate(samplerate),
-        tone_in(nullptr), tone_out(nullptr),
         seuil(0.8), shoot(2), knee(0.01), pout(0)
     {
-        // Setup Equalizer, Param used here are not important
-        float f[] = {100, 1000};
-        tone_in  = std::unique_ptr<GraphicEQ>(new GraphicEQ( 2, f, samplerate));
-        tone_out = std::unique_ptr<GraphicEQ>(new GraphicEQ( 2, f, samplerate));
-
-        tone_in_params.low  = 220;
-        tone_in_params.high = 830;
-
-        tone_in_params.gains[0] = 1;//1.81f;
-        tone_in_params.gains[1] = 1;//2.26f;
-        tone_in_params.gains[2] = 1;//1.17f;
-
-        tone_out_params.low  = 246;
-        tone_out_params.high = 622;
-
-        tone_out_params.gains[0] = 1;//1.31f;
-        tone_out_params.gains[1] = 1;//2.02f;
-        tone_out_params.gains[2] = 1;//1.63f;
+//        
+//        // Setup Equalizer, Param used here are not important
+//        float f[] = {100, 1000};
+//        tone_in  = std::unique_ptr<GraphicEQ>(new GraphicEQ( 2, f, samplerate));
+//        tone_out = std::unique_ptr<GraphicEQ>(new GraphicEQ( 2, f, samplerate));
+//
+//        tone_in_params.low  = 220;
+//        tone_in_params.high = 830;
+//
+//        tone_in_params.gains[0] = 1;//1.81f;
+//        tone_in_params.gains[1] = 1;//2.26f;
+//        tone_in_params.gains[2] = 1;//1.17f;
+//
+//        tone_out_params.low  = 246;
+//        tone_out_params.high = 622;
+//
+//        tone_out_params.gains[0] = 1;//1.31f;
+//        tone_out_params.gains[1] = 1;//2.02f;
+//        tone_out_params.gains[2] = 1;//1.63f;
+//        
     }
     
     float shape, softness;
     
     float gain, volume;
-    int samplerate;
-    
-    std::unique_ptr<GraphicEQ> tone_in, tone_out;
-    
-    GEQ_3Bands_Params tone_in_params, tone_out_params;
     
     float seuil, shoot, knee, pout;
 };
@@ -78,25 +72,25 @@ Module::ShortInfo function_register_module_info(void)
     return Module::ShortInfo(UNIQUE_NAME, NAME, VERSION);
 }
 
-#ifdef __ARCH_LINUX__
+#ifdef __SFX_PI__
 extern "C"
 void* function_create_jack_module(EffectUnit* effect)
 {
     effect->registerAudioInput("Input");
     effect->registerAudioOutput("Output");
             
-    return new DistortionDatas(jack_get_sample_rate(effect->getClient()));
+    return new DistortionDatas();
 }
-#endif
-
+#else
 extern "C"
 void* function_create_non_jack_module(EffectUnit* effect)
 {
     effect->registerAudioInput("Input");
     effect->registerAudioOutput("Output");
             
-    return new DistortionDatas(48000);
+    return new DistortionDatas();
 }
+#endif
 
 extern "C"
 void function_destroy_module(void* datas)
@@ -180,87 +174,87 @@ Module::SlotTable function_register_module_slots(void)
         // Input Filter
         /////////////////////////////////////////////////////////////
         
-     Module::register_slot(table, 57, "in_lowcut", "In Lowcut", [](sfx::hex_t val, EffectUnit* effect)
-        {
-            if (val < 128)
-            {
-                float res = sfx::mapfm_freq(val);
-                ((DistortionDatas*)effect->getDatas())->tone_in_params.low = res;
-                ((DistortionDatas*)effect->getDatas())->tone_in->setFrequency(0, res, jack_get_sample_rate(effect->getClient()));
-            }
-            return ((DistortionDatas*)effect->getDatas())->tone_in_params.low;
-        });
-     Module::register_slot(table, 79, "in_highcut", "In Highcut", [](sfx::hex_t val, EffectUnit* effect)
-        {
-            if (val < 128)
-            {
-                float res = sfx::mapfm_freq(val);
-                ((DistortionDatas*)effect->getDatas())->tone_in_params.high = res;
-                ((DistortionDatas*)effect->getDatas())->tone_in->setFrequency(1, res, jack_get_sample_rate(effect->getClient()));
-            }
-            return ((DistortionDatas*)effect->getDatas())->tone_in_params.high;
-        });
-    Module::register_slot(table, 75, "in_lowgain", "In Lowgain", [](sfx::hex_t val, EffectUnit* effect)
-        {
-            if (val < 128)
-                ((DistortionDatas*)effect->getDatas())->tone_in_params.gains[0] = sfx::mapfm_db(val, -30, 30);
-            return ((DistortionDatas*)effect->getDatas())->tone_in_params.gains[0];
-        });
-    Module::register_slot(table, 80, "in_midgain", "In Midgain", [](sfx::hex_t val, EffectUnit* effect)
-        {
-            if (val < 128)
-                ((DistortionDatas*)effect->getDatas())->tone_in_params.gains[1] = sfx::mapfm_db(val, -30, 30);
-            return ((DistortionDatas*)effect->getDatas())->tone_in_params.gains[1];
-        });
-    Module::register_slot(table, 87, "in_highgain", "In Highgain", [](sfx::hex_t val, EffectUnit* effect)
-        {
-            if (val < 128)
-                ((DistortionDatas*)effect->getDatas())->tone_in_params.gains[2] = sfx::mapfm_db(val, -30, 30);
-            return ((DistortionDatas*)effect->getDatas())->tone_in_params.gains[2];
-        });
+//     Module::register_slot(table, 57, "in_lowcut", "In Lowcut", [](sfx::hex_t val, EffectUnit* effect)
+//        {
+//            if (val < 128)
+//            {
+//                float res = sfx::mapfm_freq(val);
+//                ((DistortionDatas*)effect->getDatas())->tone_in_params.low = res;
+//                ((DistortionDatas*)effect->getDatas())->tone_in->setFrequency(0, res, jack_get_sample_rate(effect->getClient()));
+//            }
+//            return ((DistortionDatas*)effect->getDatas())->tone_in_params.low;
+//        });
+//     Module::register_slot(table, 79, "in_highcut", "In Highcut", [](sfx::hex_t val, EffectUnit* effect)
+//        {
+//            if (val < 128)
+//            {
+//                float res = sfx::mapfm_freq(val);
+//                ((DistortionDatas*)effect->getDatas())->tone_in_params.high = res;
+//                ((DistortionDatas*)effect->getDatas())->tone_in->setFrequency(1, res, jack_get_sample_rate(effect->getClient()));
+//            }
+//            return ((DistortionDatas*)effect->getDatas())->tone_in_params.high;
+//        });
+//    Module::register_slot(table, 75, "in_lowgain", "In Lowgain", [](sfx::hex_t val, EffectUnit* effect)
+//        {
+//            if (val < 128)
+//                ((DistortionDatas*)effect->getDatas())->tone_in_params.gains[0] = sfx::mapfm_db(val, -30, 30);
+//            return ((DistortionDatas*)effect->getDatas())->tone_in_params.gains[0];
+//        });
+//    Module::register_slot(table, 80, "in_midgain", "In Midgain", [](sfx::hex_t val, EffectUnit* effect)
+//        {
+//            if (val < 128)
+//                ((DistortionDatas*)effect->getDatas())->tone_in_params.gains[1] = sfx::mapfm_db(val, -30, 30);
+//            return ((DistortionDatas*)effect->getDatas())->tone_in_params.gains[1];
+//        });
+//    Module::register_slot(table, 87, "in_highgain", "In Highgain", [](sfx::hex_t val, EffectUnit* effect)
+//        {
+//            if (val < 128)
+//                ((DistortionDatas*)effect->getDatas())->tone_in_params.gains[2] = sfx::mapfm_db(val, -30, 30);
+//            return ((DistortionDatas*)effect->getDatas())->tone_in_params.gains[2];
+//        });
         
         /////////////////////////////////////////////////////////////
         // Output Filter
         /////////////////////////////////////////////////////////////
              
-    Module::register_slot(table, 59, "out_lowcut", "Out Lowcut", [](sfx::hex_t val, EffectUnit* effect)->float
-        {
-            if (val < 128)
-            {
-                float res = sfx::mapfm_freq(val);
-                ((DistortionDatas*)effect->getDatas())->tone_out_params.low = res;
-                ((DistortionDatas*)effect->getDatas())->tone_out->setFrequency(0, res, jack_get_sample_rate(effect->getClient()));
-            }
-            return ((DistortionDatas*)effect->getDatas())->tone_out_params.low;
-        });
-    Module::register_slot(table, 75, "out_highcut", "Out Highcut", [](sfx::hex_t val, EffectUnit* effect)->float
-        {
-            if (val < 128)
-            {
-                float res = sfx::mapfm_freq(val);
-                ((DistortionDatas*)effect->getDatas())->tone_out_params.high = res;
-                ((DistortionDatas*)effect->getDatas())->tone_out->setFrequency(1, res, jack_get_sample_rate(effect->getClient()));
-            }
-            return ((DistortionDatas*)effect->getDatas())->tone_out_params.high;
-        });
-    Module::register_slot(table, 69, "out_lowgain", "Out Lowgain", [](sfx::hex_t val, EffectUnit* effect)->float
-        {
-            if (val < 128)
-                ((DistortionDatas*)effect->getDatas())->tone_out_params.gains[0] = sfx::mapfm_db(val, -30, 30);
-            return ((DistortionDatas*)effect->getDatas())->tone_out_params.gains[0];
-        });
-    Module::register_slot(table, 78, "out_midgain", "Out Midgain", [](sfx::hex_t val, EffectUnit* effect)->float
-        {
-            if (val < 128)
-                ((DistortionDatas*)effect->getDatas())->tone_out_params.gains[1] = sfx::mapfm_db(val, -30, 30);
-            return ((DistortionDatas*)effect->getDatas())->tone_out_params.gains[1];
-        });
-    Module::register_slot(table, 73, "out_highgain", "Out Highgain", [](sfx::hex_t val, EffectUnit* effect)->float
-        {
-            if (val < 128)
-                ((DistortionDatas*)effect->getDatas())->tone_out_params.gains[2] = sfx::mapfm_db(val, -30, 30);
-            return ((DistortionDatas*)effect->getDatas())->tone_out_params.gains[2];
-        });
+//    Module::register_slot(table, 59, "out_lowcut", "Out Lowcut", [](sfx::hex_t val, EffectUnit* effect)->float
+//        {
+//            if (val < 128)
+//            {
+//                float res = sfx::mapfm_freq(val);
+//                ((DistortionDatas*)effect->getDatas())->tone_out_params.low = res;
+//                ((DistortionDatas*)effect->getDatas())->tone_out->setFrequency(0, res, jack_get_sample_rate(effect->getClient()));
+//            }
+//            return ((DistortionDatas*)effect->getDatas())->tone_out_params.low;
+//        });
+//    Module::register_slot(table, 75, "out_highcut", "Out Highcut", [](sfx::hex_t val, EffectUnit* effect)->float
+//        {
+//            if (val < 128)
+//            {
+//                float res = sfx::mapfm_freq(val);
+//                ((DistortionDatas*)effect->getDatas())->tone_out_params.high = res;
+//                ((DistortionDatas*)effect->getDatas())->tone_out->setFrequency(1, res, jack_get_sample_rate(effect->getClient()));
+//            }
+//            return ((DistortionDatas*)effect->getDatas())->tone_out_params.high;
+//        });
+//    Module::register_slot(table, 69, "out_lowgain", "Out Lowgain", [](sfx::hex_t val, EffectUnit* effect)->float
+//        {
+//            if (val < 128)
+//                ((DistortionDatas*)effect->getDatas())->tone_out_params.gains[0] = sfx::mapfm_db(val, -30, 30);
+//            return ((DistortionDatas*)effect->getDatas())->tone_out_params.gains[0];
+//        });
+//    Module::register_slot(table, 78, "out_midgain", "Out Midgain", [](sfx::hex_t val, EffectUnit* effect)->float
+//        {
+//            if (val < 128)
+//                ((DistortionDatas*)effect->getDatas())->tone_out_params.gains[1] = sfx::mapfm_db(val, -30, 30);
+//            return ((DistortionDatas*)effect->getDatas())->tone_out_params.gains[1];
+//        });
+//    Module::register_slot(table, 73, "out_highgain", "Out Highgain", [](sfx::hex_t val, EffectUnit* effect)->float
+//        {
+//            if (val < 128)
+//                ((DistortionDatas*)effect->getDatas())->tone_out_params.gains[2] = sfx::mapfm_db(val, -30, 30);
+//            return ((DistortionDatas*)effect->getDatas())->tone_out_params.gains[2];
+//        });
     
     return table;
 }
@@ -371,7 +365,7 @@ float gradiant_v1(float valeur, float seuil)
     return out;
  }
 
-#ifdef __ARCH_LINUX__
+#ifdef __SFX_PI__
 extern "C"
 int function_process_callback(jack_nframes_t nframes, void* arg)
 {
@@ -417,13 +411,13 @@ int function_process_callback(jack_nframes_t nframes, void* arg)
             }
         }
 
-        out[i] = disto->tone_in->compute(in[i], 3, disto->tone_in_params.gains);
+        //out[i] = disto->tone_in->compute(in[i], 3, disto->tone_in_params.gains);
         
-        out[i] *= disto->gain;
+        out[i] = in[i] * disto->gain;
         out[i] = (1 - disto->shape)*tanh( out[i] ) + disto->shape*tanh( out[i] / disto->softness );
         //out[i] = tanh(clip_gradiant_v1(out[i], disto->seuil, disto->gain, disto->shoot, disto->knee));//, disto->pout);
         
-        out[i] = disto->volume * disto->tone_out->compute(out[i], 3, disto->tone_out_params.gains);
+        out[i] *= disto->volume;//* disto->tone_out->compute(out[i], 3, disto->tone_out_params.gains);
     }
     
     return 0;

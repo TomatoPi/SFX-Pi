@@ -1,0 +1,4 @@
+modules/natifs/TapTempo.so
+modules/gain/Distortion.so
+modules/midi/Polysynth.so
+modules/filtre/Tonestack_3.so
