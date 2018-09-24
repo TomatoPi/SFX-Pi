@@ -12,8 +12,9 @@ ifdef RELEASE
     CXXFLAGS += -O3 -DNDEBUG
 endif
 
-SFX-Pi : SFXPI := 0
-SFX-Pe : SFXPE := 0
+SFX-Pi : SFXPI = 0
+	
+SFX-Pe : SFXPE = 0
 	
 ifdef SFXPI
     CXXFLAGS += -D__SFX_PI__
@@ -21,7 +22,7 @@ ifdef SFXPI
 else ifdef SFXPE
     CXXFLAGS += -D__SFX_PE__
 else
-    $(error Use make SFX-Pi or SFX-Pe to compile process environement or the editor\nUse make Modules SFXPI=0 or SFXPE=0 to compile modules for Process or Editor Environement)
+    $(error Use make SFX-Pi or SFX-Pe to compile process environement or the editor || Use make Modules SFXPI=0 or SFXPE=0 to compile modules for Process or Editor Environement)
 endif
 
 ifdef UNIX
@@ -180,7 +181,7 @@ Pe_LIB = $(Ker_All_LIB)
 ########################################################################
 ##   	                         RULES		                          ##
 ########################################################################
-Modules : Pi_dirs $(Mod_All_LIB) $(Lib_All_LIB)
+Modules : Pi_dirs $(Lib_All_LIB) $(Mod_All_LIB)
 	
 SFX-Pi: obj/SFXPi.o $(Pi_OBJ) $(Pi_LIB)
 	$(CXX) -o $@ $^ $(LDFLAGS) $(Pi_LDFLAGS)
@@ -212,22 +213,22 @@ $(Ker_Cmd_OBJ): $(Ker_Cmd_SRC)
 $(Mod_Tempo_LIB) : $(Mod_Tempo_SRC)
 	$(CXX) $(LIBFLAG) $(CXXFLAGS) -o $@ $^
 	
-$(Mod_Disto_LIB) : $(Mod_Disto_SRC) src/noyau/modules/ModuleBase.h src/noyau/utils.h
+$(Mod_Disto_LIB) : $(Mod_Disto_SRC)
 	$(CXX) $(LIBFLAG) $(CXXFLAGS) -o $@ $^
 	
-$(Mod_Midi_LIB) : $(Mod_Midi_SRC) $(Lib_Env_ADSR_SRC) src/noyau/modules/ModuleBase.h src/noyau/utils.h
-	$(CXX) $(LIBFLAG) $(CXXFLAGS) -o $@ $^ $(Lib_Env_ADSR_LIB)
+$(Mod_Midi_LIB) : $(Mod_Midi_SRC) $(Lib_Env_ADSR_LIB)
+	$(CXX) $(LIBFLAG) $(CXXFLAGS) -o $@ $^
 	
-$(Mod_Temps_LIB) : $(Mod_Temps_SRC) $(Lib_Buffer_SRC)
-	$(CXX) $(LIBFLAG) $(CXXFLAGS) -o $@ $^ $(Lib_Buffer_LIB)
+$(Mod_Temps_LIB) : $(Mod_Temps_SRC) $(Lib_Buffer_LIB)
+	$(CXX) $(LIBFLAG) $(CXXFLAGS) -o $@ $^
 	
 $(Mod_Modulation_LIB) : $(Mod_Modulation_SRC)
 	$(CXX) $(LIBFLAG) $(CXXFLAGS) -o $@ $^
 	
-$(Mod_Filter_3Tone_LIB) : $(Mod_Filter_3Tone_SRC) $(Lib_Filter_GEQ_SRC) src/noyau/modules/ModuleBase.h src/noyau/utils.h
-	$(CXX) $(LIBFLAG) $(CXXFLAGS) -o $@ $^ $(Lib_Filter_GEQ_LIB)
+$(Mod_Filter_3Tone_LIB) : $(Mod_Filter_3Tone_SRC) $(Lib_Filter_GEQ_LIB)
+	$(CXX) $(LIBFLAG) $(CXXFLAGS) -o $@ $^
 	
-$(Mod_System_SFX_LIB) : $(Mod_System_SFX_SRC)  src/noyau/modules/ModuleBase.h src/noyau/utils.h
+$(Mod_System_SFX_LIB) : $(Mod_System_SFX_SRC)
 	$(CXX) $(LIBFLAG) $(CXXFLAGS) -o $@ $^
 	
 ###### Librairies ######
